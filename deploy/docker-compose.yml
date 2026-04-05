@@ -1,0 +1,88 @@
+# PEACOCK ENGINE - Docker Compose Configuration
+# Alternative deployment method using Docker
+
+version: '3.8'
+
+services:
+  peacock-engine:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: peacock-engine
+    restart: unless-stopped
+    
+    # Environment variables
+    env_file:
+      - ../.env
+    
+    # Port mapping (only for direct access, use Caddy/nginx for production)
+    # ports:
+    #   - "127.0.0.1:3099:3099"
+    
+    # Volumes for persistence
+    volumes:
+      - peacock-data:/app/data
+      - peacock-vault:/app/vault
+      - peacock-logs:/app/logs
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3099/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # Caddy reverse proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: peacock-caddy
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+      - peacock-logs:/var/log/caddy
+    
+    depends_on:
+      peacock-engine:
+        condition: service_healthy
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  peacock-data:
+  peacock-vault:
+  peacock-logs:
+  caddy-data:
+  caddy-config:
+
+networks:
+  default:
+    driver: bridge
