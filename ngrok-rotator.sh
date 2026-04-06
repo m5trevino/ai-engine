@@ -107,13 +107,18 @@ start_ngrok() {
     echo "Token: ${token:0:15}..."
     echo ""
     
-    # Configure ngrok with current token
-    ngrok config add-authtoken "$token" 2>/dev/null || true
+    # Kill any existing ngrok
+    pkill -x ngrok 2>/dev/null || true
+    sleep 1
+    
+    # Configure ngrok with current token (show output for debugging)
+    echo "Configuring ngrok..."
+    ngrok config add-authtoken "$token"
     
     log_rotation "$token" "STARTED"
     
     # Start ngrok in background
-    ngrok http $PORT --log=stdout > /tmp/ngrok.log 2>&1 &
+    ngrok http $PORT > /tmp/ngrok.log 2>&1 &
     NGROK_PID=$!
     
     # Wait for tunnel
