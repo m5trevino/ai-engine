@@ -1,0 +1,21 @@
+# 🦚 PEACOCK ENGINE - Render Deployment Config
+# Auto-deploys on every git push to main/master branch
+
+services:
+  - type: web
+    name: peacock-engine
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m app.main
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        value: 10000
+      # Add your API keys in Render dashboard under Environment Variables
+      # GROQ_KEYS
+      # GOOGLE_KEYS  
+      # DEEPSEEK_KEYS
+      # MISTRAL_KEYS
+    autoDeploy: true  # Deploy on every git push
+    branch: master    # Deploy from this branch
