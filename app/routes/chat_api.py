@@ -256,11 +256,12 @@ async def generate_chat_stream(
         
         # Send done event
         duration = (time.time() - start_time) * 1000
-        yield f"data: {json.dumps({
+        done_data = {
             'event': 'done',
             'duration_ms': duration,
             'usage': {'total_tokens': token_count}
-        })}\n\n"
+        }
+        yield f"data: {json.dumps(done_data)}\n\n"
         
     except Exception as e:
         yield f"data: {json.dumps({'event': 'error', 'error': str(e)})}\n\n"
