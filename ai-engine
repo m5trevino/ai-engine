@@ -2,9 +2,15 @@
 # 🦚 AI-ENGINE CLI WRAPPER
 # Automatically uses the project's VENV to ensure all dependencies are met.
 
-# Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$SCRIPT_DIR"
+# Get the actual script location (resolve symlinks)
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT_SOURCE" ]; do
+    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+    SCRIPT_SOURCE="$(readlink "$SCRIPT_SOURCE")"
+    [[ $SCRIPT_SOURCE != /* ]] && SCRIPT_SOURCE="$SCRIPT_DIR/$SCRIPT_SOURCE"
+done
+PROJECT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+
 PYTHON_BIN="$PROJECT_DIR/.venv/bin/python3"
 SCRIPT_PATH="$PROJECT_DIR/ai-engine.py"
 
