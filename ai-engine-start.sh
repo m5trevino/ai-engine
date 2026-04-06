@@ -291,11 +291,13 @@ cat > frontend/public/peacock.html << 'HTMLEOF'
 </html>
 HTMLEOF
 
-# Replace placeholders with actual URL
+# Replace placeholders with actual URL in all redirect files
 sed -i "s|NGROK_URL_PLACEHOLDER|$NGROK_URL|g" frontend/public/peacock.html
+sed -i "s|NGROK_URL_PLACEHOLDER|$NGROK_URL|g" frontend/public/engine.html
+sed -i "s|NGROK_URL_PLACEHOLDER|$NGROK_URL|g" frontend/public/ui.html
 
-# Commit and push
-git add frontend/public/peacock.html
+# Commit and push all redirect files
+git add frontend/public/peacock.html frontend/public/engine.html frontend/public/ui.html
 git commit -m "Update PEACOCK ENGINE portal - $(date '+%Y-%m-%d %H:%M')" || true
 git push origin master 2>&1 | head -5
 
@@ -306,9 +308,9 @@ echo -e "${GREEN}║              🦚 PEACOCK ENGINE IS LIVE!                 �
 echo -e "${GREEN}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${CYAN}🔗 Access Points:${NC}"
-echo -e "  ${YELLOW}API:${NC}  $NGROK_URL/v1/chat"
-echo -e "  ${YELLOW}UI:${NC}   $NGROK_URL/static/chat.html"
-echo -e "  ${YELLOW}Portal:${NC} https://save-aichats.com/peacock"
+echo -e "  ${YELLOW}Portal:${NC}  https://save-aichats.com/peacock"
+echo -e "  ${YELLOW}API:${NC}     https://save-aichats.com/engine  → $NGROK_URL/v1/chat"
+echo -e "  ${YELLOW}WebUI:${NC}   https://save-aichats.com/ui     → $NGROK_URL/static/chat.html"
 echo ""
 echo -e "${CYAN}📊 Stats:${NC}"
 echo -e "  • Engine PID: $ENGINE_PID"
