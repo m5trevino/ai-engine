@@ -17,10 +17,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_FILE="$SCRIPT_DIR/.ngrok-rotator-state"
 LOG_FILE="$SCRIPT_DIR/ngrok-rotation.log"
 TOKENS=(
-    "cr_2zWWZOntNCK55Drl38IZqWz7IJU"
-    "cr_3BxpsaJNAd8hs62krAlkqILRB9S"
-    "cr_3Bxq5YK4iOEhnnl8HwePU4PUta1"
-    "cr_3BxqIJFhMeLc6Q3cL4xy7Ow4maq"
+    "3BxpsaJNAd8hs62krAlkqILRB9S_uqmLxVc9jHA739QKT1EV"
+    "2zWWZOntNCK55Drl38IZqWz7IJU_QJm7wFr7gKLY3xT3UyS5"
+    "3By0BlamjQ5P0O2qxnHLDEH5v7s_avWjX3SopPJmTXUGfcKt"
+    "3By0JRe9Srm0x7ZCAV3ikEQ7ACw_2StrnqUV9A1N7mcKV8pNn"
+    "3Bxq5YK4iOEhnnl8HwePU4PUta1_qy4vRe1mFrHtiaHxi6S9"
+    "3By0WfupZBq34tJ2dSHvsiU3j82_5QLqWPKimwd8SidnmoVzc"
 )
 PORT=3099
 
