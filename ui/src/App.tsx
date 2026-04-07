@@ -47,7 +47,7 @@ import {
   Lock,
   UserCog
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PeacockAPI, PeacockWS, type ModelConfig, type KeyTelemetry } from './lib/api';
 
 type Screen = 'DASHBOARD' | 'ANALYTICS' | 'LOGS' | 'DEPLOYMENT' | 'SYSTEM';

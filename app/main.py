@@ -9,7 +9,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 import os
 
 # Import all route modules
@@ -49,13 +49,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files for chat UI (if enabled)
-chat_ui_enabled = os.getenv("CHAT_UI_ENABLED", "false").lower() == "true"
-if chat_ui_enabled:
-    try:
-        app.mount("/static", StaticFiles(directory="app/static"), name="static")
-    except Exception as e:
-        CLIFormatter.warning(f"Could not mount static files: {e}")
+# Mount static files - the Vite-built UI
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+else:
+    CLIFormatter.warning(f"Static directory not found: {static_dir}")
 
 from app.routes.onboarding import router as onboarding_router
 from app.routes.dashboard import router as dashboard_router
@@ -86,9 +85,8 @@ app.include_router(keys_api_router, prefix="/v1/webui/keys", tags=["WEBUI_KEYS"]
 app.include_router(chat_api_router, prefix="/v1/webui/chat", tags=["WEBUI_CHAT"])
 app.include_router(tokens_router, prefix="/v1/tokens", tags=["TOKENS"])
 
-# Include chat UI routes if enabled
-if chat_ui_enabled:
-    app.include_router(chat_ui_router, prefix="/chat/api", tags=["CHAT_UI"])
+# Include chat UI routes
+app.include_router(chat_ui_router, prefix="/chat/api", tags=["CHAT_UI"])
 
 
 @app.get("/health")
@@ -105,7 +103,7 @@ async def health():
             "mistral": len(MistralPool.deck)
         },
         "features": {
-            "chat_ui": chat_ui_enabled,
+            "chat_ui": True,
             "key_tracking": True,
             "generic_endpoint": True
         }
@@ -114,40 +112,44 @@ async def health():
 
 @app.get("/")
 async def root():
-    """Root endpoint with links to documentation."""
-    return {
-        "message": "🦚 PEACOCK ENGINE V3 is ONLINE",
-        "docs": "/v1/docs/endpoints",
-        "health": "/health",
-        "chat": "/v1/chat" if chat_ui_enabled else "Enable CHAT_UI_ENABLED in .env",
-        "version": "3.0.0"
-    }
+    """Root endpoint - redirect to the Vite-built UI."""
+    return RedirectResponse(url="/ui")
 
 
-# Chat UI route (if enabled)
-if chat_ui_enabled:
-    @app.get("/chat", response_class=HTMLResponse)
-    async def chat_ui():
-        """Serve the chat UI."""
-        chat_html_path = os.path.join(os.path.dirname(__file__), "static", "chat.html")
-        if os.path.exists(chat_html_path):
-            with open(chat_html_path, "r") as f:
-                return f.read()
-        else:
-            return HTMLResponse(content="<h1>Chat UI not found</h1>", status_code=404)
+@app.get("/ui", response_class=HTMLResponse)
+async def chat_ui():
+    """Serve the Vite-built chat UI."""
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r") as f:
+            return f.read()
+    return HTMLResponse(
+        content="<h1>UI not built</h1><p>Run 'cd ui && npm install && npm run build' to build the WebUI</p>",
+        status_code=404
+    )
+
+
+@app.get("/chat", response_class=HTMLResponse)
+async def chat_redirect():
+    """Redirect /chat to /ui for backwards compatibility."""
+    return RedirectResponse(url="/ui")
 
 
 @app.get("/{full_path:path}")
 async def catch_all(full_path: str):
-    """Catch-all for SPA routing."""
+    """Catch-all for SPA routing - serves the Vite app for any non-API path."""
     # Skip API routes and static files
     if full_path.startswith("v1/") or full_path.startswith("static/") or "." in full_path:
         return HTMLResponse(content="Not Found", status_code=404)
-        
-    index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    
+    # Serve the Vite app's index.html for all other routes (SPA routing)
+    index_path = os.path.join(static_dir, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    return HTMLResponse(content="<h1>UI NOT BUILT</h1><p>Run npm run build in /ui</p>", status_code=404)
+    return HTMLResponse(
+        content="<h1>UI NOT BUILT</h1><p>Run 'cd ui && npm install && npm run build' to build the WebUI</p>",
+        status_code=404
+    )
 
 
 # Startup event
@@ -159,7 +161,13 @@ async def startup_event():
     CLIFormatter.success(f"Google Pool: {len(GooglePool.deck)} keys")
     CLIFormatter.success(f"DeepSeek Pool: {len(DeepSeekPool.deck)} keys")
     CLIFormatter.success(f"Mistral Pool: {len(MistralPool.deck)} keys")
-    CLIFormatter.info(f"Chat UI: {'Enabled' if chat_ui_enabled else 'Disabled'}")
+    
+    # Check if UI is built
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.exists(index_path):
+        CLIFormatter.success("WebUI: Built and available at /ui")
+    else:
+        CLIFormatter.warning("WebUI: Not built (run 'cd ui && npm run build')")
     print()
 
 

@@ -54,16 +54,16 @@ cat > "$SAVE_AICHATS_DIR/frontend/public/engine.html" << HTML
 </html>
 HTML
 
-# Create UI Redirect (Meta Refresh)
+# Create UI Redirect (Meta Refresh) - goes to /ui for Vite app
 cat > "$SAVE_AICHATS_DIR/frontend/public/ui.html" << HTML
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="refresh" content="0; url=$NGROK_URL/">
+    <meta http-equiv="refresh" content="0; url=$NGROK_URL/ui">
     <title>Redirecting to Peacock UI...</title>
 </head>
 <body>
-    <p>Redirecting to <a href="$NGROK_URL/">Peacock UI</a>...</p>
+    <p>Redirecting to <a href="$NGROK_URL/ui">Peacock UI</a>...</p>
 </body>
 </html>
 HTML
@@ -263,13 +263,13 @@ cat > "$SAVE_AICHATS_DIR/frontend/public/peacock.html" << HTML
         </div>
 
         <div class="grid">
-            <a href="$NGROK_URL/" class="card">
+            <a href="$NGROK_URL/ui" class="card">
                 <span class="card-icon">💎</span>
                 <h2>Masterpiece UI</h2>
                 <p>The premium chat interface with real-time telemetry, model rotation, and advanced diagnostics.</p>
                 <div class="card-meta">
                     <span>LIVE SPA</span>
-                    <span>NGROK → ROOT</span>
+                    <span>NGROK → /ui</span>
                 </div>
             </a>
 
