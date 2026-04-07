@@ -75,8 +75,10 @@ app/AGENT_ONBOARDING.md
 app/TACTICAL_COMMAND.md
 
 # === CLEANUP: Data/logs ===
-vault/failed/
-vault/successful/
+vault/
+*.log
+peacock.db
+peacock-engine-legacy.zip
 *_probe_results.json
 striker_status.json
 all_skills_metadata.json
