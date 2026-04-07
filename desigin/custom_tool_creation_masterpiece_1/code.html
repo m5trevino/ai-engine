@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PEACOCK ENGINE - Custom Tool Creation</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Inter:wght@400;500&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffe16b",
+                        "primary-fixed-dim": "#aac7ff",
+                        "error": "#ffb4ab",
+                        "outline": "#8e909a",
+                        "tertiary-fixed-dim": "#7ad0ff",
+                        "on-surface-variant": "#c4c6d0",
+                        "on-secondary-container": "#524400",
+                        "surface-tint": "#aac7ff",
+                        "surface-container-high": "#262a2f",
+                        "surface-bright": "#363a3e",
+                        "outline-variant": "#43474f",
+                        "on-tertiary-fixed": "#001e2c",
+                        "primary-container": "#aac7ff",
+                        "on-secondary-fixed": "#221b00",
+                        "surface-container": "#1c2024",
+                        "on-secondary": "#3a3000",
+                        "on-primary-fixed": "#001b3e",
+                        "on-tertiary": "#003549",
+                        "inverse-on-surface": "#2d3135",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "primary-fixed": "#d6e3ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#181c20",
+                        "primary": "#d6e2ff",
+                        "on-primary-container": "#355283",
+                        "surface-container-highest": "#31353a",
+                        "on-primary-fixed-variant": "#284777",
+                        "surface": "#101418",
+                        "inverse-surface": "#e0e3e8",
+                        "background": "#101418",
+                        "on-surface": "#e0e3e8",
+                        "error-container": "#93000a",
+                        "surface-dim": "#101418",
+                        "on-background": "#e0e3e8",
+                        "tertiary-fixed": "#c3e8ff",
+                        "secondary": "#f0cd2d",
+                        "on-error": "#690005",
+                        "on-primary": "#0c305f",
+                        "surface-container-lowest": "#0b0f12",
+                        "on-secondary-fixed-variant": "#544600",
+                        "tertiary-container": "#79d0ff",
+                        "surface-variant": "#31353a",
+                        "tertiary": "#c2e7ff",
+                        "secondary-fixed-dim": "#e7c423",
+                        "secondary-container": "#d2b100",
+                        "inverse-primary": "#415f90",
+                        "on-tertiary-container": "#005979"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .gold-glow {
+            filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.4));
+        }
+        .kinetic-focus:focus-within {
+            border-bottom-color: #aac7ff !important;
+            box-shadow: 0 4px 12px -4px rgba(170, 199, 255, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #101418; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #43474f; }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 left-0 w-full z-50 px-6 flex justify-between items-center h-16 bg-[#181c20] border-none">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-[#aac7ff] tracking-tighter font-headline">PEACOCK ENGINE</span>
+<div class="hidden md:flex gap-1 h-16 items-center">
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">DASHBOARD</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">ANALYTICS</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase border-b-2 border-[#aac7ff] text-[#aac7ff] h-full flex items-center" href="#">LOGS</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">DEPLOYMENT</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#aac7ff] cursor-pointer p-2 hover:bg-[#363a3e]">settings</span>
+<span class="material-symbols-outlined text-[#aac7ff] cursor-pointer p-2 hover:bg-[#363a3e]">notifications_active</span>
+<div class="w-8 h-8 bg-surface-container-highest flex items-center justify-center">
+<img alt="User System Operator" class="w-full h-full object-cover" data-alt="Close-up portrait of a technical system operator in a dimly lit server room with blue ambient light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeqMNB2Y4J6A8RKZkOQ2-V96LGNWHhQ3W9AI-iwGTjD7BWY8G5LAqr0Z0Z_wJe_cAtRZ_RyVPvav0neT3JXGfV-dedamyZPNe6d-3hym7KRzKb81UQo3X4Z5EF63l1C2Cttoy4yyB-lljf_3C2Vs3aVLflCLMM2FOjpD-Lj8tl9dHk7mkM5MGUJp1qRCqUVdZqdYb4iM06rGj2E6WSBC0WBL-yxcZ5OVIyowknnfAuc1vt9ixRsyczN95k4MSdtp0WjjZiTMeqwHz0"/>
+</div>
+</div>
+</nav>
+<!-- Side Navigation Bar -->
+<aside class="w-64 h-full fixed left-0 top-16 bg-[#181c20] flex flex-col py-4 z-40">
+<div class="px-6 mb-8">
+<h2 class="font-headline text-lg font-bold text-[#ffdb3c]">OPERATOR-01</h2>
+<p class="font-mono text-[10px] text-gray-500 tracking-widest">PRECISION-LEVEL-4</p>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="flex items-center gap-3 px-6 py-3 bg-[#1c2024] text-[#aac7ff] border-l-4 border-[#aac7ff] cursor-pointer">
+<span class="material-symbols-outlined text-sm">memory</span>
+<span class="text-sm font-medium">Engine Status</span>
+</div>
+<div class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-sm">extension</span>
+<span class="text-sm font-medium">Core Modules</span>
+</div>
+<div class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-sm">hub</span>
+<span class="text-sm font-medium">Network Mesh</span>
+</div>
+<div class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-sm">database</span>
+<span class="text-sm font-medium">Storage Nodes</span>
+</div>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full bg-[#ffdb3c] text-[#0c305f] py-3 font-headline font-bold text-xs tracking-widest gold-glow hover:opacity-90 transition-all">INITIALIZE SEQUENCE</button>
+</div>
+</aside>
+<!-- Main Content Area (Background) -->
+<main class="ml-64 mt-16 p-8 min-h-screen">
+<div class="grid grid-cols-3 gap-6 opacity-40">
+<!-- Background Grid Cards to show through modal -->
+<div class="bg-surface-container h-48 p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-mono text-[10px] text-primary">MODULE_0X_7A</span>
+<div class="w-[6px] h-[6px] bg-[#00C851]"></div>
+</div>
+<div class="font-headline text-xl">Latency Monitor</div>
+<div class="font-mono text-[10px] text-gray-500">PING: 0.002ms</div>
+</div>
+<div class="bg-surface-container h-48 p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-mono text-[10px] text-primary">CORE_SYNC</span>
+<div class="w-[6px] h-[6px] bg-[#00C851]"></div>
+</div>
+<div class="font-headline text-xl">Process Uplink</div>
+<div class="font-mono text-[10px] text-gray-500">BANDWIDTH: 1.2GB/s</div>
+</div>
+<div class="bg-surface-container h-48 p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="font-mono text-[10px] text-primary">SECURITY_V1</span>
+<div class="w-[6px] h-[6px] bg-[#ffdb3c]"></div>
+</div>
+<div class="font-headline text-xl">Vault Protocol</div>
+<div class="font-mono text-[10px] text-gray-500">ENCRYPTION: AES-256</div>
+</div>
+<div class="bg-surface-container h-48 p-6 flex flex-col justify-between">
+<div class="font-headline text-xl">Asset Database</div>
+</div>
+<div class="bg-surface-container h-48 p-6 flex flex-col justify-between">
+<div class="font-headline text-xl">Cluster Health</div>
+</div>
+<div class="bg-surface-container h-48 p-6 flex flex-col justify-between">
+<div class="font-headline text-xl">Log Streamer</div>
+</div>
+</div>
+</main>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-[60] flex items-center justify-center bg-[#101418]/60 backdrop-blur-[12px] p-6">
+<div class="w-full max-w-3xl bg-[#262a2f]/60 backdrop-blur-[12px] shadow-2xl overflow-hidden flex flex-col border-none">
+<!-- Modal Header -->
+<div class="px-8 py-6 flex justify-between items-center bg-surface-container-highest/20 border-b border-outline-variant/10">
+<div>
+<h2 class="font-headline text-2xl font-medium tracking-tight text-white">CUSTOM TOOL CREATION</h2>
+<p class="font-mono text-[10px] text-primary-fixed-dim uppercase tracking-[0.2em] mt-1">ENGINEERING_OVERRIDE_ACTIVE</p>
+</div>
+<button class="text-outline hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+</div>
+<!-- Form Content -->
+<div class="p-8 space-y-8 custom-scrollbar overflow-y-auto max-h-[716px]">
+<div class="grid grid-cols-2 gap-8">
+<!-- Name Input -->
+<div class="flex flex-col gap-2 kinetic-focus border-b border-[#414753]/30 py-2">
+<label class="font-headline text-[10px] font-medium uppercase tracking-widest text-outline">TOOL_NAME</label>
+<input class="bg-transparent border-none focus:ring-0 p-0 text-primary-fixed-dim font-mono placeholder:text-gray-700 text-sm" placeholder="E.G. VECTOR_PARSER_V1" type="text"/>
+</div>
+<!-- Endpoint Input -->
+<div class="flex flex-col gap-2 kinetic-focus border-b border-[#414753]/30 py-2">
+<label class="font-headline text-[10px] font-medium uppercase tracking-widest text-outline">ENDPOINT_URL</label>
+<input class="bg-transparent border-none focus:ring-0 p-0 text-primary-fixed-dim font-mono placeholder:text-gray-700 text-sm" placeholder="https://api.peacock.internal/v4/..." type="text"/>
+</div>
+</div>
+<!-- Description -->
+<div class="flex flex-col gap-2 kinetic-focus border-b border-[#414753]/30 py-2">
+<label class="font-headline text-[10px] font-medium uppercase tracking-widest text-outline">TECHNICAL_DESCRIPTION</label>
+<textarea class="bg-transparent border-none focus:ring-0 p-0 text-primary-fixed-dim font-mono placeholder:text-gray-700 text-sm resize-none" placeholder="DEFINE THE OPERATIONAL PARAMETERS FOR THIS CUSTOM COMPONENT..." rows="2"></textarea>
+</div>
+<!-- Headers Section -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-headline text-[10px] font-medium uppercase tracking-widest text-outline">AUTHORIZATION_HEADERS</label>
+<button class="text-[#ffdb3c] font-mono text-[10px] hover:underline">+ ADD_HEADER</button>
+</div>
+<div class="space-y-2">
+<div class="grid grid-cols-[1fr,1.5fr,40px] gap-4 items-center">
+<div class="bg-surface-container-lowest/50 p-3 border-b border-[#414753]/30">
+<input class="w-full bg-transparent border-none focus:ring-0 p-0 text-[10px] font-mono text-primary uppercase" type="text" value="X-API-KEY"/>
+</div>
+<div class="bg-surface-container-lowest/50 p-3 border-b border-[#414753]/30">
+<input class="w-full bg-transparent border-none focus:ring-0 p-0 text-[10px] font-mono text-white" type="password" value="********"/>
+</div>
+<button class="text-error/60 hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg">delete_outline</span>
+</button>
+</div>
+<div class="grid grid-cols-[1fr,1.5fr,40px] gap-4 items-center opacity-60">
+<div class="bg-surface-container-lowest/50 p-3 border-b border-[#414753]/30">
+<input class="w-full bg-transparent border-none focus:ring-0 p-0 text-[10px] font-mono text-primary" type="text" value="Content-Type"/>
+</div>
+<div class="bg-surface-container-lowest/50 p-3 border-b border-[#414753]/30">
+<input class="w-full bg-transparent border-none focus:ring-0 p-0 text-[10px] font-mono text-white" type="text" value="application/json"/>
+</div>
+<button class="text-error/60 hover:text-error transition-colors">
+<span class="material-symbols-outlined text-lg">delete_outline</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Advanced Params Grid -->
+<div class="grid grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest/30 p-4 border-l border-primary/20">
+<div class="font-headline text-[9px] text-outline mb-1">TIMEOUT</div>
+<div class="font-mono text-xs text-white">5000MS</div>
+</div>
+<div class="bg-surface-container-lowest/30 p-4 border-l border-primary/20">
+<div class="font-headline text-[9px] text-outline mb-1">RETRY_LIMIT</div>
+<div class="font-mono text-xs text-white">03</div>
+</div>
+<div class="bg-surface-container-lowest/30 p-4 border-l border-[#00C851]/20">
+<div class="font-headline text-[9px] text-outline mb-1">CACHING</div>
+<div class="font-mono text-xs text-[#00C851]">ENABLED</div>
+</div>
+<div class="bg-surface-container-lowest/30 p-4 border-l border-error/20">
+<div class="font-headline text-[9px] text-outline mb-1">LOGGING</div>
+<div class="font-mono text-xs text-white">VERBOSE</div>
+</div>
+</div>
+</div>
+<!-- Footer Action -->
+<div class="px-8 py-6 bg-surface-container-highest/40 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<div class="w-[6px] h-[6px] bg-[#00C851] gold-glow"></div>
+<span class="font-mono text-[9px] text-outline uppercase tracking-widest">VALID_CONFIGURATION_DETECTED</span>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 font-headline font-bold text-xs tracking-widest text-outline border border-outline-variant/20 hover:bg-white/5 transition-all">ABORT_SEQUENCE</button>
+<button class="px-10 py-3 bg-[#ffdb3c] text-[#0c305f] font-headline font-bold text-xs tracking-widest gold-glow active:scale-95 transition-all">DEPLOY CUSTOM TOOL</button>
+</div>
+</div>
+</div>
+</div>
+<!-- System Footer -->
+<footer class="h-8 w-full fixed bottom-0 left-0 bg-[#0a0f13] flex items-center justify-between px-4 z-50">
+<span class="font-mono text-[10px] text-gray-600 uppercase tracking-widest">PEACOCK ENGINE v4.2.0-STABLE</span>
+<div class="flex gap-6">
+<a class="font-mono text-[10px] text-gray-600 uppercase tracking-widest hover:text-[#ffdb3c]" href="#">SYS_LOG</a>
+<a class="font-mono text-[10px] text-gray-600 uppercase tracking-widest hover:text-[#ffdb3c]" href="#">ERR_MONITOR</a>
+<a class="font-mono text-[10px] text-gray-600 uppercase tracking-widest hover:text-[#ffdb3c]" href="#">API_DOCS</a>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-[#00C851]"></div>
+<span class="font-mono text-[10px] text-[#ffdb3c] font-bold">SYSTEM_ONLINE</span>
+</div>
+</footer>
+</body></html>

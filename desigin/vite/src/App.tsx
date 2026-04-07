@@ -47,8 +47,8 @@ import {
   Lock,
   UserCog
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PeacockAPI, PeacockWS, type ModelConfig, type KeyTelemetry } from './lib/api';
+import { motion, AnimatePresence } from 'motion/react';
+import { generateResponse } from './lib/gemini';
 
 type Screen = 'DASHBOARD' | 'ANALYTICS' | 'LOGS' | 'DEPLOYMENT' | 'SYSTEM';
 type SubScreen = 'ENGINE_STATUS' | 'CORE_MODULES' | 'NETWORK_MESH' | 'STORAGE_NODES' | 'SECURITY_PROTOCOL' | 'SYSTEM_ADMIN';
@@ -57,49 +57,6 @@ export default function App() {
   const [activeScreen, setActiveScreen] = useState<Screen>('DASHBOARD');
   const [activeSubScreen, setActiveSubScreen] = useState<SubScreen>('CORE_MODULES');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
-  const [models, setModels] = useState<Record<string, ModelConfig[]>>({});
-  const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash-lite");
-  const [keys, setKeys] = useState<KeyTelemetry[]>([]);
-  const [sessionUsage, setSessionUsage] = useState({ tokens: 0, cost: 0 });
-  const modelMenuRef = useRef<HTMLDivElement>(null);
-
-  // Initial Data Load
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const modelData = await PeacockAPI.getModels();
-        setModels(modelData);
-        
-        const keyData = await PeacockAPI.getKeyUsage();
-        setKeys(keyData);
-      } catch (e) {
-        console.error("Failed to load initial engine data", e);
-      }
-    };
-    init();
-
-    // Refresh telemetry every 30s
-    const timer = setInterval(async () => {
-      try {
-        const keyData = await PeacockAPI.getKeyUsage();
-        setKeys(keyData);
-      } catch (e) {}
-    }, 30000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Close model menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target as Node)) {
-        setIsModelMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [modelMenuRef]);
 
   const handleSubScreenClick = (sub: SubScreen) => {
     setActiveSubScreen(sub);
@@ -127,53 +84,12 @@ export default function App() {
           </nav>
         </div>
         <div className="flex items-center gap-6">
-          <div className="relative" ref={modelMenuRef} style={{ zIndex: 9999 }}>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsModelMenuOpen(!isModelMenuOpen);
-              }}
-              className="bg-surface-container flex items-center gap-3 px-4 py-2 hover:bg-surface-bright transition-all active:scale-95 border border-outline-variant/10"
-            >
+          <div className="relative z-50">
+            <button className="bg-surface-container flex items-center gap-3 px-4 py-2 hover:bg-surface-bright transition-all active:scale-95">
               <Bolt className="text-secondary w-4 h-4" />
-              <span className="font-label text-xs tracking-widest uppercase">{selectedModel}</span>
-              <Settings className={`w-3 h-3 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`} />
+              <span className="font-label text-xs tracking-widest uppercase">PEACOCK-V4-O-ULTRA</span>
+              <Settings className="w-3 h-3" />
             </button>
-            
-            {isModelMenuOpen && (
-              <div 
-                className="absolute right-0 top-full mt-2 w-80 bg-surface-container-high border border-outline-variant shadow-2xl max-h-[70vh] overflow-y-auto no-scrollbar"
-                style={{ zIndex: 10000 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="p-4 space-y-4">
-                  {Object.keys(models).length === 0 ? (
-                    <div className="text-xs text-outline uppercase tracking-widest p-2">Loading models...</div>
-                  ) : (
-                    Object.entries(models).map(([gateway, gatewayModels]) => (
-                      <div key={gateway} className="space-y-1">
-                        <div className="text-[10px] font-bold text-outline uppercase tracking-[0.2em] mb-2 px-2 border-l-2 border-secondary/50">{gateway} GATEWAY</div>
-                        {(gatewayModels as ModelConfig[]).map((m) => (
-                          <button
-                            key={m.id}
-                            onClick={() => {
-                              setSelectedModel(m.id);
-                              setIsModelMenuOpen(false);
-                            }}
-                            className={`w-full text-left px-3 py-2 text-xs font-label uppercase tracking-widest transition-all flex justify-between items-center ${
-                              selectedModel === m.id ? 'bg-secondary text-on-secondary' : 'hover:bg-surface-bright text-on-surface-variant'
-                            }`}
-                          >
-                            <span className="truncate mr-2">{m.id}</span>
-                            <span className="text-[9px] opacity-60 shrink-0">{m.tier.toUpperCase()}</span>
-                          </button>
-                        ))}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
           </div>
           <div className="flex items-center gap-4">
             <button className="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
@@ -268,26 +184,17 @@ export default function App() {
           <AnimatePresence mode="wait">
             {activeScreen === 'DASHBOARD' && (
               <motion.div key="dashboard" className="flex-1 flex overflow-hidden">
-                <Dashboard 
-                  selectedModel={selectedModel} 
-                  sessionUsage={sessionUsage} 
-                  setSessionUsage={setSessionUsage} 
-                />
+                <Dashboard />
               </motion.div>
             )}
             {activeScreen === 'ANALYTICS' && (
               <motion.div key="analytics" className="flex-1 flex overflow-hidden">
-                <AnalyticsScreen keys={keys} />
+                <AnalyticsScreen />
               </motion.div>
             )}
             {activeScreen === 'LOGS' && (
               <motion.div key="logs" className="flex-1 flex overflow-hidden">
-                <LogsScreen 
-                  models={models} 
-                  selectedModel={selectedModel} 
-                  setSelectedModel={setSelectedModel} 
-                  onOpenModal={() => setIsModalOpen(true)} 
-                />
+                <LogsScreen onOpenModal={() => setIsModalOpen(true)} />
               </motion.div>
             )}
             {activeScreen === 'DEPLOYMENT' && (
@@ -320,11 +227,11 @@ export default function App() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] text-outline uppercase tracking-widest">SESSION_TOKENS:</span>
-            <span className="font-mono text-[10px] text-primary font-bold">{sessionUsage.tokens.toLocaleString()}</span>
+            <span className="font-mono text-[10px] text-primary font-bold">1.2M</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-[10px] text-outline uppercase tracking-widest">BILLING_TOTAL:</span>
-            <span className="font-mono text-[10px] text-secondary font-bold">${sessionUsage.cost.toFixed(2)}</span>
+            <span className="font-mono text-[10px] text-secondary font-bold">$0.42</span>
           </div>
           <div className="h-3 w-[1px] bg-outline-variant/30"></div>
           <span className="font-mono text-[10px] text-outline-variant uppercase tracking-widest">PEACOCK ENGINE v4.2.0-STABLE</span>
@@ -365,7 +272,7 @@ function LogEntry({ time, status, message }: { time: string, status: 'OK' | 'ERR
   );
 }
 
-function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedModel: string, sessionUsage: { tokens: number, cost: number }, setSessionUsage: React.Dispatch<React.SetStateAction<{ tokens: number, cost: number }>> }) {
+function Dashboard() {
   const [messages, setMessages] = useState<{ role: 'user' | 'model', content: string, time: string }[]>([
     { 
       role: 'model', 
@@ -376,7 +283,12 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const wsRef = useRef<PeacockWS | null>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() || isGenerating) return;
@@ -385,50 +297,19 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
     setInput('');
     const time = new Date().toLocaleTimeString([], { hour12: false });
     
-    // Add user message
-    const userMessageObj = { role: 'user' as const, content: userMsg, time };
-    setMessages(prev => [...prev, userMessageObj]);
+    setMessages(prev => [...prev, { role: 'user', content: userMsg, time }]);
     setIsGenerating(true);
 
-    // Initial AI placeholder for streaming
-    const aiMessageId = Date.now();
-    setMessages(prev => [...prev, { role: 'model', content: "", time: new Date().toLocaleTimeString([], { hour12: false }) }]);
+    const history = messages.map(m => ({
+      role: m.role,
+      parts: [{ text: m.content }]
+    }));
 
-    if (!wsRef.current) {
-      wsRef.current = new PeacockWS(
-        (chunk) => {
-          setMessages(prev => {
-            const last = [...prev];
-            last[last.length - 1].content = chunk;
-            return last;
-          });
-        },
-        (error) => {
-          setIsGenerating(false);
-          setMessages(prev => [...prev, { role: 'model', content: `ERROR: ${error}`, time: new Date().toLocaleTimeString([], { hour12: false }) }]);
-        },
-        (full, usage) => {
-          setIsGenerating(false);
-          if (usage) {
-            setSessionUsage(prev => ({
-              tokens: prev.tokens + (usage.total_tokens || 0),
-              cost: prev.cost + (usage.cost || 0)
-            }));
-          }
-        }
-      );
-    }
-
-    try {
-      if (wsRef.current) {
-        // Simple sequential connection logic for now
-        await wsRef.current.connect(selectedModel);
-        wsRef.current.sendPrompt(userMsg);
-      }
-    } catch (e) {
-      setIsGenerating(false);
-      setMessages(prev => [...prev, { role: 'model', content: "ERROR: NEURAL_LINK_STABILITY_FAILURE", time: new Date().toLocaleTimeString([], { hour12: false }) }]);
-    }
+    const response = await generateResponse(userMsg, history);
+    const aiTime = new Date().toLocaleTimeString([], { hour12: false });
+    
+    setMessages(prev => [...prev, { role: 'model', content: response || "ERROR: NO_RESPONSE", time: aiTime }]);
+    setIsGenerating(false);
   };
 
   return (
@@ -528,12 +409,12 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-surface-container p-4">
-                <div className="text-[10px] text-outline-variant font-label uppercase mb-1">Session Tokens</div>
-                <div className="font-mono text-xl text-primary font-medium tracking-tight">{sessionUsage.tokens.toLocaleString()}</div>
+                <div className="text-[10px] text-outline-variant font-label uppercase mb-1">Current Tokens</div>
+                <div className="font-mono text-xl text-primary font-medium tracking-tight">1,204,852</div>
               </div>
               <div className="bg-surface-container p-4">
                 <div className="text-[10px] text-outline-variant font-label uppercase mb-1">Session Cost</div>
-                <div className="font-mono text-xl text-secondary font-medium tracking-tight">${sessionUsage.cost.toFixed(3)}</div>
+                <div className="font-mono text-xl text-secondary font-medium tracking-tight">$0.42</div>
               </div>
             </div>
           </section>
@@ -817,7 +698,7 @@ function Toggle({ active }: { active: boolean }) {
   );
 }
 
-function AnalyticsScreen({ keys }: { keys: KeyTelemetry[] }) {
+function AnalyticsScreen() {
   return (
     <div className="p-8 space-y-8 overflow-y-auto no-scrollbar w-full">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 gap-6">
@@ -826,9 +707,9 @@ function AnalyticsScreen({ keys }: { keys: KeyTelemetry[] }) {
           <p className="text-outline font-label text-[10px] tracking-widest uppercase">SECURE_GATEWAY_AUTH_CONTROL_PANEL_v4.2.0</p>
         </div>
         <div className="flex flex-wrap gap-4">
-          <MetricCard label="TOTAL_KEYS" value={keys.length.toString()} color="primary" />
-          <MetricCard label="HEALTHY_NODES" value={keys.filter(k => k.success_rate > 90).length.toString()} color="success" dot />
-          <MetricCard label="TELEMETRY_STATUS" value="LIVE" color="secondary" />
+          <MetricCard label="TOTAL_KEYS" value="24" color="primary" />
+          <MetricCard label="HEALTHY_NODES" value="21" color="success" dot />
+          <MetricCard label="EST_COST_MTD" value="$1,402.82" color="secondary" />
           <button className="bg-secondary text-on-secondary px-6 h-full flex items-center justify-center font-bold text-[10px] tracking-[0.15em] hover:opacity-90 active:scale-95 transition-all gold-glow uppercase py-4">
             <Add className="mr-2 w-4 h-4" /> ADD NEW KEY
           </button>
@@ -837,17 +718,41 @@ function AnalyticsScreen({ keys }: { keys: KeyTelemetry[] }) {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {keys.map((k) => (
-            <ApiKeyCard 
-              key={k.account}
-              name={k.account} 
-              id={k.gateway.toUpperCase()} 
-              keyStr="sk-••••••••••••••••" 
-              usage={k.total_tokens % 100} 
-              latency={k.last_used.split('T')[1]?.split('.')[0] || "N/A"} 
-              status={k.success_rate > 90 ? 'healthy' : 'warning'}
-            />
-          ))}
+          <ApiKeyCard 
+            name="Google Vertex AI" 
+            id="G-9021" 
+            keyStr="sk-••••••••••••v9X0" 
+            usage={65} 
+            latency="124ms" 
+            status="healthy"
+          />
+          <ApiKeyCard 
+            name="Groq Inference" 
+            id="Q-4412" 
+            keyStr="gsk-••••••••••••kM21" 
+            usage={12} 
+            latency="14ms" 
+            status="healthy"
+            icon={<Bolt className="w-5 h-5 text-secondary" />}
+          />
+          <ApiKeyCard 
+            name="Anthropic Claude" 
+            id="A-0019" 
+            keyStr="ant-••••••••••••f8LL" 
+            usage={100} 
+            latency="04:12:00" 
+            status="error"
+            icon={<Psychology className="w-5 h-5 text-primary" />}
+          />
+          <ApiKeyCard 
+            name="OpenAI GPT-4" 
+            id="O-1150" 
+            keyStr="sk-••••••••••••pW2a" 
+            usage={88} 
+            latency="452ms" 
+            status="warning"
+            icon={<Token className="w-5 h-5 text-primary" />}
+          />
           <div className="bg-surface-container/20 border border-dashed border-outline-variant/30 flex flex-col items-center justify-center min-h-[200px] gap-2 opacity-50 hover:opacity-100 transition-all group cursor-pointer">
             <AddCircle className="w-6 h-6 text-outline group-hover:text-primary" />
             <span className="text-[10px] font-label text-outline uppercase tracking-widest">Provision New Slot</span>
@@ -972,7 +877,7 @@ function ProgressBar({ label, value, color }: { label: string, value: number, co
   );
 }
 
-function LogsScreen({ models, selectedModel, setSelectedModel, onOpenModal }: { models: Record<string, ModelConfig[]>, selectedModel: string, setSelectedModel: (m: string) => void, onOpenModal: () => void }) {
+function LogsScreen({ onOpenModal }: { onOpenModal: () => void }) {
   return (
     <div className="flex flex-col h-full overflow-hidden w-full">
       <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -989,21 +894,10 @@ function LogsScreen({ models, selectedModel, setSelectedModel, onOpenModal }: { 
         </div>
 
         <div className="divide-y divide-outline-variant/10">
-          {Object.entries(models).flatMap(([gateway, gatewayModels]) => 
-            gatewayModels.map((m) => (
-              <ModelRow 
-                key={m.id}
-                name={m.id.split('/').pop()?.toUpperCase() || m.id.toUpperCase()} 
-                uuid={m.id} 
-                status={m.tier === 'deprecated' ? 'FROZEN_STATE' : 'ACTIVE_NODE'} 
-                context={m.tpm > 500000 ? "1M" : "128K"} 
-                price={`$${(m.rpd / 10000).toFixed(4)}`} 
-                color={m.tier === 'free' ? '#00C851' : m.tier === 'expensive' ? '#ff9a00' : '#00BFFF'} 
-                isDefault={m.id === selectedModel}
-                onClick={() => setSelectedModel(m.id)}
-              />
-            ))
-          )}
+          <ModelRow name="STRATOS-ALPHA-9" uuid="8F2D-99X1-L4PA" status="ACTIVE_NODE" context="128K" price="$0.0015" color="#00C851" isDefault />
+          <ModelRow name="NEBULA-ARCH-VI" uuid="4A1C-77B2-K9MM" status="FROZEN_STATE" context="32K" price="$0.0004" color="#00BFFF" />
+          <ModelRow name="QUANTUM-O1-PREVIEW" uuid="22E1-44P9-Q7XT" status="ACTIVE_NODE" context="1M" price="$0.0120" color="#00C851" />
+          <ModelRow name="PHOENIX-LITE" uuid="FF00-DE44-X001" status="ERROR_OFFLINE" context="8K" price="$0.0001" color="#ffb4ab" />
         </div>
       </div>
 
@@ -1084,13 +978,9 @@ function LogsScreen({ models, selectedModel, setSelectedModel, onOpenModal }: { 
   );
 }
 
-function ModelRow({ name, uuid, status, context, price, color, isDefault, onClick }: { name: string, uuid: string, status: string, context: string, price: string, color: string, isDefault?: boolean, onClick: () => void }) {
+function ModelRow({ name, uuid, status, context, price, color, isDefault }: { name: string, uuid: string, status: string, context: string, price: string, color: string, isDefault?: boolean }) {
   return (
-    <div 
-      onClick={onClick}
-      className={`grid grid-cols-12 px-8 py-4 bg-background border-l-2 hover:bg-surface-container-high transition-colors group cursor-pointer`}
-      style={{ borderLeftColor: color }}
-    >
+    <div className={`grid grid-cols-12 px-8 py-4 bg-background border-l-2 hover:bg-surface-container-high transition-colors group cursor-pointer`} style={{ borderLeftColor: color }}>
       <div className="col-span-5 flex items-center gap-4">
         <div className="w-1.5 h-1.5 rounded-none" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}80` }}></div>
         <div>
