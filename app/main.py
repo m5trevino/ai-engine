@@ -9,7 +9,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 import os
 
 # Import all route modules
@@ -135,6 +135,19 @@ if chat_ui_enabled:
                 return f.read()
         else:
             return HTMLResponse(content="<h1>Chat UI not found</h1>", status_code=404)
+
+
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    """Catch-all for SPA routing."""
+    # Skip API routes and static files
+    if full_path.startswith("v1/") or full_path.startswith("static/") or "." in full_path:
+        return HTMLResponse(content="Not Found", status_code=404)
+        
+    index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return HTMLResponse(content="<h1>UI NOT BUILT</h1><p>Run npm run build in /ui</p>", status_code=404)
 
 
 # Startup event
