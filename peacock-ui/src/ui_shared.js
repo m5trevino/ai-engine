@@ -40,7 +40,7 @@ export const ui = {
      * Connects to the Live Wire telemetry stream.
      */
     startLiveWire() {
-        const terminal = document.querySelector('.technical-live-wire, .live-ticker-preview');
+        const terminal = document.getElementById('live-wire-terminal') || document.querySelector('.technical-live-wire');
         if (!terminal) return;
 
         // For now, simulating if the endpoint isn't ready
@@ -70,7 +70,7 @@ export const ui = {
      */
     setupNavigation() {
         // Wire "FIRE IT UP" audit button
-        const auditBtns = document.querySelectorAll('button:contains("FIRE IT UP"), .gold-glow-audit');
+        const auditBtns = document.querySelectorAll('#fire-it-up-btn, .gold-glow-audit');
         auditBtns.forEach(btn => {
             btn.onclick = async () => {
                 console.log("PEACOCK_ENGINE: INITIATING_FLEET_AUDIT...");

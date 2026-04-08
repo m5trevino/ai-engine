@@ -142,31 +142,17 @@
 <span class="material-symbols-outlined text-sm">add_circle</span>
 </button>
 </div>
-<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<div id="chat-history-container" class="flex-1 overflow-y-auto px-2 space-y-1">
 <div class="px-3 py-2 text-[10px] text-outline font-label uppercase tracking-[0.2em] mb-2">CHAT HISTORY</div>
-<button class="w-full bg-surface-container text-primary border-l-4 border-primary px-3 py-3 text-left transition-all">
-<div class="font-headline text-xs font-medium tracking-tight truncate">SYSTEM_OPTIMIZATION_V3</div>
-<div class="font-label text-[9px] text-outline-variant mt-1">2m ago • 4.2k tokens</div>
-</button>
-<button class="w-full hover:bg-surface-container-high px-3 py-3 text-left transition-all text-on-surface-variant">
-<div class="font-headline text-xs font-medium tracking-tight truncate">DATABASE_MESH_REPAIR</div>
-<div class="font-label text-[9px] text-outline-variant mt-1">1h ago • 12k tokens</div>
-</button>
-<button class="w-full hover:bg-surface-container-high px-3 py-3 text-left transition-all text-on-surface-variant">
-<div class="font-headline text-xs font-medium tracking-tight truncate">PING_SPIKE_ANALYSIS</div>
-<div class="font-label text-[9px] text-outline-variant mt-1">4h ago • 856 tokens</div>
-</button>
-<button class="w-full hover:bg-surface-container-high px-3 py-3 text-left transition-all text-on-surface-variant">
-<div class="font-headline text-xs font-medium tracking-tight truncate">CORE_MODULE_UPGRADE</div>
-<div class="font-label text-[9px] text-outline-variant mt-1">Yesterday • 1.1M tokens</div>
-</button>
+<!-- Conversations will be injected here -->
+</div>
 </div>
 <div class="p-4 bg-surface-container-lowest mt-auto flex flex-col gap-2">
 <div class="flex items-center gap-2 px-2">
 <span class="w-1.5 h-1.5 rounded-full bg-[#00C851]"></span>
 <span class="font-label text-[10px] tracking-widest text-outline uppercase">KEY HOLDER ONLINE</span>
 </div>
-<button class="w-full bg-secondary text-on-secondary font-headline text-xs font-bold py-2 tracking-widest active:scale-95 gold-glow">
+<button id="fire-it-up-btn" class="w-full bg-secondary text-on-secondary font-headline text-xs font-bold py-2 tracking-widest active:scale-95 gold-glow uppercase">
                     FIRE IT UP
                 </button>
 </div>
@@ -174,37 +160,7 @@
 <!-- 2. Center: Chat Thread -->
 <main class="flex-1 flex flex-col relative bg-background">
 <div id="chat-scroller" class="flex-1 overflow-y-auto p-8 space-y-8 max-w-4xl mx-auto w-full">
-<!-- User Message -->
-<div class="flex flex-col items-end gap-3">
-<div class="bg-surface-container-high p-4 max-w-[85%] border-l border-primary/20">
-<p class="text-sm leading-relaxed text-on-surface">Optimize the current SHIP IT strategy for the Peacock Engine Mesh nodes. Focus on reducing PING in the North Atlantic sector and provide a JSON configuration for the load balancer.</p>
-</div>
-<div class="flex items-center gap-2 font-label text-[9px] text-outline uppercase tracking-wider">
-<span>OPERATOR</span> <span class="text-primary-fixed-dim">14:22:01</span>
-</div>
-</div>
-<!-- AI Message -->
-<div class="flex flex-col items-start gap-3">
-<div class="flex items-center gap-3 mb-1">
-<div class="w-6 h-6 bg-primary flex items-center justify-center">
-<span class="material-symbols-outlined text-on-primary text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
-</div>
-<span class="font-headline text-xs font-bold tracking-widest text-primary uppercase">PEACOCK_ENGINE</span>
-</div>
-<div class="bg-surface-container p-5 max-w-[90%] border-l border-secondary/20">
-<p class="text-sm leading-relaxed text-on-surface mb-4">Analysis of the North Atlantic sector (NA-MESH-01) indicates a 15% bottleneck in the TLS handshake layer. I have reconstructed the SHIP IT manifest with prioritized edge routing.</p>
-<div class="bg-surface-container-lowest p-4 font-label text-[13px] text-primary-fixed-dim border-l-2 border-primary-fixed-dim/30 overflow-x-auto">
-<pre class="font-['JetBrains_Mono']"><code>{
-  "node_id": "NA-MESH-01",
-  "routing_policy": "PING_optimized",
-  "threshold": 0.045,
-  "failover": ["EU-MESH-02", "US-EAST-01"]
-}</code></pre>
-</div>
-</div>
-<div class="flex items-center gap-4 font-label text-[9px] text-outline uppercase tracking-wider">
-<span>STABLE_STATE</span> <span class="text-secondary">GEN_TIME: 1.2s</span>
-</div>
+<!-- Real-time chat messages will navigate here -->
 </div>
 </div>
 <!-- Input Area -->
@@ -238,7 +194,7 @@
 <span class="material-symbols-outlined text-xl">mic</span>
 </button>
 </div>
-<button class="bg-gradient-to-br from-primary-fixed-dim to-[#0066cc] text-on-primary font-headline text-xs font-bold px-6 py-2 tracking-widest active:scale-95">
+<button id="send-prompt-btn" class="bg-gradient-to-br from-primary-fixed-dim to-[#0066cc] text-on-primary font-headline text-xs font-bold px-6 py-2 tracking-widest active:scale-95">
                                 SEND PROMPT
                             </button>
 </div>
@@ -258,11 +214,11 @@
 <div class="grid grid-cols-2 gap-4">
 <div class="bg-surface-container p-4">
 <div class="text-[10px] text-outline-variant font-label uppercase mb-1">LOADED TOKE</div>
-<div class="font-['JetBrains_Mono'] text-xl text-primary font-medium tracking-tight">1,204,852</div>
+<div class="font-['JetBrains_Mono'] text-xl text-primary font-medium tracking-tight session-tokens">0</div>
 </div>
 <div class="bg-surface-container p-4">
 <div class="text-[10px] text-outline-variant font-label uppercase mb-1">Session Cost</div>
-<div class="font-['JetBrains_Mono'] text-xl text-secondary font-medium tracking-tight">$0.42</div>
+<div class="font-['JetBrains_Mono'] text-xl text-secondary font-medium tracking-tight session-cost">$0.00</div>
 </div>
 </div>
 </section>
@@ -343,11 +299,11 @@
 <div class="flex items-center gap-6">
 <div class="flex items-center gap-2">
 <span class="font-['JetBrains_Mono'] text-[10px] text-outline uppercase tracking-widest">SESSION_TOKENS:</span>
-<span class="font-['JetBrains_Mono'] text-[10px] text-primary font-bold">1.2M</span>
+<span class="font-['JetBrains_Mono'] text-[10px] text-primary font-bold session-tokens">0</span>
 </div>
 <div class="flex items-center gap-2">
 <span class="font-['JetBrains_Mono'] text-[10px] text-outline uppercase tracking-widest">BILLING_TOTAL:</span>
-<span class="font-['JetBrains_Mono'] text-[10px] text-secondary font-bold">$0.42</span>
+<span class="font-['JetBrains_Mono'] text-[10px] text-secondary font-bold billing-total">$0.00</span>
 </div>
 <div class="h-3 w-[1px] bg-outline-variant/30"></div>
 <span class="font-['JetBrains_Mono'] text-[10px] text-outline-variant uppercase tracking-widest">PEACOCK ENGINE v4.2.0-STABLE</span>

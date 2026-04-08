@@ -16,7 +16,7 @@ export const chat = {
     },
 
     setupEventListeners() {
-        const sendBtn = document.querySelector('button:contains("SEND PROMPT")') || document.querySelector('button.gold-glow');
+        const sendBtn = document.getElementById('send-prompt-btn') || document.querySelector('button.gold-glow');
         const input = document.querySelector('textarea');
         
         if (sendBtn) {

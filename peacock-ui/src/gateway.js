@@ -24,7 +24,7 @@ export const gateway = {
      * Lists all available models from registry.
      */
     async getModels() {
-        const response = await fetch(`${API_BASE}/chat/models`);
+        const response = await fetch(`${API_BASE}/models`);
         return await response.json();
     },
 
@@ -32,7 +32,7 @@ export const gateway = {
      * Lists and audits all keys in the arsenal.
      */
     async getKeys() {
-        const response = await fetch(`${API_BASE}/keys/usage`);
+        const response = await fetch(`${API_BASE}/keys`);
         return await response.json();
     },
 
