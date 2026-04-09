@@ -60,6 +60,46 @@ export const PeacockAPI = {
       console.error("[PeacockAPI] Key Telemetry Fetch Error:", e);
       return [];
     }
+  },
+
+  /** Fetch available ammo files */
+  async getAmmo(): Promise<string[]> {
+    try {
+      const res = await fetch(`${API_BASE}/v1/fs/ammo`);
+      if (!res.ok) throw new Error("Failed to fetch ammo list");
+      return await res.json();
+    } catch (e) {
+      console.error("[PeacockAPI] Ammo Fetch Error:", e);
+      return [];
+    }
+  },
+
+  /** Fetch content of an ammo file */
+  async getAmmoContent(fileName: string): Promise<string> {
+    try {
+      const res = await fetch(`${API_BASE}/v1/fs/ammo/${fileName}`);
+      if (!res.ok) throw new Error("Failed to fetch ammo content");
+      const data = await res.json();
+      return data.content || "";
+    } catch (e) {
+      console.error("[PeacockAPI] Ammo Content Error:", e);
+      return "";
+    }
+  },
+
+  /** Save ammo file content */
+  async saveAmmo(fileName: string, content: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/v1/fs/prompts/ammo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: fileName.replace(/\.[^/.]+$/, ""), content })
+      });
+      return res.ok;
+    } catch (e) {
+      console.error("[PeacockAPI] Ammo Save Error:", e);
+      return false;
+    }
   }
 };
 

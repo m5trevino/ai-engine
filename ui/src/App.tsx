@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Bolt, 
-  Bell as NotificationsActive, 
+  Zap as Bolt,
+  Bell, 
   Settings, 
   PlusCircle as AddCircle, 
   FileText as Description, 
@@ -21,6 +21,7 @@ import {
   Cpu as Memory, 
   Puzzle as Extension, 
   Network as Hub, 
+  ExternalLink as OpenInNew,
   Database, 
   Shield, 
   UserCog as AdminPanelSettings,
@@ -34,25 +35,27 @@ import {
   Calculator as Calculate,
   Code2 as CodeBlocks,
   Share2 as Schema,
-  ExternalLink as OpenInNew,
   X as Close,
   HelpCircle as HelpOutline,
   BookOpen as MenuBook,
   CreditCard as Payments,
+  Activity,
+  FileText,
+  Target,
+  SlidersHorizontal,
   Send,
   Cpu,
-  Activity,
   Layers,
   Server,
   Lock,
   UserCog,
   ChevronRight,
   ChevronLeft,
-  Target,
-  SlidersHorizontal
+  FileText as FileTextIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeacockAPI, PeacockWS, type ModelConfig, type KeyTelemetry } from './lib/api';
+import { SequenceOrchestrator, type StrikeSlot } from './lib/SequenceOrchestrator';
 
 type Screen = 'DASHBOARD' | 'ANALYTICS' | 'LOGS' | 'DEPLOYMENT' | 'SYSTEM';
 type SubScreen = 'ENGINE_STATUS' | 'CORE_MODULES' | 'NETWORK_MESH' | 'STORAGE_NODES' | 'SECURITY_PROTOCOL' | 'SYSTEM_ADMIN';
@@ -79,6 +82,24 @@ export default function App() {
     maxTokens: 2048,
     system: "You are the Peacock Engine, a high-performance AI orchestration unit. Maintain precision and industrial-grade logic."
   });
+  
+  // Tactical Sequence Manifest
+  const [sequenceSlots, setSequenceSlots] = useState(Array(10).fill(null).map((_, i) => ({
+    id: i + 1,
+    modelId: "gemini-2.0-flash-lite",
+    delay: 0,
+    status: 'IDLE',
+    result: null
+  })));
+  const [strikeMode, setStrikeMode] = useState<'BATCH' | 'ULTRA'>('BATCH');
+  const [threads, setThreads] = useState(1);
+  const [isMasterArmed, setIsMasterArmed] = useState(false);
+  
+  // Context Vault
+  const [ammoPile, setAmmoPile] = useState<string[]>([]);
+  const [loadedAmmo, setLoadedAmmo] = useState<string[]>([]);
+  const [isVaultLoading, setIsVaultLoading] = useState(false);
+  const [telemetry, setTelemetry] = useState({ tps: 0, rpm: 0 });
   const modelMenuRef = useRef<HTMLDivElement>(null);
 
   // Initial Data Load
@@ -90,6 +111,9 @@ export default function App() {
         
         const keyData = await PeacockAPI.getKeyUsage();
         setKeys(keyData);
+
+        const ammoData = await PeacockAPI.getAmmo();
+        setAmmoPile(ammoData);
       } catch (e) {
         console.error("Failed to load initial engine data", e);
       }
@@ -121,6 +145,16 @@ export default function App() {
   const handleSubScreenClick = (sub: SubScreen) => {
     setActiveSubScreen(sub);
     setActiveScreen('SYSTEM');
+  };
+
+  const refillAmmoPile = async () => {
+    setIsVaultLoading(true);
+    try {
+      const ammoData = await PeacockAPI.getAmmo();
+      setAmmoPile(ammoData);
+    } finally {
+      setIsVaultLoading(false);
+    }
   };
 
   return (
@@ -193,8 +227,14 @@ export default function App() {
             )}
           </div>
           <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+              className={`p-2 transition-all active:scale-95 ${isRightSidebarOpen ? 'text-primary gold-glow' : 'text-on-surface-variant hover:text-primary'}`}
+            >
+              <Target className="w-5 h-5" />
+            </button>
             <button className="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
-              <NotificationsActive className="w-5 h-5" />
+              <Bell className="w-5 h-5" />
             </button>
             <button className="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
               <Settings className="w-5 h-5" />
@@ -266,7 +306,13 @@ export default function App() {
           </nav>
 
           <div className="p-6 mt-auto space-y-4">
-            <button className="w-full bg-secondary text-on-secondary py-3 text-[10px] font-bold tracking-[0.2em] hover:opacity-90 active:scale-95 transition-all gold-glow uppercase">
+            <button 
+              onClick={() => {
+                setActiveScreen('DASHBOARD');
+                setIsRightSidebarOpen(true);
+              }}
+              className="w-full bg-secondary text-on-secondary py-3 text-[10px] font-bold tracking-[0.2em] hover:opacity-90 active:scale-95 transition-all gold-glow uppercase"
+            >
               INITIALIZE SEQUENCE
             </button>
             <div className="flex flex-col gap-2 pt-4 border-t border-outline-variant/10">
@@ -293,6 +339,23 @@ export default function App() {
                   setGenSettings={setGenSettings}
                   isRightSidebarOpen={isRightSidebarOpen}
                   setIsRightSidebarOpen={setIsRightSidebarOpen}
+                  sequenceSlots={sequenceSlots}
+                  setSequenceSlots={setSequenceSlots}
+                  strikeMode={strikeMode}
+                  setStrikeMode={setStrikeMode}
+                  threads={threads}
+                  setThreads={setThreads}
+                  isMasterArmed={isMasterArmed}
+                  setIsMasterArmed={setIsMasterArmed}
+                  ammoPile={ammoPile}
+                  setAmmoPile={setAmmoPile}
+                  loadedAmmo={loadedAmmo}
+                  setLoadedAmmo={setLoadedAmmo}
+                  refillAmmoPile={refillAmmoPile}
+                  isVaultLoading={isVaultLoading}
+                  telemetry={telemetry}
+                  setTelemetry={setTelemetry}
+                  models={models}
                 />
               </motion.div>
             )}
@@ -393,7 +456,24 @@ function Dashboard({
   genSettings,
   setGenSettings,
   isRightSidebarOpen,
-  setIsRightSidebarOpen
+  setIsRightSidebarOpen,
+  sequenceSlots,
+  setSequenceSlots,
+  strikeMode,
+  setStrikeMode,
+  threads,
+  setThreads,
+  isMasterArmed,
+  setIsMasterArmed,
+  ammoPile,
+  setAmmoPile,
+  loadedAmmo,
+  setLoadedAmmo,
+  refillAmmoPile,
+  isVaultLoading,
+  telemetry,
+  setTelemetry,
+  models
 }: { 
   selectedModel: string, 
   sessionUsage: { tokens: number, cost: number }, 
@@ -401,19 +481,108 @@ function Dashboard({
   genSettings: any,
   setGenSettings: any,
   isRightSidebarOpen: boolean,
-  setIsRightSidebarOpen: any
+  setIsRightSidebarOpen: any,
+  sequenceSlots: any[],
+  setSequenceSlots: (s: any[]) => void,
+  strikeMode: 'BATCH' | 'ULTRA',
+  setStrikeMode: (m: 'BATCH' | 'ULTRA') => void,
+  threads: number,
+  setThreads: (t: number) => void,
+  isMasterArmed: boolean,
+  setIsMasterArmed: (a: boolean) => void,
+  ammoPile: string[],
+  setAmmoPile: (a: string[]) => void,
+  loadedAmmo: string[],
+  setLoadedAmmo: (a: string[]) => void,
+  refillAmmoPile: () => Promise<void>,
+  isVaultLoading: boolean,
+  telemetry: { tps: number, rpm: number },
+  setTelemetry: (t: { tps: number, rpm: number }) => void,
+  models: any
 }) {
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'model', 
-      content: "PEACOCK ENGINE INITIALIZED. NEURAL_LINK_STABLE. STANDING BY FOR OPERATOR COMMANDS.", 
-      time: "14:20:00" 
+      content: "P_E_v4 | NEURAL_LINK_STABLE. STANDING BY FOR PILOT COMMANDS.", 
+      time: new Date().toLocaleTimeString([], { hour12: false })
     }
   ]);
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Prompt Editor State
+  const [editingFile, setEditingFile] = useState<string | null>(null);
+  const [editorContent, setEditorContent] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const openEditor = async (fileName: string) => {
+    setEditingFile(fileName);
+    const content = await PeacockAPI.getAmmoContent(fileName);
+    setEditorContent(content);
+  };
+
+  const savePrompt = async () => {
+    if (!editingFile) return;
+    setIsSaving(true);
+    const success = await PeacockAPI.saveAmmo(editingFile, editorContent);
+    if (success) {
+      setEditingFile(null);
+      refillAmmoPile(); // Sync pile
+    }
+    setIsSaving(false);
+  };
+  
+  // Vault Logic: Move item from Pile to Loaded
+  const loadAmmo = (fileName: string) => {
+    setAmmoPile(ammoPile.filter(f => f !== fileName));
+    setLoadedAmmo([...loadedAmmo, fileName]);
+  };
+  
+  const unloadAmmo = (fileName: string) => {
+    setLoadedAmmo(loadedAmmo.filter(f => f !== fileName));
+    setAmmoPile([...ammoPile, fileName]);
+  };
+
   const wsRef = useRef<PeacockWS | null>(null);
+
+  const launchSequence = async () => {
+    if (!isMasterArmed || isGenerating) return;
+    setIsGenerating(true);
+    
+    try {
+      // 1. Fetch all loaded ammo content for the payload
+      const contents = await Promise.all(
+        loadedAmmo.map(file => PeacockAPI.getAmmoContent(file))
+      );
+      
+      // 2. Initialize Orchestrator
+      const orchestrator = new SequenceOrchestrator(
+        sequenceSlots,
+        threads,
+        strikeMode,
+        genSettings.system,
+        contents,
+        (updatedSlots) => setSequenceSlots(updatedSlots),
+        (usage) => {
+          if (usage) {
+            setSessionUsage((prev: any) => ({
+              tokens: prev.tokens + (usage.total_tokens || 0),
+              cost: prev.cost + (usage.cost || 0)
+            }));
+          }
+        },
+        (tel) => setTelemetry(tel)
+      );
+      
+      await orchestrator.execute();
+      
+    } catch (e) {
+      console.error("[Launch] Sequence Failure", e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isGenerating) return;
@@ -569,22 +738,22 @@ function Dashboard({
       </div>
 
       {/* Right Context Panel - Collapsible */}
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence>
         {isRightSidebarOpen && (
           <motion.aside 
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: 384, opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="bg-surface-container-low shrink-0 flex flex-col border-l border-outline-variant/10 overflow-hidden"
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className="w-[450px] bg-background border-l border-outline-variant/10 shrink-0 h-full flex flex-col z-[50]"
           >
-            <div className="flex flex-col h-full w-[384px] overflow-y-auto no-scrollbar">
-              <div className="p-6 space-y-8">
-                {/* Section A: Strategic Objectives (Goals) */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar no-scrollbar">
+              <div className="p-8 space-y-12">
+                {/* Section A: Strategic Objectives */}
                 <section>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
-                      <Target className="w-3 h-3 text-secondary" /> Strategic Objectives
+                      <Hub className="w-3 h-3 text-secondary" /> Strategic Objectives
                     </h3>
                   </div>
                   <div className="space-y-2">
@@ -595,25 +764,111 @@ function Dashboard({
                   </div>
                 </section>
 
-                {/* Section B: System Protocol (Instructions) */}
-                <section>
-                  <div className="flex items-center justify-between mb-4">
+                {/* Section B: Context Vault (Ammo Pile) */}
+                <section className="pt-6 border-t border-outline-variant/5">
+                  <div className="flex items-center justify-between mb-6">
                     <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
-                      <Terminal className="w-3 h-3 text-primary" /> System Protocol
+                      <Database className="w-3 h-3 text-primary" /> Context Vault
                     </h3>
+                    <button 
+                      onClick={refillAmmoPile}
+                      disabled={isVaultLoading}
+                      className={`text-[9px] font-mono text-primary hover:underline uppercase ${isVaultLoading ? 'opacity-50' : ''}`}
+                    >
+                      {isVaultLoading ? 'REFILLING...' : 'REFILL PILE'}
+                    </button>
                   </div>
-                  <div className="bg-surface-container-lowest p-3 border border-outline-variant/20 kinetic-focus">
-                    <textarea 
-                      value={genSettings.system}
-                      onChange={(e) => setGenSettings({...genSettings, system: e.target.value})}
-                      className="w-full h-32 bg-transparent border-none focus:ring-0 p-0 text-[11px] font-mono text-on-surface-variant placeholder:text-gray-700 resize-none uppercase leading-relaxed"
-                      placeholder="DEFINE GLOBAL OPERATIONAL INSTRUCTIONS..."
-                    />
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="text-[9px] text-outline-variant uppercase mb-2 flex justify-between px-1">
+                        <span>Ammo Pile (Storage)</span>
+                        <span>{ammoPile.length} Assets</span>
+                      </h4>
+                      <div className="bg-surface-container-lowest/30 border border-outline-variant/10 p-2 min-h-[80px] space-y-1 custom-scrollbar max-h-40 overflow-y-auto">
+                        {ammoPile.length === 0 && <div className="text-[10px] text-gray-700 italic p-2 text-center">No assets in pile</div>}
+                        {ammoPile.map(f => (
+                          <div key={f} className="flex items-center justify-between group px-2 py-1.5 hover:bg-surface-container transition-all cursor-pointer border-b border-outline-variant/5 last:border-0">
+                            <span onClick={() => loadAmmo(f)} className="flex-1 text-[10px] font-mono text-on-surface-variant group-hover:text-primary">{f}</span>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span onClick={(e) => { e.stopPropagation(); openEditor(f); }} className="text-[9px] text-outline-variant hover:text-secondary">EDIT</span>
+                              <ChevronRight className="w-3 h-3 text-outline" onClick={() => loadAmmo(f)} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-[9px] text-primary uppercase mb-2 flex justify-between px-1">
+                        <span>Loaded Payload (Active)</span>
+                        <span>{loadedAmmo.length} Loaded</span>
+                      </h4>
+                      <div className="bg-surface-container-lowest p-2 min-h-[80px] space-y-1 border-l-2 border-primary custom-scrollbar max-h-40 overflow-y-auto">
+                        {loadedAmmo.length === 0 && <div className="text-[10px] text-gray-700 italic p-2 text-center">Payload bay empty</div>}
+                        {loadedAmmo.map(f => (
+                          <div key={f} className="flex items-center justify-between group px-2 py-1.5 hover:bg-surface-container-high transition-all cursor-pointer border-b border-primary/5 last:border-0" onClick={() => unloadAmmo(f)}>
+                            <span className="text-[10px] font-mono text-primary font-bold">{f}</span>
+                            <Close className="w-3 h-3 text-outline group-hover:text-error" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </section>
 
-                {/* Section C: Run Settings (Generation) */}
-                <section>
+                {/* Section C: Sequence Striker (10 Slots) */}
+                <section className="pt-6 border-t border-outline-variant/5">
+                   <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
+                      <Target className="w-3 h-3 text-error" /> Sequence Striker
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-sm ${isMasterArmed ? 'bg-error text-on-error gold-glow' : 'bg-surface-container-highest text-outline'} transition-all`}>
+                        {isMasterArmed ? 'MASTER ARM: ON' : 'SYSTEM SAFE'}
+                      </span>
+                      <Toggle active={isMasterArmed} onClick={() => setIsMasterArmed(!isMasterArmed)} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex items-center justify-between bg-surface-container-lowest p-2 border border-outline-variant/10">
+                      <span className="text-[9px] font-mono text-outline uppercase tracking-wider">STRIKE_MODE:</span>
+                      <div className="flex gap-1">
+                         <button onClick={() => setStrikeMode('BATCH')} className={`text-[8px] px-2 py-1 font-bold ${strikeMode === 'BATCH' ? 'bg-secondary text-on-secondary' : 'bg-surface-container-high text-outline-variant hover:text-outline'}`}>BATCH</button>
+                         <button onClick={() => setStrikeMode('ULTRA')} className={`text-[8px] px-2 py-1 font-bold ${strikeMode === 'ULTRA' ? 'bg-error text-on-error gold-glow font-black' : 'bg-surface-container-high text-outline-variant hover:text-outline'}`}>ULTRA</button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between bg-surface-container-lowest p-2 border border-outline-variant/10">
+                      <span className="text-[9px] font-mono text-outline uppercase tracking-wider">THREADS:</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono text-primary font-black">{threads}</span>
+                        <input type="range" min="1" max="10" value={threads} onChange={(e) => setThreads(parseInt(e.target.value))} className="w-24 h-1 bg-surface-container-high accent-primary appearance-none cursor-pointer" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-2 mb-6">
+                     {sequenceSlots.map(slot => (
+                       <div key={slot.id} className={`h-12 flex flex-col items-center justify-center border transition-all ${slot.status === 'ACTIVE' ? 'border-primary bg-primary/10 shadow-[0_0_10px_rgba(170,199,255,0.2)]' : slot.status === 'DONE' ? 'border-secondary bg-secondary/10' : 'border-outline-variant/20 bg-surface-container-lowest'}`}>
+                         <span className="text-[8px] font-mono text-outline mb-1">{slot.id.toString().padStart(2, '0')}</span>
+                         <div className={`w-1.5 h-1.5 ${slot.status === 'ACTIVE' ? 'bg-primary animate-pulse' : slot.status === 'DONE' ? 'bg-secondary' : 'bg-outline-variant/30'}`}></div>
+                       </div>
+                     ))}
+                  </div>
+
+                  <button 
+                    onClick={launchSequence}
+                    disabled={!isMasterArmed || isGenerating}
+                    className={`group relative overflow-hidden w-full py-4 font-headline text-xs font-bold tracking-[0.2em] uppercase transition-all ${isMasterArmed && !isGenerating ? 'bg-error text-on-error gold-glow hover:brightness-110 active:scale-[0.98]' : 'bg-surface-container-highest text-outline cursor-not-allowed opacity-50'}`}
+                  >
+                    <span className="relative z-10">{isGenerating ? 'Engines Engaged...' : 'Launch Strategic Sequence'}</span>
+                    {isMasterArmed && !isGenerating && <motion.div initial={{ x: '-100%' }} animate={{ x: '100%' }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />}
+                  </button>
+                </section>
+
+                {/* Section D: Run Settings */}
+                <section className="pt-6 border-t border-outline-variant/5">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
                       <SlidersHorizontal className="w-3 h-3 text-primary" /> Run Settings
@@ -632,35 +887,82 @@ function Dashboard({
                       min={0} max={1} step={0.01}
                       onChange={(v) => setGenSettings({...genSettings, top_p: v})} 
                     />
-                    <GenerationSlider 
-                      label="Max Tokens" 
-                      value={genSettings.maxTokens} 
-                      min={1} max={32000} step={1}
-                      onChange={(v) => setGenSettings({...genSettings, maxTokens: v})} 
-                    />
                   </div>
                 </section>
 
-                {/* Section D: Operational Intel (Usage) */}
-                <section className="pt-4 border-t border-outline-variant/10">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-surface-container p-4">
-                      <div className="text-[9px] text-outline-variant font-label uppercase mb-1">Session Tokens</div>
-                      <div className="font-mono text-xl text-primary font-medium tracking-tight">
-                        {sessionUsage.tokens.toLocaleString()}
-                      </div>
-                    </div>
-                    <div className="bg-surface-container p-4">
-                      <div className="text-[9px] text-outline-variant font-label uppercase mb-1">Session Cost</div>
-                      <div className="font-mono text-xl text-secondary font-medium tracking-tight">
-                        ${sessionUsage.cost.toFixed(3)}
-                      </div>
-                    </div>
-                  </div>
+                {/* Section E: Pilot Gauges */}
+                <section className="pt-6 border-t border-outline-variant/10">
+                   <div className="grid grid-cols-2 gap-4">
+                     <div className="bg-surface-container-lowest p-4 flex flex-col items-center justify-center border-b-2 border-primary shadow-inner">
+                        <div className="text-[8px] font-mono text-outline uppercase mb-2 tracking-tighter">Token Burn (TPS)</div>
+                        <div className="text-xl font-headline text-primary font-black">{telemetry.tps.toString().padStart(3, '0')}</div>
+                     </div>
+                     <div className="bg-surface-container-lowest p-4 flex flex-col items-center justify-center border-b-2 border-secondary shadow-inner">
+                        <div className="text-[8px] font-mono text-outline uppercase mb-2 tracking-tighter">Pressure (RPM)</div>
+                        <div className="text-xl font-headline text-secondary font-black">{telemetry.rpm.toFixed(1)}</div>
+                     </div>
+                   </div>
                 </section>
               </div>
             </div>
           </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* Prompt Editor Overlay */}
+      <AnimatePresence>
+        {editingFile && (
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="fixed inset-y-0 right-0 w-full md:w-[600px] bg-surface-container-low shadow-2xl z-[60] border-l border-outline-variant/20 flex flex-col"
+          >
+            <div className="p-6 border-b border-outline-variant/10 flex items-center justify-between bg-surface-container-lowest">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-primary/10 flex items-center justify-center">
+                  <FileText className="text-primary w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-headline font-bold text-on-surface uppercase tracking-tighter">Groom Asset</h2>
+                  <p className="text-[10px] font-mono text-outline uppercase tracking-widest">{editingFile}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setEditingFile(null)}
+                className="p-2 text-outline hover:text-error transition-colors"
+              >
+                <Close className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="flex-1 p-6 flex flex-col gap-4">
+              <div className="flex-1 bg-surface-container-lowest border border-outline-variant/10 p-6 kinetic-focus">
+                <textarea 
+                  value={editorContent}
+                  onChange={(e) => setEditorContent(e.target.value)}
+                  className="w-full h-full bg-transparent border-none focus:ring-0 p-0 text-sm font-mono text-on-surface leading-loose resize-none custom-scrollbar"
+                  placeholder="ENGINEER PROMPT CONTENT HERE..."
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setEditingFile(null)}
+                  className="flex-1 py-4 font-headline text-xs font-bold tracking-[0.2em] uppercase border border-outline-variant/30 text-outline hover:bg-surface-bright hover:text-white transition-all"
+                >
+                  Discard Changes
+                </button>
+                <button 
+                  onClick={savePrompt}
+                  disabled={isSaving}
+                  className="flex-[2] py-4 bg-primary text-on-primary font-headline text-xs font-bold tracking-[0.2em] uppercase gold-glow hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  {isSaving ? 'SECURING...' : 'SECURE ASSET'}
+                </button>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
@@ -930,11 +1232,14 @@ function FirewallItem({ label, status }: { label: string, status: string }) {
   );
 }
 
-function Toggle({ active }: { active: boolean }) {
+function Toggle({ active, onClick }: { active: boolean, onClick?: () => void }) {
   return (
-    <div className={`w-10 h-5 rounded-full p-1 transition-all cursor-pointer ${active ? 'bg-primary' : 'bg-outline-variant'}`}>
-      <div className={`w-3 h-3 bg-white rounded-full transition-all ${active ? 'translate-x-5' : 'translate-x-0'}`}></div>
-    </div>
+    <button 
+      onClick={onClick}
+      className={`w-10 h-5 rounded-full relative transition-all ${active ? 'bg-primary' : 'bg-surface-container-highest'}`}
+    >
+      <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${active ? 'left-6' : 'left-1'}`}></div>
+    </button>
   );
 }
 
@@ -1424,14 +1729,17 @@ function SummaryCard({ label, value, subValue, color }: { label: string, value: 
   );
 }
 
+
 function ParameterSlider({ label, value }: { label: string, value: string }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <label className="font-headline text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</label>
-        <span className="font-label text-xs text-primary">{value}</span>
+        <label className="font-headline text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</label>
+        <span className="font-mono text-xs text-primary font-bold">{value}</span>
       </div>
-      <input className="w-full h-1 bg-surface-container-lowest appearance-none cursor-pointer accent-primary" type="range" />
+      <div className="h-1 w-full bg-surface-container-lowest rounded-full overflow-hidden">
+        <div className="h-full bg-primary gold-glow" style={{ width: '70%' }}></div>
+      </div>
     </div>
   );
 }
