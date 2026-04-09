@@ -11,6 +11,7 @@ export interface StrikeSlot {
   delay: number;
   status: 'IDLE' | 'ACTIVE' | 'DONE' | 'ERROR';
   result?: string;
+  customPayload?: string;
 }
 
 export interface PayloadAsset {
@@ -128,15 +129,20 @@ export class SequenceOrchestrator {
     try {
       // Build final payload
       let finalPayloadContent = '';
-      for (const asset of this.payloadAssets) {
-         const instruction = asset.customPrompt && asset.customPrompt.trim() !== '' 
-              ? asset.customPrompt 
-              : this.globalPayloadPrompt;
-         
-         finalPayloadContent += `\n\n--- [ASSET: ${asset.fileName}] ---\n[INSTRUCTION]:\n${instruction}\n\n[CONTENT]:\n${asset.content}`;
+      
+      // Provide custom payload override per slot if Campaign mode dictates it
+      let payload = slot.customPayload;
+      
+      if (!payload) {
+         for (const asset of this.payloadAssets) {
+            const instruction = asset.customPrompt && asset.customPrompt.trim() !== '' 
+                 ? asset.customPrompt 
+                 : this.globalPayloadPrompt;
+            
+            finalPayloadContent += `\n\n--- [ASSET: ${asset.fileName}] ---\n[INSTRUCTION]:\n${instruction}\n\n[CONTENT]:\n${asset.content}`;
+         }
+         payload = `${this.systemPrompt}\n\n[PAYLOAD_BAY]${finalPayloadContent}`;
       }
-
-      const payload = `${this.systemPrompt}\n\n[PAYLOAD_BAY]${finalPayloadContent}`;
       
       // For sequential strikes, we'll use the REST API for easier tracking, 
       // but we could use WS if we wanted streaming per slot.

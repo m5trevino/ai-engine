@@ -722,6 +722,12 @@ function PayloadStrikerScreen({
   const [isGenerating, setIsGenerating] = useState(false);
   const [logs, setLogs] = useState<any[]>([]);
   
+  // Mode Controller
+  const [operationMode, setOperationMode] = useState<'MONOLITHIC' | 'CAMPAIGN'>('MONOLITHIC');
+  const [strikeGroups, setStrikeGroups] = useState<{ id: string, instruction: string, assets: string[] }[]>([{ id: `GROUP_${Math.random().toString(36).substr(2, 5).toUpperCase()}`, instruction: 'Analyze the attached assets.', assets: [] }]);
+  const [activeGroupIndex, setActiveGroupIndex] = useState(0);
+  const [campaignSlots, setCampaignSlots] = useState<any[]>([]);
+
   // Vault Editor State
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [editorContent, setEditorContent] = useState('');
@@ -755,9 +761,23 @@ function PayloadStrikerScreen({
   
   const loadAmmo = (fileName: string) => {
     setAmmoPile(ammoPile.filter((f: string) => f !== fileName));
-    setLoadedAmmo([...loadedAmmo, fileName]);
+    if (operationMode === 'CAMPAIGN') {
+      if (strikeGroups.length === 0) return;
+      const newGroups = [...strikeGroups];
+      newGroups[activeGroupIndex].assets.push(fileName);
+      setStrikeGroups(newGroups);
+    } else {
+      setLoadedAmmo([...loadedAmmo, fileName]);
+    }
   };
   
+  const unloadFromGroup = (groupIndex: number, fileName: string) => {
+    const newGroups = [...strikeGroups];
+    newGroups[groupIndex].assets = newGroups[groupIndex].assets.filter(f => f !== fileName);
+    setStrikeGroups(newGroups);
+    setAmmoPile([...ammoPile, fileName]);
+  };
+
   const unloadAmmo = (fileName: string) => {
     setLoadedAmmo(loadedAmmo.filter((f: string) => f !== fileName));
     setAmmoPile([...ammoPile, fileName]);
@@ -767,31 +787,79 @@ function PayloadStrikerScreen({
     }
   };
 
+  const addStrikeGroup = () => {
+    setStrikeGroups([...strikeGroups, { id: `GROUP_${Math.random().toString(36).substr(2, 5).toUpperCase()}`, instruction: 'New instruction directive.', assets: [] }]);
+    setActiveGroupIndex(strikeGroups.length);
+  };
+
+  const removeStrikeGroup = (id: string) => {
+    const groupToRemove = strikeGroups.find(g => g.id === id);
+    if (groupToRemove && groupToRemove.assets.length > 0) {
+      setAmmoPile([...ammoPile, ...groupToRemove.assets]); // return internal assets to pile
+    }
+    const newGroups = strikeGroups.filter(g => g.id !== id);
+    setStrikeGroups(newGroups);
+    setActiveGroupIndex(Math.max(0, newGroups.length - 1));
+  };
+   
+  const updateGroupInstruction = (id: string, text: string) => {
+    setStrikeGroups(strikeGroups.map(g => g.id === id ? { ...g, instruction: text } : g));
+  };
+
   const launchSequence = async () => {
     if (!isMasterArmed || isGenerating) return;
     setIsGenerating(true);
-    setLogs((prev: any) => [...prev, { time: new Date().toLocaleTimeString(), status: 'INFO', msg: `SEQUENCE INITIATED (${strikeMode} - ${threads} THREADS)`}]);
+    setLogs((prev: any) => [...prev, { time: new Date().toLocaleTimeString(), status: 'INFO', msg: `SEQUENCE INITIATED [${operationMode}] (${strikeMode} - ${threads} THREADS)`}]);
     
     try {
-      const contents = await Promise.all(
-        loadedAmmo.map(async (file: string) => {
-          const content = await PeacockAPI.getAmmoContent(file);
-          return {
-            fileName: file,
-            content: content,
-            customPrompt: payloadOverrides[file] || null
-          };
-        })
-      );
+      let targetSlots = sequenceSlots;
+      let finalContents: any[] = [];
+      let globalPrompt = globalPayloadPrompt;
+
+      if (operationMode === 'MONOLITHIC') {
+        finalContents = await Promise.all(
+          loadedAmmo.map(async (file: string) => {
+            const content = await PeacockAPI.getAmmoContent(file);
+            return { fileName: file, content: content, customPrompt: payloadOverrides[file] || null };
+          })
+        );
+      } else {
+        // CAMPAIGN MODE
+        const dynamicSlots: any[] = [];
+        let slotIdCounter = 1;
+        
+        for (const group of strikeGroups) {
+          for (const file of group.assets) {
+            const content = await PeacockAPI.getAmmoContent(file);
+            const customPayload = `${genSettings.system}\n\n[CAMPAIGN_DIRECTIVE]\n${group.instruction}\n\n[ASSET: ${file}]\n${content}`;
+            
+            dynamicSlots.push({
+              id: slotIdCounter++,
+              modelId: sequenceSlots[0].modelId,
+              delay: 0,
+              status: 'IDLE',
+              customPayload: customPayload
+            });
+          }
+        }
+        
+        if (dynamicSlots.length === 0) throw new Error("No assets loaded in Campaign Mode.");
+        
+        targetSlots = dynamicSlots;
+        setCampaignSlots(dynamicSlots);
+      }
       
       const orchestrator = new SequenceOrchestrator(
-        sequenceSlots,
+        targetSlots,
         threads,
         strikeMode,
         genSettings.system,
-        globalPayloadPrompt,
-        contents,
-        (updatedSlots) => setSequenceSlots([...updatedSlots]),
+        globalPrompt,
+        finalContents, // Empty in campaign mode since customPayload resolves it directly
+        (updatedSlots) => {
+           if (operationMode === 'MONOLITHIC') setSequenceSlots([...updatedSlots]);
+           else setCampaignSlots([...updatedSlots]);
+        },
         (usage) => {
           setLogs((prev: any) => [...prev, { time: new Date().toLocaleTimeString(), status: 'OK', msg: `STRIKE LANDED. USED ${usage.total_tokens} TOKENS.`}]);
         },
@@ -963,14 +1031,28 @@ function PayloadStrikerScreen({
            </div>
 
            <div className="space-y-3">
-             <span className="font-headline text-[10px] font-bold uppercase tracking-widest text-outline block">TACTICAL MANIFEST</span>
-             <div className="grid grid-cols-5 gap-3">
-                {sequenceSlots.map((slot: any) => (
-                  <div key={slot.id} className={`h-14 flex flex-col items-center justify-center border transition-all ${slot.status === 'ACTIVE' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(170,199,255,0.3)]' : slot.status === 'DONE' ? 'border-secondary bg-secondary/10' : slot.status === 'ERROR' ? 'border-error bg-error/10' : 'border-outline-variant/20 bg-surface-container-lowest'}`}>
+             <span className="font-headline text-[10px] font-bold uppercase tracking-widest text-outline block">
+               {operationMode === 'MONOLITHIC' ? 'TACTICAL MANIFEST' : 'CAMPAIGN PIPELINE'}
+             </span>
+             <div className="flex flex-wrap gap-2">
+                {operationMode === 'MONOLITHIC' ? sequenceSlots.map((slot: any) => (
+                  <div key={slot.id} className={`w-14 h-14 flex flex-col items-center justify-center border transition-all ${slot.status === 'ACTIVE' ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(170,199,255,0.3)]' : slot.status === 'DONE' ? 'border-secondary bg-secondary/10' : slot.status === 'ERROR' ? 'border-error bg-error/10' : 'border-outline-variant/20 bg-surface-container-lowest'}`}>
                     <span className="text-[10px] font-mono text-outline mb-1.5">{slot.id.toString().padStart(2, '0')}</span>
                     <div className={`w-2 h-2 rounded-none ${slot.status === 'ACTIVE' ? 'bg-primary animate-pulse' : slot.status === 'DONE' ? 'bg-secondary' : slot.status === 'ERROR' ? 'bg-error' : 'bg-outline-variant/30'}`}></div>
                   </div>
-                ))}
+                )) : (
+                  campaignSlots.length > 0 ? campaignSlots.map((slot: any) => (
+                    <div key={slot.id} className={`w-14 h-14 flex flex-col items-center justify-center border transition-all ${slot.status === 'ACTIVE' ? 'border-secondary bg-secondary/10 shadow-[0_0_15px_rgba(255,200,87,0.3)]' : slot.status === 'DONE' ? 'border-primary bg-primary/10' : slot.status === 'ERROR' ? 'border-error bg-error/10' : 'border-outline-variant/30 bg-surface-container-lowest'}`}>
+                      <span className="text-[9px] font-mono text-secondary mb-1.5 font-bold">C-{slot.id}</span>
+                      <div className={`w-2 h-2 rounded-none ${slot.status === 'ACTIVE' ? 'bg-secondary animate-pulse' : slot.status === 'DONE' ? 'bg-primary' : slot.status === 'ERROR' ? 'bg-error' : 'bg-outline-variant/50'}`}></div>
+                    </div>
+                  )) : Array.from({ length: strikeGroups.reduce((acc, g) => acc + g.assets.length, 0) || 1 }).map((_, i) => (
+                    <div key={i} className="w-14 h-14 flex flex-col items-center justify-center border border-dashed border-outline-variant/30 bg-surface-container-highest opacity-50">
+                      <span className="text-[9px] font-mono text-outline-variant mb-1.5 font-bold">C-{i+1}</span>
+                      <div className="w-2 h-2 bg-outline-variant/20"></div>
+                    </div>
+                  ))
+                )}
              </div>
            </div>
 
