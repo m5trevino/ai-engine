@@ -547,7 +547,6 @@ async def _run_model_audit(args):
 
     # Post-audit actions
     if failed_models:
-<<<<<<< HEAD
         console.print(f"\n[bold yellow]⚠ ATTENTION:[/bold yellow] {len(failed_models)} models are currently failing health checks.")
         
         do_freeze = await questionary.confirm("Would you like to decommission (freeze) any of these models?").ask_async()
@@ -562,19 +561,15 @@ async def _run_model_audit(args):
                 # Extract IDs back from choices string
                 to_freeze = [s.split(" (")[0] for s in selected_raw]
                 run_freeze_bulk(to_freeze)
-=======
-        do_freeze = questionary.confirm("\nModels failed. decommission (freeze) them?").ask()
-        if do_freeze:
-            run_freeze_bulk([f['id'] for f in failed_models])
 
 async def _run_key_audit(args):
     """Granular API key health check."""
     from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool
     
-    gw = questionary.select(
+    gw = await questionary.select(
         "Which key pool would you like to audit?",
         choices=["google", "groq", "deepseek", "mistral", "all"]
-    ).ask()
+    ).ask_async()
 
     if not gw: return
 
@@ -630,7 +625,6 @@ async def _run_key_audit(args):
             except Exception as e:
                 progress.update(task, description=f"[red]❌ {asset.label.ljust(25)} INVALID[/red]")
                 console.print(f"   [dim]Error: {str(e)[:100]}[/dim]")
->>>>>>> d81e057 (PEACOCK ENGINE V3 - TRANSITION TO UNIFIED WEBUI & ARCHITECTURAL HARDENING)
 
 def run_freeze_bulk(model_ids: List[str]):
     """Freeze multiple models at once."""

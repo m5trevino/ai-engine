@@ -8,11 +8,9 @@ from pydantic import BaseModel
 from typing import List, Optional
 from app.utils.token_counter import PeacockTokenCounter
 from app.utils.formatter import CLIFormatter
+from app.utils.token_counter import PeacockTokenCounter
+from app.utils.formatter import CLIFormatter
 from app.config import MODEL_REGISTRY
-<<<<<<< HEAD
-=======
-from app.utils.token_counter import GeminiTokenCounter, GroqTokenCounter
->>>>>>> d81e057 (PEACOCK ENGINE V3 - TRANSITION TO UNIFIED WEBUI & ARCHITECTURAL HARDENING)
 
 router = APIRouter()
 

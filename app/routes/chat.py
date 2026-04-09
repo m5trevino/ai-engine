@@ -27,7 +27,7 @@ class ChatRequest(BaseModel):
     prompt: str = Field(..., description="The prompt text")
     files: Optional[List[str]] = Field(default=None, description="Optional list of file paths to include as context")
     format: Literal["text", "json", "pydantic"] = Field(default="text", description="Output format")
-    schema: Optional[Dict[str, Any]] = Field(default=None, description="Schema definition for 'pydantic' format")
+    schema_definition: Optional[Dict[str, Any]] = Field(default=None, alias="schema", description="Schema definition for 'pydantic' format")
     temp: float = Field(default=0.7, ge=0.0, le=2.0, description="Temperature for generation (Compatibility shorthand)")
     temperature: Optional[float] = Field(default=None, ge=0.0, le=2.0, description="Temperature for generation")
     top_p: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Nucleus sampling threshold")
