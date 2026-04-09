@@ -9,7 +9,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 import os
 
 # Import all route modules
@@ -127,6 +127,22 @@ async def startup_event():
     CLIFormatter.success(f"Mistral Pool: {len(MistralPool.deck)} keys")
     CLIFormatter.info("CHAT UI: Unified Root Stream Enabled")
     print()
+
+# SPA Catch-All Route
+# Must be at the very bottom to avoid intercepting valid API routes
+@app.get("/{full_path:path}")
+async def catch_all(full_path: str):
+    """Serve index.html for all non-API, non-static GET requests."""
+    # Skip for API routes (they should return real 404s)
+    if full_path.startswith("v1/") or full_path.startswith("static/"):
+        return {"detail": "Not Found"}
+    
+    # Path to index.html
+    index_path = os.path.join("app/static", "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    
+    return {"detail": "Not Found"}
 
 if __name__ == "__main__":
     import uvicorn
