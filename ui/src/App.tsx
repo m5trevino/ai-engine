@@ -486,15 +486,7 @@ function Dashboard({
   telemetry,
   setTelemetry,
   models
-}: { 
-  selectedModel: string, 
-  sessionUsage: { tokens: number, cost: number }, 
-  setSessionUsage: React.Dispatch<React.SetStateAction<{ tokens: number, cost: number }>>,
-  genSettings: any,
-  setGenSettings: any,
-  isRightSidebarOpen: boolean,
-  setIsRightSidebarOpen: any
-}) {
+}: any) {
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'model', 
