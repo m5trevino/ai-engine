@@ -26,8 +26,8 @@ export const ui = {
             const totalTokens = usage?.total_tokens || 0;
 
             // Mapping to IDs in the HTML files
-            const costEls = document.querySelectorAll('.billing-total, .session-cost');
-            const tokenEls = document.querySelectorAll('.session-tokens, .loaded-tokens');
+            const costEls = document.querySelectorAll('#billing-total, #session-cost');
+            const tokenEls = document.querySelectorAll('#session-tokens, #loaded-tokens');
 
             costEls.forEach(el => el.textContent = `$${totalCost.toFixed(2)}`);
             tokenEls.forEach(el => el.textContent = this.formatNumber(totalTokens));
@@ -36,9 +36,6 @@ export const ui = {
         }
     },
 
-    /**
-     * Connects to the Live Wire telemetry stream.
-     */
     startLiveWire() {
         const terminal = document.getElementById('live-wire-terminal') || document.querySelector('.technical-live-wire');
         if (!terminal) return;

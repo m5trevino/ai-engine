@@ -7,7 +7,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        chat: resolve(__dirname, 'chat.html'),
         apiKey: resolve(__dirname, 'api-key.html'),
         modelGarden: resolve(__dirname, 'model-garden.html'),
         toolSetup: resolve(__dirname, 'tool-setup.html'),
