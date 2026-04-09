@@ -3,7 +3,7 @@ PEACOCK ENGINE - Generic Chat Endpoint
 A unified, CLI-friendly endpoint for chatting with any model.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal, Dict, Any
 from pathlib import Path
@@ -315,3 +315,93 @@ async def get_gateway_models(gateway: str):
         }
         for m in models
     ]
+@router.websocket("/ws/ws")
+async def chat_ws(websocket: WebSocket):
+    """
+    Bidirectional WebSocket for real-time streaming.
+    Protocol:
+    1. Connect
+    2. Receive 'config' {model, temp, files}
+    3. Loop:
+       - Receive 'prompt' {content}
+       - Stream 'content' chunks
+       - Send 'metadata' {usage}
+    """
+    await websocket.accept()
+    CLIFormatter.info("Neural Link Established (WebSocket)")
+    
+    # Session state
+    config = {
+        "model": "gemini-2.0-flash-lite",
+        "temp": 0.7,
+        "files": []
+    }
+    
+    try:
+        while True:
+            # Wait for message from client
+            raw_data = await websocket.receive_text()
+            data = json.loads(raw_data)
+            msg_type = data.get("type")
+            
+            if msg_type == "config":
+                config.update({
+                    "model": data.get("model", config["model"]),
+                    "temp": data.get("temp", config["temp"]),
+                    "files": data.get("files", config["files"])
+                })
+                await websocket.send_json({"type": "info", "content": f"CONFIG_SYNC: {config['model']}"})
+                
+            elif msg_type == "prompt":
+                prompt = data.get("content")
+                if not prompt:
+                    continue
+                
+                model_id = config["model"]
+                model_cfg = next((m for m in MODEL_REGISTRY if m.id == model_id), None)
+                if not model_cfg:
+                    await websocket.send_json({"type": "error", "content": f"Unknown model: {model_id}"})
+                    continue
+                
+                # Start streaming strike
+                try:
+                    full_content = ""
+                    async for chunk in execute_streaming_strike(
+                        gateway=model_cfg.gateway,
+                        model_id=model_id,
+                        prompt=prompt,
+                        temp=config["temp"],
+                        files=config["files"],
+                        is_manual=False
+                    ):
+                        if "content" in chunk:
+                            content = chunk["content"]
+                            full_content += content
+                            await websocket.send_json({"type": "content", "content": content})
+                        elif "error" in chunk:
+                            await websocket.send_json({"type": "error", "content": chunk["error"]})
+                    
+                    # Send completion metadata
+                    # Note: execute_streaming_strike in V3 often doesn't return full usage in the generator, 
+                    # so we estimate or provide what we have.
+                    await websocket.send_json({
+                        "type": "metadata",
+                        "usage": {
+                            "prompt_tokens": len(prompt.split()), 
+                            "completion_tokens": len(full_content.split()),
+                            "total_tokens": len(prompt.split()) + len(full_content.split())
+                        }
+                    })
+                    
+                except Exception as e:
+                    CLIFormatter.error(f"WS Strike Failure: {e}")
+                    await websocket.send_json({"type": "error", "content": str(e)})
+            
+    except WebSocketDisconnect:
+        CLIFormatter.info("Neural Link Severed (Websocket)")
+    except Exception as e:
+        CLIFormatter.error(f"WebSocket Error: {e}")
+        try:
+            await websocket.send_json({"type": "error", "content": str(e)})
+        except:
+            pass
