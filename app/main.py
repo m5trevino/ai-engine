@@ -51,15 +51,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount PEACOCK ENGINE WebUI (Vite Build)
-# Serving at root / and /static for unified access
-if os.path.exists("app/static"):
-    app.mount("/static", StaticFiles(directory="app/static"), name="static")
-    app.mount("/", StaticFiles(directory="app/static", html=True), name="root_ui")
-elif os.path.exists("ui/dist"):
-    app.mount("/ui", StaticFiles(directory="ui/dist", html=True), name="ui")
-    app.mount("/", StaticFiles(directory="ui/dist", html=True), name="root_ui")
-
 from app.routes.onboarding import router as onboarding_router
 from app.routes.dashboard import router as dashboard_router
 
@@ -77,7 +68,6 @@ app.include_router(dashboard_router, prefix="/v1/dashboard", tags=["DASHBOARD"])
 app.include_router(models_router, prefix="/v1/models", tags=["MODELS"])
 app.include_router(fs_router, prefix="/v1/fs", tags=["FILESYSTEM"])
 app.include_router(keys_router, prefix="/v1/keys", tags=["KEYS"])
-app.include_router(keys_router, prefix="/v1/keys/usage", tags=["KEYS_ALIAS"])
 app.include_router(striker_router, prefix="/v1/striker", tags=["STRIKER"])
 app.include_router(payload_strike_router, prefix="/v1/payload-strike", tags=["PAYLOAD_STRIKE"])
 app.include_router(proxy_control_router, prefix="/v1/proxy", tags=["PROXY_CONTROL"])
@@ -126,6 +116,12 @@ async def startup_event():
     CLIFormatter.success(f"Mistral Pool: {len(MistralPool.deck)} keys")
     CLIFormatter.info("CHAT UI: Unified Root Stream Enabled")
     print()
+
+# Mount PEACOCK ENGINE WebUI (Vite Build)
+# Serving at root / and /static at the end to allow API routes to catch first
+if os.path.exists("app/static"):
+    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+    app.mount("/", StaticFiles(directory="app/static", html=True), name="root_ui")
 
 # SPA Catch-All Route
 # Must be at the very bottom to avoid intercepting valid API routes
