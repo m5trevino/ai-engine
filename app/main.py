@@ -53,7 +53,10 @@ app.add_middleware(
 
 # Mount PEACOCK ENGINE WebUI (Vite Build)
 # Serving at root / and /ui for unified access
-if os.path.exists("peacock-ui/dist"):
+if os.path.exists("ui/dist"):
+    app.mount("/ui", StaticFiles(directory="ui/dist", html=True), name="ui")
+    app.mount("/", StaticFiles(directory="ui/dist", html=True), name="root_ui")
+elif os.path.exists("peacock-ui/dist"):
     app.mount("/ui", StaticFiles(directory="peacock-ui/dist", html=True), name="ui")
     app.mount("/", StaticFiles(directory="peacock-ui/dist", html=True), name="root_ui")
 
