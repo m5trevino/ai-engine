@@ -3,7 +3,8 @@
  * Manages REST configuration and WebSocket bidirectional streaming
  */
 
-const API_BASE = "http://localhost:3099";
+const isProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+const API_BASE = isProd ? "" : "http://localhost:3099";
 
 export interface ModelConfig {
   id: string;
@@ -85,7 +86,9 @@ export class PeacockWS {
   connect(model: string, temp: number = 0.7, files: string[] = []) {
     return new Promise<void>((resolve, reject) => {
       // Corrected WebSocket path: v1/chat/ws is the prefix, /ws is the endpoint
-      this.ws = new WebSocket("ws://localhost:3099/v1/chat/ws/ws");
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = isProd ? window.location.host : 'localhost:3099';
+      this.ws = new WebSocket(`${wsProtocol}//${wsHost}/v1/chat/ws/ws`);
 
       this.ws.onopen = () => {
         // Send initial config upon connection
