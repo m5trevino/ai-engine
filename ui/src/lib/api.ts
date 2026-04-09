@@ -83,45 +83,49 @@ export class PeacockWS {
     this.onComplete = onComplete;
   }
 
-  connect(model: string, temp: number = 0.7, files: string[] = []) {
+  connect(modelId: string, options: any = {}) {
     return new Promise<void>((resolve, reject) => {
-      // Corrected WebSocket path: v1/chat/ws is the prefix, /ws is the endpoint
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsHost = isProd ? window.location.host : 'localhost:3099';
-      this.ws = new WebSocket(`${wsProtocol}//${wsHost}/v1/chat/ws/ws`);
-
-      this.ws.onopen = () => {
-        // Send initial config upon connection
-        this.ws?.send(JSON.stringify({
-          type: "config",
-          model,
-          temp,
-          files
+      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        this.ws.send(JSON.stringify({ 
+          type: 'config', 
+          model: modelId,
+          temp: options.temp || 0.7,
+          top_p: options.top_p || 1.0,
+          max_tokens: options.max_tokens || 2048,
+          system: options.system || ""
         }));
         resolve();
-      };
-
-      this.ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          if (data.type === "info") {
-            console.log("[PeacockWS]", data.content);
-          } else if (data.type === "content") {
-            this.buffer += data.content || "";
-            this.onChunk(this.buffer);
-          } else if (data.type === "metadata") {
-            // Stream complete, usage data arrived
-            this.onComplete(this.buffer, data.usage);
-          } else if (data.type === "error") {
-            this.onError(data.content);
+      } else {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsHost = window.location.host === 'localhost:3099' ? 'localhost:3099' : window.location.host;
+        this.ws = new WebSocket(`${wsProtocol}//${wsHost}/v1/chat/ws/ws`);
+        
+        this.ws.onopen = () => {
+          this.ws?.send(JSON.stringify({ 
+            type: 'config', 
+            model: modelId,
+            temp: options.temp || 0.7,
+            top_p: options.top_p || 1.0,
+            max_tokens: options.max_tokens || 2048,
+            system: options.system || ""
+          }));
+          resolve();
+        };
+        
+        this.ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'content') {
+              this.buffer += data.content || "";
+              this.onChunk(this.buffer);
+            } else if (data.type === 'metadata') {
+              this.onComplete(this.buffer, data.usage);
+            } else if (data.type === 'error') {
+              this.onError(data.content);
+            }
+          } catch (e) {
+            console.error("Failed to parse websocket message", event.data);
           }
-        } catch (e) {
-          console.error("Failed to parse websocket message", event.data);
-        }
-      };
-
-      this.ws.onerror = (e) => {
         console.error("[PeacockWS] Connection Error");
         this.onError("NEURAL_LINK_FAILURE: Connection lost");
         reject(e);

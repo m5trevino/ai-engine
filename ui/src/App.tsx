@@ -53,6 +53,12 @@ import { PeacockAPI, PeacockWS, type ModelConfig, type KeyTelemetry } from './li
 type Screen = 'DASHBOARD' | 'ANALYTICS' | 'LOGS' | 'DEPLOYMENT' | 'SYSTEM';
 type SubScreen = 'ENGINE_STATUS' | 'CORE_MODULES' | 'NETWORK_MESH' | 'STORAGE_NODES' | 'SECURITY_PROTOCOL' | 'SYSTEM_ADMIN';
 
+interface Message {
+  role: 'user' | 'model';
+  content: string;
+  time: string;
+}
+
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<Screen>('DASHBOARD');
   const [activeSubScreen, setActiveSubScreen] = useState<SubScreen>('CORE_MODULES');
@@ -61,7 +67,14 @@ export default function App() {
   const [models, setModels] = useState<Record<string, ModelConfig[]>>({});
   const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash-lite");
   const [keys, setKeys] = useState<KeyTelemetry[]>([]);
-  const [sessionUsage, setSessionUsage] = useState({ tokens: 0, cost: 0 });
+  const [sessionUsage, setSessionUsage] = useState({ tokens: 142200, cost: 4.82 });
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [genSettings, setGenSettings] = useState({
+    temp: 0.7,
+    top_p: 1.0,
+    maxTokens: 2048,
+    system: "You are the Peacock Engine, a high-performance AI orchestration unit. Maintain precision and industrial-grade logic."
+  });
   const modelMenuRef = useRef<HTMLDivElement>(null);
 
   // Initial Data Load
@@ -129,7 +142,7 @@ export default function App() {
         <div className="flex items-center gap-6">
           <div className="relative" ref={modelMenuRef} style={{ zIndex: 9999 }}>
             <button 
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 setIsModelMenuOpen(!isModelMenuOpen);
               }}
@@ -144,7 +157,7 @@ export default function App() {
               <div 
                 className="absolute right-0 top-full mt-2 w-80 bg-surface-container-high border border-outline-variant shadow-2xl max-h-[70vh] overflow-y-auto no-scrollbar"
                 style={{ zIndex: 10000 }}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
                 <div className="p-4 space-y-4">
                   {Object.keys(models).length === 0 ? (
@@ -271,7 +284,11 @@ export default function App() {
                 <Dashboard 
                   selectedModel={selectedModel} 
                   sessionUsage={sessionUsage} 
-                  setSessionUsage={setSessionUsage} 
+                  setSessionUsage={setSessionUsage}
+                  genSettings={genSettings}
+                  setGenSettings={setGenSettings}
+                  isRightSidebarOpen={isRightSidebarOpen}
+                  setIsRightSidebarOpen={setIsRightSidebarOpen}
                 />
               </motion.div>
             )}
@@ -365,8 +382,24 @@ function LogEntry({ time, status, message }: { time: string, status: 'OK' | 'ERR
   );
 }
 
-function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedModel: string, sessionUsage: { tokens: number, cost: number }, setSessionUsage: React.Dispatch<React.SetStateAction<{ tokens: number, cost: number }>> }) {
-  const [messages, setMessages] = useState<{ role: 'user' | 'model', content: string, time: string }[]>([
+function Dashboard({ 
+  selectedModel, 
+  sessionUsage, 
+  setSessionUsage,
+  genSettings,
+  setGenSettings,
+  isRightSidebarOpen,
+  setIsRightSidebarOpen
+}: { 
+  selectedModel: string, 
+  sessionUsage: { tokens: number, cost: number }, 
+  setSessionUsage: React.Dispatch<React.SetStateAction<{ tokens: number, cost: number }>>,
+  genSettings: any,
+  setGenSettings: any,
+  isRightSidebarOpen: boolean,
+  setIsRightSidebarOpen: any
+}) {
+  const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'model', 
       content: "PEACOCK ENGINE INITIALIZED. NEURAL_LINK_STABLE. STANDING BY FOR OPERATOR COMMANDS.", 
@@ -386,31 +419,30 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
     const time = new Date().toLocaleTimeString([], { hour12: false });
     
     // Add user message
-    const userMessageObj = { role: 'user' as const, content: userMsg, time };
-    setMessages(prev => [...prev, userMessageObj]);
+    const userMessageObj: Message = { role: 'user', content: userMsg, time };
+    setMessages((prev: Message[]) => [...prev, userMessageObj]);
     setIsGenerating(true);
 
     // Initial AI placeholder for streaming
-    const aiMessageId = Date.now();
-    setMessages(prev => [...prev, { role: 'model', content: "", time: new Date().toLocaleTimeString([], { hour12: false }) }]);
+    setMessages((prev: Message[]) => [...prev, { role: 'model', content: "", time: new Date().toLocaleTimeString([], { hour12: false }) }]);
 
     if (!wsRef.current) {
       wsRef.current = new PeacockWS(
-        (chunk) => {
-          setMessages(prev => {
+        (chunk: string) => {
+          setMessages((prev: Message[]) => {
             const last = [...prev];
             last[last.length - 1].content = chunk;
             return last;
           });
         },
-        (error) => {
+        (error: any) => {
           setIsGenerating(false);
-          setMessages(prev => [...prev, { role: 'model', content: `ERROR: ${error}`, time: new Date().toLocaleTimeString([], { hour12: false }) }]);
+          setMessages((prev: Message[]) => [...prev, { role: 'model', content: `ERROR: ${error}`, time: new Date().toLocaleTimeString([], { hour12: false }) }]);
         },
-        (full, usage) => {
+        (full: string, usage: any) => {
           setIsGenerating(false);
           if (usage) {
-            setSessionUsage(prev => ({
+            setSessionUsage((prev: { tokens: number, cost: number }) => ({
               tokens: prev.tokens + (usage.total_tokens || 0),
               cost: prev.cost + (usage.cost || 0)
             }));
@@ -421,13 +453,17 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
 
     try {
       if (wsRef.current) {
-        // Simple sequential connection logic for now
-        await wsRef.current.connect(selectedModel);
+        await wsRef.current.connect(selectedModel, {
+          temp: genSettings.temp,
+          top_p: genSettings.top_p,
+          max_tokens: genSettings.maxTokens,
+          system: genSettings.system
+        });
         wsRef.current.sendPrompt(userMsg);
       }
     } catch (e) {
       setIsGenerating(false);
-      setMessages(prev => [...prev, { role: 'model', content: "ERROR: NEURAL_LINK_STABILITY_FAILURE", time: new Date().toLocaleTimeString([], { hour12: false }) }]);
+      setMessages((prev: Message[]) => [...prev, { role: 'model', content: "ERROR: NEURAL_LINK_STABILITY_FAILURE", time: new Date().toLocaleTimeString([], { hour12: false }) }]);
     }
   };
 
@@ -440,7 +476,7 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
     >
       <div className="flex-1 flex flex-col relative overflow-hidden">
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 max-w-4xl mx-auto w-full no-scrollbar">
-          {messages.map((msg, idx) => (
+          {messages.map((msg: Message, idx: number) => (
             <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} gap-3`}>
               {msg.role === 'model' && (
                 <div className="flex items-center gap-3 mb-1">
@@ -483,8 +519,8 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
             <div className="relative bg-surface-container-low kinetic-focus transition-all group border-b border-outline-variant/30">
               <textarea 
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
+                onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     handleSend();
@@ -516,70 +552,151 @@ function Dashboard({ selectedModel, sessionUsage, setSessionUsage }: { selectedM
             </div>
           </div>
         </div>
+
+        {/* Floating Sidebar Toggle */}
+        <div className="absolute top-1/2 -right-1 transform -translate-y-1/2 z-40">
+          <button 
+            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+            className="w-4 h-16 bg-surface-container-high border-y border-l border-outline-variant/30 flex items-center justify-center hover:bg-surface-bright text-outline-variant hover:text-primary transition-all rounded-l-md"
+          >
+            {isRightSidebarOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
-      {/* Right Context Panel */}
-      <aside className="w-[384px] bg-surface-container-low shrink-0 flex flex-col border-l border-outline-variant/10 overflow-y-auto no-scrollbar">
-        <div className="p-6 space-y-8">
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-headline text-xs font-bold tracking-[0.2em] text-outline uppercase">Session Analysis</h3>
-              <Analytics className="text-primary w-4 h-4" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-surface-container p-4">
-                <div className="text-[10px] text-outline-variant font-label uppercase mb-1">Session Tokens</div>
-                <div className="font-mono text-xl text-primary font-medium tracking-tight">{sessionUsage.tokens.toLocaleString()}</div>
-              </div>
-              <div className="bg-surface-container p-4">
-                <div className="text-[10px] text-outline-variant font-label uppercase mb-1">Session Cost</div>
-                <div className="font-mono text-xl text-secondary font-medium tracking-tight">${sessionUsage.cost.toFixed(3)}</div>
-              </div>
-            </div>
-          </section>
+      {/* Right Context Panel - Collapsible */}
+      <AnimatePresence mode="popLayout">
+        {isRightSidebarOpen && (
+          <motion.aside 
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 384, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="bg-surface-container-low shrink-0 flex flex-col border-l border-outline-variant/10 overflow-hidden"
+          >
+            <div className="flex flex-col h-full w-[384px] overflow-y-auto no-scrollbar">
+              <div className="p-6 space-y-8">
+                {/* Section A: Strategic Objectives (Goals) */}
+                <section>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
+                      <Target className="w-3 h-3 text-secondary" /> Strategic Objectives
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    <ObjectiveItem label="WebSocket Streaming" status="OPERATIONAL" progress={100} />
+                    <ObjectiveItem label="Neural Link Bridge" status="OPERATIONAL" progress={100} />
+                    <ObjectiveItem label="Sand Hill UI Implementation" status="SYNCHRONIZING..." progress={85} active />
+                    <ObjectiveItem label="Universal Provider Scaling" status="PENDING" progress={40} />
+                  </div>
+                </section>
 
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-headline text-xs font-bold tracking-[0.2em] text-outline uppercase">Active Objects</h3>
-              <span className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-0.5 uppercase">3 ITEMS</span>
-            </div>
-            <div className="space-y-2">
-              <div className="bg-surface-container p-3 flex items-center justify-between group cursor-pointer hover:bg-surface-bright">
-                <div className="flex items-center gap-3">
-                  <DataObject className="text-primary w-5 h-5" />
-                  <span className="font-label text-xs uppercase tracking-tight text-on-surface">deployment_manifest.json</span>
-                </div>
-                <Settings className="w-4 h-4 text-outline-variant group-hover:text-primary transition-colors" />
-              </div>
-              <div className="bg-surface-container p-3 flex items-center justify-between group cursor-pointer hover:bg-surface-bright">
-                <div className="flex items-center gap-3">
-                  <Terminal className="text-secondary w-5 h-5" />
-                  <span className="font-label text-xs uppercase tracking-tight text-on-surface">mesh_repair_script.sh</span>
-                </div>
-                <Settings className="w-4 h-4 text-outline-variant group-hover:text-primary transition-colors" />
-              </div>
-            </div>
-          </section>
+                {/* Section B: System Protocol (Instructions) */}
+                <section>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
+                      <Terminal className="w-3 h-3 text-primary" /> System Protocol
+                    </h3>
+                  </div>
+                  <div className="bg-surface-container-lowest p-3 border border-outline-variant/20 kinetic-focus">
+                    <textarea 
+                      value={genSettings.system}
+                      onChange={(e) => setGenSettings({...genSettings, system: e.target.value})}
+                      className="w-full h-32 bg-transparent border-none focus:ring-0 p-0 text-[11px] font-mono text-on-surface-variant placeholder:text-gray-700 resize-none uppercase leading-relaxed"
+                      placeholder="DEFINE GLOBAL OPERATIONAL INSTRUCTIONS..."
+                    />
+                  </div>
+                </section>
 
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-headline text-xs font-bold tracking-[0.2em] text-outline uppercase">Technical Logs</h3>
-              <button className="text-outline-variant hover:text-primary transition-colors">
-                <OpenInFull className="w-4 h-4" />
-              </button>
+                {/* Section C: Run Settings (Generation) */}
+                <section>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
+                      <Tune className="w-3 h-3 text-primary" /> Run Settings
+                    </h3>
+                  </div>
+                  <div className="space-y-6">
+                    <GenerationSlider 
+                      label="Temperature" 
+                      value={genSettings.temp} 
+                      min={0} max={2} step={0.05}
+                      onChange={(v) => setGenSettings({...genSettings, temp: v})} 
+                    />
+                    <GenerationSlider 
+                      label="Top P" 
+                      value={genSettings.top_p} 
+                      min={0} max={1} step={0.01}
+                      onChange={(v) => setGenSettings({...genSettings, top_p: v})} 
+                    />
+                    <GenerationSlider 
+                      label="Max Tokens" 
+                      value={genSettings.maxTokens} 
+                      min={1} max={32000} step={1}
+                      onChange={(v) => setGenSettings({...genSettings, maxTokens: v})} 
+                    />
+                  </div>
+                </section>
+
+                {/* Section D: Operational Intel (Usage) */}
+                <section className="pt-4 border-t border-outline-variant/10">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-surface-container p-4">
+                      <div className="text-[9px] text-outline-variant font-label uppercase mb-1">Session Tokens</div>
+                      <div className="font-mono text-xl text-primary font-medium tracking-tight">
+                        {sessionUsage.tokens.toLocaleString()}
+                      </div>
+                    </div>
+                    <div className="bg-surface-container p-4">
+                      <div className="text-[9px] text-outline-variant font-label uppercase mb-1">Session Cost</div>
+                      <div className="font-mono text-xl text-secondary font-medium tracking-tight">
+                        ${sessionUsage.cost.toFixed(3)}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
             </div>
-            <div className="bg-surface-container-lowest p-3 font-mono text-[10px] leading-relaxed space-y-1 h-48 overflow-y-auto custom-scrollbar">
-              <LogEntry time="14:22:04" status="OK" message="REQUEST_ACKNOWLEDGED" />
-              <LogEntry time="14:22:05" status="OK" message="MAPPING_NEURAL_PATHWAY_902" />
-              <LogEntry time="14:22:06" status="INFO" message="FETCHING_REMOTE_CONFIG_REMOTE" />
-              <LogEntry time="14:22:07" status="ERROR" message="RETRY_LOG_AUTH_FAILED" />
-              <LogEntry time="14:22:08" status="OK" message="STREAM_INITIALIZED_V4_SECURE" />
-              <LogEntry time="14:22:09" status="INFO" message="IDLE_STATE_RESUMED" />
-            </div>
-          </section>
-        </div>
-      </aside>
+          </motion.aside>
+        )}
+      </AnimatePresence>
     </motion.div>
+  );
+}
+
+function ObjectiveItem({ label, status, progress, active }: { label: string, status: string, progress: number, active?: boolean }) {
+  return (
+    <div className={`p-3 bg-surface-container-low border-l-2 transition-all ${active ? 'border-secondary bg-surface-container' : 'border-outline-variant/30 opacity-70'}`}>
+      <div className="flex justify-between items-center mb-1.5">
+        <span className="text-[10px] font-headline font-bold text-on-surface uppercase tracking-tight">{label}</span>
+        <span className={`text-[8px] font-mono px-1.5 py-0.5 ${active ? 'bg-secondary/10 text-secondary' : 'bg-surface-container-highest text-outline'}`}>{status}</span>
+      </div>
+      <div className="h-1 w-full bg-surface-container-lowest rounded-full overflow-hidden">
+        <div 
+          className={`h-full transition-all duration-1000 ${active ? 'bg-secondary gold-glow' : 'bg-outline-variant'}`}
+          style={{ width: `${progress}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+}
+
+function GenerationSlider({ label, value, min, max, step, onChange }: { label: string, value: number, min: number, max: number, step: number, onChange: (v: number) => void }) {
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-between items-center">
+        <label className="font-headline text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</label>
+        <div className="bg-surface-container px-2 py-0.5 border border-outline-variant/20">
+          <span className="font-mono text-[10px] text-primary font-bold">{value}</span>
+        </div>
+      </div>
+      <input 
+        type="range"
+        min={min} max={max} step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full h-1 bg-surface-container-lowest appearance-none cursor-pointer accent-primary" 
+      />
+    </div>
   );
 }
 
@@ -597,7 +714,7 @@ function SystemScreen({ subScreen }: { subScreen: SubScreen }) {
             <div className="bg-surface-container p-6 border-l-2 border-primary">
               <h3 className="font-headline text-sm font-bold uppercase tracking-widest mb-4">Neural Pathway Health</h3>
               <div className="space-y-4">
-                {[1, 2, 3, 4].map(i => (
+                {[1, 2, 3, 4].map((i: number) => (
                   <div key={i} className="flex items-center gap-4">
                     <span className="font-mono text-[10px] text-outline w-24">PATHWAY_0{i}</span>
                     <div className="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
@@ -837,7 +954,7 @@ function AnalyticsScreen({ keys }: { keys: KeyTelemetry[] }) {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {keys.map((k) => (
+          {keys.map((k: KeyTelemetry) => (
             <ApiKeyCard 
               key={k.account}
               name={k.account} 
@@ -1000,8 +1117,8 @@ function LogsScreen({ models, selectedModel, setSelectedModel, onOpenModal }: { 
         </div>
 
         <div className="divide-y divide-outline-variant/10">
-          {Object.entries(models).flatMap(([gateway, gatewayModels]) => 
-            gatewayModels.map((m) => (
+          {Object.entries(models).flatMap(([gateway, gatewayModels]: [string, ModelConfig[]]) => 
+            gatewayModels.map((m: ModelConfig) => (
               <ModelRow 
                 key={m.id}
                 name={m.id.split('/').pop()?.toUpperCase() || m.id.toUpperCase()} 
