@@ -49,7 +49,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Target,
-  Tune
+  SlidersHorizontal
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeacockAPI, PeacockWS, type ModelConfig, type KeyTelemetry } from './lib/api';
@@ -616,7 +616,7 @@ function Dashboard({
                 <section>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-headline text-[10px] font-bold tracking-[0.2em] text-outline uppercase flex items-center gap-2">
-                      <Tune className="w-3 h-3 text-primary" /> Run Settings
+                      <SlidersHorizontal className="w-3 h-3 text-primary" /> Run Settings
                     </h3>
                   </div>
                   <div className="space-y-6">
