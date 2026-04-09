@@ -44,28 +44,56 @@ export const chat = {
         // Add user message to UI
         this.appendMessage('OPERATOR', prompt, 'user');
 
-        try {
-            // Initiate strike
-            const response = await gateway.strike({
-                model: this.currentModel,
-                prompt: prompt
-            });
+        // Create initial empty AI bubble
+        const aiBubbleId = `ai-msg-${Date.now()}`;
+        this.appendMessage('PEACOCK_ENGINE', '', 'ai', { id: aiBubbleId });
 
-            // Add AI response to UI
-            this.appendMessage('PEACOCK_ENGINE', response.content, 'ai', response);
-            ui.updateStats();
+        const aiBubbleContainer = document.getElementById(aiBubbleId);
+        const aiTextEl = aiBubbleContainer ? aiBubbleContainer.querySelector('p') : null;
+        let fullContent = "";
+
+        try {
+            await gateway.streamStrike(
+                {
+                    model: this.currentModel,
+                    prompt: prompt
+                },
+                (chunk) => {
+                    fullContent += chunk;
+                    if (aiTextEl) {
+                        aiTextEl.textContent = fullContent;
+                        // Auto-scroll as content grows
+                        const container = document.getElementById('chat-scroller');
+                        if (container) container.scrollTo(0, container.scrollHeight);
+                    }
+                },
+                (metadata) => {
+                    console.log("STRIKE_COMPLETE", metadata);
+                    if (aiBubbleContainer && metadata.duration_ms) {
+                        const metaDiv = document.createElement('div');
+                        metaDiv.className = 'mt-2 text-[9px] text-outline font-label uppercase';
+                        metaDiv.textContent = `GEN_TIME: ${(metadata.duration_ms / 1000).toFixed(2)}s | TOKENS: ${metadata.usage.total_tokens}`;
+                        aiBubbleContainer.querySelector('.bg-surface-container').appendChild(metaDiv);
+                    }
+                    ui.updateStats();
+                }
+            );
         } catch (err) {
             console.error("STRIKE_FAILURE", err);
-            this.appendMessage('SYSTEM', `FAILURE: ${err.message}`, 'error');
+            if (aiTextEl) {
+                aiTextEl.textContent = `FAILURE: ${err.message}`;
+                aiTextEl.classList.add('text-error');
+            }
         }
     },
 
     appendMessage(role, content, type, meta = {}) {
-        const container = document.querySelector('main > div:first-child');
+        const container = document.getElementById('chat-scroller') || document.querySelector('main > div:first-child');
         if (!container) return;
 
         const time = new Date().toLocaleTimeString();
         const msgDiv = document.createElement('div');
+        if (meta.id) msgDiv.id = meta.id;
         
         if (type === 'user') {
             msgDiv.className = 'flex flex-col items-end gap-3 animate-in slide-in-from-right duration-300';

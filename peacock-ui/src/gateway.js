@@ -21,6 +21,55 @@ export const gateway = {
     },
 
     /**
+     * Executes a streaming chat strike.
+     * @param {Object} payload { model, prompt, temp... }
+     * @param {Function} onChunk Callback for each content chunk.
+     * @param {Function} onMetadata Callback for the final metadata packet.
+     */
+    async streamStrike(payload, onChunk, onMetadata) {
+        const response = await fetch(`${API_BASE}/chat/stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error(`STREAM_STRIKE_FAILURE: ${response.statusText}`);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            
+            // Process SSE-style data lines
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop(); // Keep partial line in buffer
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const jsonStr = line.replace('data: ', '');
+                    try {
+                        const packet = JSON.parse(jsonStr);
+                        if (packet.type === 'content') {
+                            onChunk(packet.content);
+                        } else if (packet.type === 'metadata') {
+                            onMetadata(packet);
+                        } else if (packet.type === 'error') {
+                            throw new Error(packet.content);
+                        }
+                    } catch (e) {
+                        console.warn("MALFORMED_SSE_PACKET", e);
+                    }
+                }
+            }
+        }
+    },
+
+    /**
      * Lists all available models from registry.
      */
     async getModels() {
