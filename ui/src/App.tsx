@@ -100,6 +100,8 @@ export default function App() {
   const [loadedAmmo, setLoadedAmmo] = useState<string[]>([]);
   const [isVaultLoading, setIsVaultLoading] = useState(false);
   const [telemetry, setTelemetry] = useState({ tps: 0, rpm: 0 });
+  const [globalPayloadPrompt, setGlobalPayloadPrompt] = useState('Analyze the provided assets.');
+  const [payloadOverrides, setPayloadOverrides] = useState<Record<string, string>>({});
   const modelMenuRef = useRef<HTMLDivElement>(null);
 
   // Initial Data Load
@@ -362,6 +364,10 @@ export default function App() {
                   setTelemetry={setTelemetry}
                   genSettings={genSettings}
                   setGenSettings={setGenSettings}
+                  globalPayloadPrompt={globalPayloadPrompt}
+                  setGlobalPayloadPrompt={setGlobalPayloadPrompt}
+                  payloadOverrides={payloadOverrides}
+                  setPayloadOverrides={setPayloadOverrides}
                 />
               </motion.div>
             )}
@@ -706,7 +712,11 @@ function PayloadStrikerScreen({
   telemetry,
   setTelemetry,
   genSettings,
-  setGenSettings
+  setGenSettings,
+  globalPayloadPrompt,
+  setGlobalPayloadPrompt,
+  payloadOverrides,
+  setPayloadOverrides
 }: any) {
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -764,7 +774,14 @@ function PayloadStrikerScreen({
     
     try {
       const contents = await Promise.all(
-        loadedAmmo.map((file: string) => PeacockAPI.getAmmoContent(file))
+        loadedAmmo.map(async (file: string) => {
+          const content = await PeacockAPI.getAmmoContent(file);
+          return {
+            fileName: file,
+            content: content,
+            customPrompt: payloadOverrides[file] || null
+          };
+        })
       );
       
       const orchestrator = new SequenceOrchestrator(
@@ -772,6 +789,7 @@ function PayloadStrikerScreen({
         threads,
         strikeMode,
         genSettings.system,
+        globalPayloadPrompt,
         contents,
         (updatedSlots) => setSequenceSlots([...updatedSlots]),
         (usage) => {
@@ -837,25 +855,50 @@ function PayloadStrikerScreen({
               ))}
             </div>
           </div>
-          <div className="flex-1 p-4 bg-surface-container-lowest/50 kinetic-focus flex flex-col">
+          <div className="flex-1 p-2 bg-surface-container-lowest/50 kinetic-focus flex flex-col gap-2 relative">
+            <div className="shrink-0 bg-surface-container-low border border-outline-variant/10 p-2 pt-1 flex flex-col">
+              <span className="text-[8px] font-mono font-bold text-outline uppercase tracking-widest mb-1 ml-1 flex items-center justify-between">
+                Global Default Prompt 
+                <span className="text-secondary font-headline">Fallback Instruction</span>
+              </span>
+              <textarea 
+                value={globalPayloadPrompt}
+                onChange={(e) => setGlobalPayloadPrompt(e.target.value)}
+                className="w-full bg-surface-container-lowest border border-outline-variant/10 min-h-[40px] focus:ring-0 p-2 text-xs font-mono text-on-surface resize-y custom-scrollbar shadow-inner"
+                placeholder="ENTER INSTRUCTION FOR ALL UN-TARGETED ASSETS..."
+              />
+            </div>
+
             {editingFile ? (
-              <>
+              <div className="flex-1 bg-surface-container-low border border-outline-variant/10 p-2 pt-1 flex flex-col min-h-0">
+                <span className="text-[8px] font-mono font-bold text-primary uppercase tracking-widest mb-1 ml-1 flex items-center justify-between">
+                   Target override: {editingFile}
+                   <span className="text-error font-headline">Custom Context</span>
+                </span>
+                <textarea 
+                  value={payloadOverrides[editingFile] || ''}
+                  onChange={(e) => setPayloadOverrides({...payloadOverrides, [editingFile]: e.target.value})}
+                  className="w-full bg-surface-container-lowest border border-outline-variant/10 min-h-[40px] focus:ring-0 p-2 text-xs font-mono text-on-surface resize-y custom-scrollbar shadow-inner mb-2 border-l-2 border-l-primary"
+                  placeholder="LEAVE BLANK TO USE GLOBAL DEFAULT PROMPT..."
+                />
+                
+                <span className="text-[8px] font-mono font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1">Asset Content</span>
                 <textarea 
                   value={editorContent}
                   onChange={(e) => setEditorContent(e.target.value)}
-                  className="w-full flex-1 bg-transparent border-none focus:ring-0 p-0 text-sm font-mono text-on-surface leading-loose resize-none custom-scrollbar"
-                  placeholder="ENGINEER PROMPT CONTENT HERE..."
+                  className="w-full flex-1 bg-surface-container-lowest/50 border border-outline-variant/5 focus:ring-0 p-3 text-sm font-mono text-on-surface leading-loose resize-none custom-scrollbar"
+                  placeholder="ENGINEER ASSET CONTENT HERE..."
                 />
                 <button 
                   onClick={savePrompt}
                   disabled={isSaving}
-                  className="mt-4 w-full py-3 bg-secondary text-on-secondary font-headline text-[10px] font-bold tracking-widest uppercase flex justify-center items-center gap-2 active:scale-95 transition-all gold-glow disabled:opacity-50"
+                  className="mt-2 w-full py-2 bg-secondary text-on-secondary font-headline text-[10px] font-bold tracking-[0.2em] uppercase flex justify-center items-center gap-2 active:scale-95 transition-all gold-glow disabled:opacity-50"
                 >
-                  <Description className="w-4 h-4" /> {isSaving ? 'SECURING...' : 'SECURE ASSET TO PAYLOAD'}
+                  <Description className="w-3 h-3" /> {isSaving ? 'SECURING...' : 'SAVE ASSET TO DISK'}
                 </button>
-              </>
+              </div>
             ) : (
-               <div className="flex-1 flex items-center justify-center text-outline font-mono text-[10px] uppercase">No active payload selected</div>
+               <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex items-center justify-center text-outline font-mono text-[10px] uppercase shadow-inner">No active payload selected</div>
             )}
           </div>
         </div>

@@ -13,6 +13,12 @@ export interface StrikeSlot {
   result?: string;
 }
 
+export interface PayloadAsset {
+  fileName: string;
+  content: string;
+  customPrompt?: string | null;
+}
+
 export type StrikeMode = 'BATCH' | 'ULTRA';
 
 export class SequenceOrchestrator {
@@ -23,7 +29,8 @@ export class SequenceOrchestrator {
   private threads: number;
   private mode: StrikeMode;
   private systemPrompt: string;
-  private ammoContents: string[];
+  private globalPayloadPrompt: string;
+  private payloadAssets: PayloadAsset[];
   private onTelemetry: (telemetry: { tps: number, rpm: number }) => void;
   
   private startTime: number = 0;
@@ -35,7 +42,8 @@ export class SequenceOrchestrator {
     threads: number, 
     mode: StrikeMode,
     systemPrompt: string,
-    ammoContents: string[],
+    globalPayloadPrompt: string,
+    payloadAssets: PayloadAsset[],
     onUpdate: (slots: StrikeSlot[]) => void,
     onTotalUsage: (usage: any) => void,
     onTelemetry: (telemetry: { tps: number, rpm: number }) => void
@@ -44,7 +52,8 @@ export class SequenceOrchestrator {
     this.threads = threads;
     this.mode = mode;
     this.systemPrompt = systemPrompt;
-    this.ammoContents = ammoContents;
+    this.globalPayloadPrompt = globalPayloadPrompt;
+    this.payloadAssets = payloadAssets;
     this.onUpdate = onUpdate;
     this.onTotalUsage = onTotalUsage;
     this.onTelemetry = onTelemetry;
@@ -118,7 +127,16 @@ export class SequenceOrchestrator {
 
     try {
       // Build final payload
-      const payload = `${this.systemPrompt}\n\n[AMMO_LOADED]\n${this.ammoContents.join('\n\n---\n\n')}`;
+      let finalPayloadContent = '';
+      for (const asset of this.payloadAssets) {
+         const instruction = asset.customPrompt && asset.customPrompt.trim() !== '' 
+              ? asset.customPrompt 
+              : this.globalPayloadPrompt;
+         
+         finalPayloadContent += `\n\n--- [ASSET: ${asset.fileName}] ---\n[INSTRUCTION]:\n${instruction}\n\n[CONTENT]:\n${asset.content}`;
+      }
+
+      const payload = `${this.systemPrompt}\n\n[PAYLOAD_BAY]${finalPayloadContent}`;
       
       // For sequential strikes, we'll use the REST API for easier tracking, 
       // but we could use WS if we wanted streaming per slot.
