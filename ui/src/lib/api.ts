@@ -126,14 +126,18 @@ export class PeacockWS {
           } catch (e) {
             console.error("Failed to parse websocket message", event.data);
           }
-        console.error("[PeacockWS] Connection Error");
-        this.onError("NEURAL_LINK_FAILURE: Connection lost");
-        reject(e);
-      };
+        };
 
-      this.ws.onclose = () => {
-        console.log("[PeacockWS] Disconnected");
-      };
+        this.ws.onerror = (e) => {
+          console.error("[PeacockWS] Connection Error", e);
+          this.onError("NEURAL_LINK_FAILURE: Connection lost");
+          reject(e);
+        };
+
+        this.ws.onclose = () => {
+          console.log("[PeacockWS] Disconnected");
+        };
+      }
     });
   }
 

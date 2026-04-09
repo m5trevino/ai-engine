@@ -45,7 +45,11 @@ import {
   Layers,
   Server,
   Lock,
-  UserCog
+  UserCog,
+  ChevronRight,
+  ChevronLeft,
+  Target,
+  Tune
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PeacockAPI, PeacockWS, type ModelConfig, type KeyTelemetry } from './lib/api';
