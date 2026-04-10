@@ -880,9 +880,9 @@ function PayloadStrikerScreen({
       <div className={`${operationMode === 'CAMPAIGN' ? 'flex-[3]' : 'flex-[2]'} flex flex-col gap-6 overflow-hidden transition-all duration-500`}>
         
         {/* Master Mode Toggle */}
-        <div className="flex bg-surface-container-highest border border-outline-variant/10 shrink-0 rounded-sm overflow-hidden min-h-[44px]">
-          <button onClick={() => setOperationMode('MONOLITHIC')} className={`flex-1 text-[10px] font-bold tracking-[0.2em] uppercase transition-all ${operationMode === 'MONOLITHIC' ? 'bg-primary text-on-primary shadow-inner border-b-2 border-b-primary-fixed' : 'text-outline hover:bg-surface-bright'}`}>Monolithic Master Mode</button>
-          <button onClick={() => setOperationMode('CAMPAIGN')} className={`flex-1 text-[10px] font-bold tracking-[0.2em] uppercase transition-all ${operationMode === 'CAMPAIGN' ? 'bg-secondary text-on-secondary shadow-inner border-b-2 border-b-secondary-fixed' : 'text-outline hover:bg-surface-bright'}`}>Campaign Execution Mode</button>
+        <div className="flex bg-surface-container-highest border border-outline-variant/10 shrink-0 rounded-sm overflow-hidden min-h-[48px]">
+          <button onClick={() => setOperationMode('MONOLITHIC')} className={`flex-1 text-sm font-bold tracking-[0.2em] uppercase transition-all ${operationMode === 'MONOLITHIC' ? 'bg-primary text-on-primary shadow-inner border-b-2 border-b-primary-fixed' : 'text-outline hover:bg-surface-bright'}`}>Monolithic Master Mode</button>
+          <button onClick={() => setOperationMode('CAMPAIGN')} className={`flex-1 text-sm font-bold tracking-[0.2em] uppercase transition-all ${operationMode === 'CAMPAIGN' ? 'bg-secondary text-on-secondary shadow-inner border-b-2 border-b-secondary-fixed' : 'text-outline hover:bg-surface-bright'}`}>Campaign Execution Mode</button>
         </div>
 
         {operationMode === 'MONOLITHIC' ? (
@@ -1000,38 +1000,38 @@ function PayloadStrikerScreen({
             <div className="flex-1 flex gap-6 min-h-0">
                {/* Col 1: Strike Groups */}
                <div className="flex-[1.2] bg-surface-container-low border border-outline-variant/10 flex flex-col overflow-hidden">
-                  <div className="px-4 py-3 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
-                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-secondary">1. Define Prompts</span>
+                  <div className="px-5 py-4 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
+                     <span className="font-headline text-sm uppercase font-bold tracking-widest text-secondary">1. Define Prompts</span>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3">
+                  <div className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col gap-4">
                      {strikeGroups.map((group, idx) => (
-                        <div key={group.id} onClick={() => setActiveGroupIndex(idx)} className={`border cursor-pointer transition-all p-3 flex flex-col gap-2 relative ${activeGroupIndex === idx ? 'border-secondary bg-surface-container shadow-[0_0_15px_rgba(255,200,87,0.1)]' : 'border-outline-variant/10 bg-surface-container-highest opacity-70 hover:opacity-100'}`}>
+                        <div key={group.id} onClick={() => setActiveGroupIndex(idx)} className={`border cursor-pointer transition-all p-4 flex flex-col gap-3 relative ${activeGroupIndex === idx ? 'border-secondary bg-surface-container shadow-[0_0_15px_rgba(255,200,87,0.1)]' : 'border-outline-variant/10 bg-surface-container-highest opacity-70 hover:opacity-100'}`}>
                            {activeGroupIndex === idx && <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary shadow-[0_0_10px_rgba(255,200,87,0.5)]"></div>}
                            <div className="flex items-center justify-between z-10">
-                             <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">{group.id}</span>
-                             <button onClick={(e) => { e.stopPropagation(); removeStrikeGroup(group.id); }} disabled={strikeGroups.length === 1} className="text-outline hover:text-error disabled:opacity-30"><Close className="w-3 h-3"/></button>
+                             <span className="text-sm font-bold text-secondary uppercase tracking-widest">{group.id}</span>
+                             <button onClick={(e) => { e.stopPropagation(); removeStrikeGroup(group.id); }} disabled={strikeGroups.length === 1} className="text-outline hover:text-error disabled:opacity-30"><Close className="w-4 h-4"/></button>
                            </div>
-                           <textarea value={group.instruction} onChange={(e) => updateGroupInstruction(group.id, e.target.value)} className="w-full bg-surface-container-lowest border border-outline-variant/20 p-2 text-[10px] font-mono text-on-surface resize-y custom-scrollbar min-h-[60px] z-10 focus:ring-1 focus:ring-secondary/50" placeholder="INSTRUCTION DIRECTIVE..."/>
+                           <textarea value={group.instruction} onChange={(e) => updateGroupInstruction(group.id, e.target.value)} className="w-full bg-surface-container-lowest border border-outline-variant/20 p-4 text-base font-mono font-semibold text-on-surface resize-y custom-scrollbar min-h-[100px] z-10 focus:ring-1 focus:ring-secondary/50" placeholder="INSTRUCTION DIRECTIVE..."/>
                         </div>
                      ))}
-                     <button onClick={addStrikeGroup} className="w-full py-4 mt-2 border border-outline-variant/20 text-[9px] text-outline hover:text-secondary uppercase tracking-[0.2em] bg-surface-container-high transition-all active:scale-[0.98] font-bold">
-                        <Add className="w-4 h-4 inline" /> Initialize Prompt
+                     <button onClick={addStrikeGroup} className="w-full py-5 mt-2 border border-outline-variant/20 text-sm text-outline hover:text-secondary uppercase tracking-[0.2em] bg-surface-container-high transition-all active:scale-[0.98] font-bold">
+                        <Add className="w-5 h-5 inline" /> Initialize Prompt
                      </button>
                   </div>
                </div>
 
                {/* Col 2: Vault */}
                <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex flex-col overflow-hidden">
-                  <div className="px-4 py-3 border-b border-outline-variant/10 bg-surface-container-lowest flex items-center justify-between shrink-0">
-                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-primary">2. Vault (Ammo)</span>
-                     <button onClick={refillAmmoPile} className="text-[9px] font-mono text-outline hover:text-primary uppercase tracking-widest">Refill</button>
+                  <div className="px-5 py-4 border-b border-outline-variant/10 bg-surface-container-lowest flex items-center justify-between shrink-0">
+                     <span className="font-headline text-sm uppercase font-bold tracking-widest text-primary">2. Vault (Ammo)</span>
+                     <button onClick={refillAmmoPile} className="text-xs font-mono text-outline hover:text-primary uppercase tracking-widest font-semibold">Refill</button>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 custom-scrollbar">
-                     {ammoPile.length === 0 && <span className="text-[10px] text-outline-variant italic uppercase px-2 text-center mt-4">Vault empty.</span>}
+                  <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-3 custom-scrollbar">
+                     {ammoPile.length === 0 && <span className="text-sm font-semibold text-outline-variant italic uppercase px-2 text-center mt-4">Vault empty.</span>}
                      {ammoPile.map((f: string) => (
-                       <button key={f} onClick={() => loadAmmo(f)} className="bg-surface-container hover:bg-surface-bright border border-outline-variant/20 p-3 flex items-center justify-between transition-all group active:scale-95">
-                         <span className="text-[10px] font-mono text-on-surface uppercase flex items-center gap-2 font-bold"><FileText className="w-3 h-3 text-primary-fixed-dim" /> {f}</span>
-                         <span className="px-2 py-0.5 bg-surface-container-highest flex items-center gap-1 text-[8px] font-mono text-outline group-hover:text-primary transition-all">ASSIGN <ArrowRight className="w-2.5 h-2.5" /></span>
+                       <button key={f} onClick={() => loadAmmo(f)} className="bg-surface-container hover:bg-surface-bright border border-outline-variant/20 p-4 flex items-center justify-between transition-all group active:scale-95">
+                         <span className="text-base font-mono text-on-surface uppercase flex items-center gap-2 font-semibold"><FileText className="w-4 h-4 text-primary-fixed-dim" /> {f}</span>
+                         <span className="px-3 py-1.5 bg-surface-container-highest flex items-center gap-1 text-xs font-mono text-outline group-hover:text-primary transition-all font-bold">ASSIGN <ArrowRight className="w-3 h-3" /></span>
                        </button>
                      ))}
                   </div>
@@ -1040,16 +1040,16 @@ function PayloadStrikerScreen({
                {/* Col 3: Active Loadout */}
                <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex flex-col overflow-hidden relative">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary/5 via-transparent to-transparent pointer-events-none z-0 opacity-50"></div>
-                  <div className="px-4 py-3 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0 z-10 flex flex-col gap-1">
-                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-secondary">3. Active Loadout</span>
-                     <span className="text-[8px] font-mono text-outline uppercase tracking-widest">Targeting: {strikeGroups[activeGroupIndex]?.id}</span>
+                  <div className="px-5 py-3 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0 z-10 flex flex-col gap-1">
+                     <span className="font-headline text-sm uppercase font-bold tracking-widest text-secondary">3. Active Loadout</span>
+                     <span className="text-xs font-mono font-semibold text-outline uppercase tracking-widest">Targeting: {strikeGroups[activeGroupIndex]?.id}</span>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-2 z-10">
-                     {strikeGroups[activeGroupIndex]?.assets.length === 0 && <span className="text-[10px] text-secondary font-mono italic uppercase px-2 text-center mt-4 opacity-50 border border-dashed border-secondary/20 p-4">Awaiting assignments...</span>}
+                  <div className="flex-1 overflow-y-auto p-5 custom-scrollbar flex flex-col gap-3 z-10">
+                     {strikeGroups[activeGroupIndex]?.assets.length === 0 && <span className="text-base font-semibold text-secondary font-mono italic uppercase px-2 text-center mt-4 opacity-50 border border-dashed border-secondary/20 p-6">Awaiting assignments...</span>}
                      {strikeGroups[activeGroupIndex]?.assets.map(asset => (
-                       <div key={asset} className="bg-surface-container-high border border-secondary/30 p-2.5 flex items-center justify-between shadow-[0_0_10px_rgba(255,200,87,0.05)]">
-                         <span className="text-[10px] font-mono text-secondary uppercase tracking-wider font-bold truncate pr-3">{asset}</span>
-                         <button onClick={(e) => { e.stopPropagation(); unloadFromGroup(activeGroupIndex, asset); }} className="text-outline hover:text-error shrink-0"><Close className="w-3.5 h-3.5"/></button>
+                       <div key={asset} className="bg-surface-container-high border border-secondary/30 p-4 flex items-center justify-between shadow-[0_0_10px_rgba(255,200,87,0.05)]">
+                         <span className="text-base font-mono text-secondary uppercase tracking-wider font-semibold truncate pr-3">{asset}</span>
+                         <button onClick={(e) => { e.stopPropagation(); unloadFromGroup(activeGroupIndex, asset); }} className="text-outline hover:text-error shrink-0"><Close className="w-4 h-4"/></button>
                        </div>
                      ))}
                   </div>
