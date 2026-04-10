@@ -43,6 +43,7 @@ import {
   FileText,
   Target,
   SlidersHorizontal,
+  ArrowRight,
   Send,
   Cpu,
   Layers,
@@ -875,118 +876,213 @@ function PayloadStrikerScreen({
       className="flex flex-1 overflow-hidden bg-background p-6 gap-6"
     >
       {/* Middle Column: Payload Engineering (3 Sections) */}
-      <div className="flex-[2] flex flex-col gap-6 overflow-hidden">
+      {/* Main Container: Payload Engineering (Layout Shifts per Mode) */}
+      <div className={`${operationMode === 'CAMPAIGN' ? 'flex-[3]' : 'flex-[2]'} flex flex-col gap-6 overflow-hidden transition-all duration-500`}>
         
-        {/* Top: AMMO PILE / VAULT */}
-        <div className="bg-surface-container-low border border-outline-variant/10 flex flex-col h-48 shrink-0">
-          <div className="px-4 py-2 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
-            <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-primary flex items-center gap-2">
-              <Database className="w-3 h-3" /> Ammo Pile (Storage)
-            </span>
-            <button onClick={refillAmmoPile} className="text-[9px] font-mono text-outline hover:text-primary uppercase tracking-widest">Refill Pile</button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 flex flex-wrap gap-3 custom-scrollbar">
-            {ammoPile.length === 0 && <span className="text-[10px] text-gray-700 italic">Pile empty</span>}
-            {ammoPile.map((f: string) => (
-              <button 
-                key={f} 
-                onClick={() => loadAmmo(f)}
-                className="bg-surface-container hover:bg-surface-bright border border-outline-variant/20 px-3 py-2 flex items-center gap-2 transition-all active:scale-95"
-              >
-                <FileText className="w-3 h-3 text-primary-fixed-dim" />
-                <span className="text-[10px] font-mono text-on-surface uppercase">{f}</span>
-                <Add className="w-3 h-3 text-outline" />
-              </button>
-            ))}
-          </div>
+        {/* Master Mode Toggle */}
+        <div className="flex bg-surface-container-highest border border-outline-variant/10 shrink-0 rounded-sm overflow-hidden min-h-[44px]">
+          <button onClick={() => setOperationMode('MONOLITHIC')} className={`flex-1 text-[10px] font-bold tracking-[0.2em] uppercase transition-all ${operationMode === 'MONOLITHIC' ? 'bg-primary text-on-primary shadow-inner border-b-2 border-b-primary-fixed' : 'text-outline hover:bg-surface-bright'}`}>Monolithic Master Mode</button>
+          <button onClick={() => setOperationMode('CAMPAIGN')} className={`flex-1 text-[10px] font-bold tracking-[0.2em] uppercase transition-all ${operationMode === 'CAMPAIGN' ? 'bg-secondary text-on-secondary shadow-inner border-b-2 border-b-secondary-fixed' : 'text-outline hover:bg-surface-bright'}`}>Campaign Execution Mode</button>
         </div>
 
-        {/* Center: PAYLOAD EDITOR */}
-        <div className="bg-surface-container-low border border-outline-variant/10 flex-1 flex flex-col min-h-0">
-          <div className="px-4 py-2 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
-            <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-secondary flex items-center gap-2">
-              <Bolt className="w-3 h-3" /> Active Payload ({loadedAmmo.length})
-            </span>
-            <div className="flex gap-2">
-              {loadedAmmo.map((f: string) => (
-                <span key={f} onClick={() => openEditor(f)} className={`cursor-pointer px-2 py-0.5 text-[9px] font-mono uppercase ${editingFile === f ? 'bg-secondary text-on-secondary' : 'bg-surface-container text-outline hover:text-white'}`}>
-                  {f} <Close onClick={(e) => { e.stopPropagation(); unloadAmmo(f); }} className="w-3 h-3 inline ml-1 hover:text-error" />
+        {operationMode === 'MONOLITHIC' ? (
+          <>
+            {/* Top: AMMO PILE / VAULT */}
+            <div className="bg-surface-container-low border border-outline-variant/10 flex flex-col h-48 shrink-0">
+              <div className="px-4 py-2 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
+                <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-primary flex items-center gap-2">
+                  <Database className="w-3 h-3" /> Ammo Pile (Storage)
                 </span>
-              ))}
-            </div>
-          </div>
-          <div className="flex-1 p-2 bg-surface-container-lowest/50 kinetic-focus flex flex-col gap-2 relative">
-            <div className="shrink-0 bg-surface-container-low border border-outline-variant/10 p-2 pt-1 flex flex-col">
-              <span className="text-[8px] font-mono font-bold text-outline uppercase tracking-widest mb-1 ml-1 flex items-center justify-between">
-                Global Default Prompt 
-                <span className="text-secondary font-headline">Fallback Instruction</span>
-              </span>
-              <textarea 
-                value={globalPayloadPrompt}
-                onChange={(e) => setGlobalPayloadPrompt(e.target.value)}
-                className="w-full bg-surface-container-lowest border border-outline-variant/10 min-h-[40px] focus:ring-0 p-2 text-xs font-mono text-on-surface resize-y custom-scrollbar shadow-inner"
-                placeholder="ENTER INSTRUCTION FOR ALL UN-TARGETED ASSETS..."
-              />
-            </div>
-
-            {editingFile ? (
-              <div className="flex-1 bg-surface-container-low border border-outline-variant/10 p-2 pt-1 flex flex-col min-h-0">
-                <span className="text-[8px] font-mono font-bold text-primary uppercase tracking-widest mb-1 ml-1 flex items-center justify-between">
-                   Target override: {editingFile}
-                   <span className="text-error font-headline">Custom Context</span>
-                </span>
-                <textarea 
-                  value={payloadOverrides[editingFile] || ''}
-                  onChange={(e) => setPayloadOverrides({...payloadOverrides, [editingFile]: e.target.value})}
-                  className="w-full bg-surface-container-lowest border border-outline-variant/10 min-h-[40px] focus:ring-0 p-2 text-xs font-mono text-on-surface resize-y custom-scrollbar shadow-inner mb-2 border-l-2 border-l-primary"
-                  placeholder="LEAVE BLANK TO USE GLOBAL DEFAULT PROMPT..."
-                />
-                
-                <span className="text-[8px] font-mono font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1">Asset Content</span>
-                <textarea 
-                  value={editorContent}
-                  onChange={(e) => setEditorContent(e.target.value)}
-                  className="w-full flex-1 bg-surface-container-lowest/50 border border-outline-variant/5 focus:ring-0 p-3 text-sm font-mono text-on-surface leading-loose resize-none custom-scrollbar"
-                  placeholder="ENGINEER ASSET CONTENT HERE..."
-                />
-                <button 
-                  onClick={savePrompt}
-                  disabled={isSaving}
-                  className="mt-2 w-full py-2 bg-secondary text-on-secondary font-headline text-[10px] font-bold tracking-[0.2em] uppercase flex justify-center items-center gap-2 active:scale-95 transition-all gold-glow disabled:opacity-50"
-                >
-                  <Description className="w-3 h-3" /> {isSaving ? 'SECURING...' : 'SAVE ASSET TO DISK'}
-                </button>
+                <button onClick={refillAmmoPile} className="text-[9px] font-mono text-outline hover:text-primary uppercase tracking-widest">Refill Pile</button>
               </div>
-            ) : (
-               <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex items-center justify-center text-outline font-mono text-[10px] uppercase shadow-inner">No active payload selected</div>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom Split: LOGS & RUN SETTINGS */}
-        <div className="h-64 shrink-0 flex gap-6">
-          <div className="flex-[2] bg-surface-container-low border border-outline-variant/10 flex flex-col">
-             <div className="px-4 py-2 border-b border-outline-variant/10 bg-surface-container-lowest flex items-center justify-between">
-                <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-outline">Strike Telemetry & Logs</span>
-                <Terminal className="w-3 h-3 text-outline" />
-             </div>
-             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2">
-                {logs.length === 0 && <span className="text-[10px] text-gray-700 italic block text-center mt-4">Awaiting launch sequence...</span>}
-                {logs.map((log: any, i: number) => (
-                  <LogEntry key={i} time={log.time} status={log.status} message={log.msg} />
+              <div className="flex-1 overflow-y-auto p-4 flex flex-wrap gap-3 custom-scrollbar">
+                {ammoPile.length === 0 && <span className="text-[10px] text-gray-700 italic">Pile empty</span>}
+                {ammoPile.map((f: string) => (
+                  <button key={f} onClick={() => loadAmmo(f)} className="bg-surface-container hover:bg-surface-bright border border-outline-variant/20 px-3 py-2 flex items-center gap-2 transition-all active:scale-95">
+                    <FileText className="w-3 h-3 text-primary-fixed-dim" />
+                    <span className="text-[10px] font-mono text-on-surface uppercase">{f}</span>
+                    <Add className="w-3 h-3 text-outline" />
+                  </button>
                 ))}
-             </div>
-          </div>
-          <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex flex-col">
-             <div className="px-4 py-2 border-b border-outline-variant/10 bg-surface-container-lowest">
-                <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-outline">Run Settings</span>
-             </div>
-             <div className="flex-1 p-6 space-y-8 overflow-y-auto custom-scrollbar">
-                <GenerationSlider label="Temperature" value={genSettings.temp} min={0} max={2} step={0.05} onChange={(v) => setGenSettings({...genSettings, temp: v})} />
-                <GenerationSlider label="Top P" value={genSettings.top_p} min={0} max={1} step={0.01} onChange={(v) => setGenSettings({...genSettings, top_p: v})} />
-             </div>
-          </div>
-        </div>
+              </div>
+            </div>
+
+            {/* Center: PAYLOAD EDITOR */}
+            <div className="bg-surface-container-low border border-outline-variant/10 flex-1 flex flex-col min-h-0">
+              <div className="px-4 py-2 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
+                <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-secondary flex items-center gap-2">
+                  <Bolt className="w-3 h-3" /> Active Payload ({loadedAmmo.length})
+                </span>
+                <div className="flex gap-2">
+                  {loadedAmmo.map((f: string) => (
+                    <span key={f} onClick={() => openEditor(f)} className={`cursor-pointer px-2 py-0.5 text-[9px] font-mono uppercase ${editingFile === f ? 'bg-secondary text-on-secondary' : 'bg-surface-container text-outline hover:text-white'}`}>
+                      {f} <Close onClick={(e) => { e.stopPropagation(); unloadAmmo(f); }} className="w-3 h-3 inline ml-1 hover:text-error" />
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-1 p-2 bg-surface-container-lowest/50 kinetic-focus flex flex-col gap-2 relative">
+                <div className="shrink-0 bg-surface-container-low border border-outline-variant/10 p-2 pt-1 flex flex-col">
+                  <span className="text-[8px] font-mono font-bold text-outline uppercase tracking-widest mb-1 ml-1 flex items-center justify-between">
+                    Global Default Prompt 
+                    <span className="text-secondary font-headline">Fallback Instruction</span>
+                  </span>
+                  <textarea 
+                    value={globalPayloadPrompt}
+                    onChange={(e) => setGlobalPayloadPrompt(e.target.value)}
+                    className="w-full bg-surface-container-lowest border border-outline-variant/10 min-h-[40px] focus:ring-0 p-2 text-xs font-mono text-on-surface resize-y custom-scrollbar shadow-inner"
+                    placeholder="ENTER INSTRUCTION FOR ALL UN-TARGETED ASSETS..."
+                  />
+                </div>
+
+                {editingFile ? (
+                  <div className="flex-1 bg-surface-container-low border border-outline-variant/10 p-2 pt-1 flex flex-col min-h-0">
+                    <span className="text-[8px] font-mono font-bold text-primary uppercase tracking-widest mb-1 ml-1 flex items-center justify-between">
+                       Target override: {editingFile}
+                       <span className="text-error font-headline">Custom Context</span>
+                    </span>
+                    <textarea 
+                      value={payloadOverrides[editingFile] || ''}
+                      onChange={(e) => setPayloadOverrides({...payloadOverrides, [editingFile]: e.target.value})}
+                      className="w-full bg-surface-container-lowest border border-outline-variant/10 min-h-[40px] focus:ring-0 p-2 text-xs font-mono text-on-surface resize-y custom-scrollbar shadow-inner mb-2 border-l-2 border-l-primary"
+                      placeholder="LEAVE BLANK TO USE GLOBAL DEFAULT PROMPT..."
+                    />
+                    
+                    <span className="text-[8px] font-mono font-bold text-outline-variant uppercase tracking-widest mb-1 ml-1">Asset Content</span>
+                    <textarea 
+                      value={editorContent}
+                      onChange={(e) => setEditorContent(e.target.value)}
+                      className="w-full flex-1 bg-surface-container-lowest/50 border border-outline-variant/5 focus:ring-0 p-3 text-sm font-mono text-on-surface leading-loose resize-none custom-scrollbar"
+                      placeholder="ENGINEER ASSET CONTENT HERE..."
+                    />
+                    <button 
+                      onClick={savePrompt}
+                      disabled={isSaving}
+                      className="mt-2 w-full py-2 bg-secondary text-on-secondary font-headline text-[10px] font-bold tracking-[0.2em] uppercase flex justify-center items-center gap-2 active:scale-95 transition-all gold-glow disabled:opacity-50"
+                    >
+                      <Description className="w-3 h-3" /> {isSaving ? 'SECURING...' : 'SAVE ASSET TO DISK'}
+                    </button>
+                  </div>
+                ) : (
+                   <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex items-center justify-center text-outline font-mono text-[10px] uppercase shadow-inner">No active payload selected</div>
+                )}
+              </div>
+            </div>
+
+            {/* Bottom Split: LOGS & RUN SETTINGS */}
+            <div className="h-48 shrink-0 flex gap-6">
+              <div className="flex-[2] bg-surface-container-low border border-outline-variant/10 flex flex-col">
+                 <div className="px-4 py-2 border-b border-outline-variant/10 bg-surface-container-lowest flex items-center justify-between">
+                    <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-outline">Strike Telemetry & Logs</span>
+                    <Terminal className="w-3 h-3 text-outline" />
+                 </div>
+                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2">
+                    {logs.length === 0 && <span className="text-[10px] text-gray-700 italic block text-center mt-4">Awaiting launch sequence...</span>}
+                    {logs.map((log: any, i: number) => (
+                      <LogEntry key={i} time={log.time} status={log.status} message={log.msg} />
+                    ))}
+                 </div>
+              </div>
+              <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex flex-col">
+                 <div className="px-4 py-2 border-b border-outline-variant/10 bg-surface-container-lowest">
+                    <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-outline">Run Settings</span>
+                 </div>
+                 <div className="flex-1 p-6 space-y-4 overflow-y-auto custom-scrollbar">
+                    <GenerationSlider label="Temperature" value={genSettings.temp} min={0} max={2} step={0.05} onChange={(v:any) => setGenSettings({...genSettings, temp: v})} />
+                    <GenerationSlider label="Top P" value={genSettings.top_p} min={0} max={1} step={0.01} onChange={(v:any) => setGenSettings({...genSettings, top_p: v})} />
+                 </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* CAMPAIGN MODE: 3-COLUMN RACK */}
+            <div className="flex-1 flex gap-6 min-h-0">
+               {/* Col 1: Strike Groups */}
+               <div className="flex-[1.2] bg-surface-container-low border border-outline-variant/10 flex flex-col overflow-hidden">
+                  <div className="px-4 py-3 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0">
+                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-secondary">1. Define Prompts</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-3">
+                     {strikeGroups.map((group, idx) => (
+                        <div key={group.id} onClick={() => setActiveGroupIndex(idx)} className={`border cursor-pointer transition-all p-3 flex flex-col gap-2 relative ${activeGroupIndex === idx ? 'border-secondary bg-surface-container shadow-[0_0_15px_rgba(255,200,87,0.1)]' : 'border-outline-variant/10 bg-surface-container-highest opacity-70 hover:opacity-100'}`}>
+                           {activeGroupIndex === idx && <div className="absolute left-0 top-0 bottom-0 w-1 bg-secondary shadow-[0_0_10px_rgba(255,200,87,0.5)]"></div>}
+                           <div className="flex items-center justify-between z-10">
+                             <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">{group.id}</span>
+                             <button onClick={(e) => { e.stopPropagation(); removeStrikeGroup(group.id); }} disabled={strikeGroups.length === 1} className="text-outline hover:text-error disabled:opacity-30"><Close className="w-3 h-3"/></button>
+                           </div>
+                           <textarea value={group.instruction} onChange={(e) => updateGroupInstruction(group.id, e.target.value)} className="w-full bg-surface-container-lowest border border-outline-variant/20 p-2 text-[10px] font-mono text-on-surface resize-y custom-scrollbar min-h-[60px] z-10 focus:ring-1 focus:ring-secondary/50" placeholder="INSTRUCTION DIRECTIVE..."/>
+                        </div>
+                     ))}
+                     <button onClick={addStrikeGroup} className="w-full py-4 mt-2 border border-outline-variant/20 text-[9px] text-outline hover:text-secondary uppercase tracking-[0.2em] bg-surface-container-high transition-all active:scale-[0.98] font-bold">
+                        <Add className="w-4 h-4 inline" /> Initialize Prompt
+                     </button>
+                  </div>
+               </div>
+
+               {/* Col 2: Vault */}
+               <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex flex-col overflow-hidden">
+                  <div className="px-4 py-3 border-b border-outline-variant/10 bg-surface-container-lowest flex items-center justify-between shrink-0">
+                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-primary">2. Vault (Ammo)</span>
+                     <button onClick={refillAmmoPile} className="text-[9px] font-mono text-outline hover:text-primary uppercase tracking-widest">Refill</button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 custom-scrollbar">
+                     {ammoPile.length === 0 && <span className="text-[10px] text-outline-variant italic uppercase px-2 text-center mt-4">Vault empty.</span>}
+                     {ammoPile.map((f: string) => (
+                       <button key={f} onClick={() => loadAmmo(f)} className="bg-surface-container hover:bg-surface-bright border border-outline-variant/20 p-3 flex items-center justify-between transition-all group active:scale-95">
+                         <span className="text-[10px] font-mono text-on-surface uppercase flex items-center gap-2 font-bold"><FileText className="w-3 h-3 text-primary-fixed-dim" /> {f}</span>
+                         <span className="px-2 py-0.5 bg-surface-container-highest flex items-center gap-1 text-[8px] font-mono text-outline group-hover:text-primary transition-all">ASSIGN <ArrowRight className="w-2.5 h-2.5" /></span>
+                       </button>
+                     ))}
+                  </div>
+               </div>
+
+               {/* Col 3: Active Loadout */}
+               <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex flex-col overflow-hidden relative">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary/5 via-transparent to-transparent pointer-events-none z-0 opacity-50"></div>
+                  <div className="px-4 py-3 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0 z-10 flex flex-col gap-1">
+                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-secondary">3. Active Loadout</span>
+                     <span className="text-[8px] font-mono text-outline uppercase tracking-widest">Targeting: {strikeGroups[activeGroupIndex]?.id}</span>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-2 z-10">
+                     {strikeGroups[activeGroupIndex]?.assets.length === 0 && <span className="text-[10px] text-secondary font-mono italic uppercase px-2 text-center mt-4 opacity-50 border border-dashed border-secondary/20 p-4">Awaiting assignments...</span>}
+                     {strikeGroups[activeGroupIndex]?.assets.map(asset => (
+                       <div key={asset} className="bg-surface-container-high border border-secondary/30 p-2.5 flex items-center justify-between shadow-[0_0_10px_rgba(255,200,87,0.05)]">
+                         <span className="text-[10px] font-mono text-secondary uppercase tracking-wider font-bold truncate pr-3">{asset}</span>
+                         <button onClick={(e) => { e.stopPropagation(); unloadFromGroup(activeGroupIndex, asset); }} className="text-outline hover:text-error shrink-0"><Close className="w-3.5 h-3.5"/></button>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+            
+            {/* Bottom Split (Campaign): LOGS & RUN SETTINGS */}
+            <div className="h-44 shrink-0 flex gap-6">
+               <div className="flex-[2] bg-surface-container-low border border-outline-variant/10 flex flex-col">
+                  <div className="px-4 py-2 border-b border-outline-variant/10 bg-surface-container-lowest flex items-center justify-between">
+                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-outline">Campaign Telemetry & Logs</span>
+                     <Terminal className="w-3 h-3 text-outline" />
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2">
+                     {logs.length === 0 && <span className="text-[10px] text-gray-700 italic block text-center mt-4">Awaiting launch sequence...</span>}
+                     {logs.map((log: any, i: number) => (
+                       <LogEntry key={i} time={log.time} status={log.status} message={log.msg} />
+                     ))}
+                  </div>
+               </div>
+               
+               <div className="flex-1 bg-surface-container-low border border-outline-variant/10 flex flex-col">
+                  <div className="px-4 py-2 border-b border-outline-variant/10 bg-surface-container-lowest">
+                     <span className="font-headline text-[10px] uppercase font-bold tracking-widest text-outline">Run Settings</span>
+                  </div>
+                  <div className="flex-1 p-4 space-y-6 overflow-y-auto custom-scrollbar">
+                     <GenerationSlider label="Temperature" value={genSettings.temp} min={0} max={2} step={0.05} onChange={(v:any) => setGenSettings({...genSettings, temp: v})} />
+                     <GenerationSlider label="Top P" value={genSettings.top_p} min={0} max={1} step={0.01} onChange={(v:any) => setGenSettings({...genSettings, top_p: v})} />
+                  </div>
+               </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Right Column: TACTICAL COMMAND (Sequence Striker) */}
