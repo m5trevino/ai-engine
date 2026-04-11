@@ -42,7 +42,7 @@ sudo pkill -f uvicorn && sleep 2 && sudo systemctl start peacock-engine
 
 ```
 # PROJECT ROOT
-/root/ai-engine/                          # VPS
+/root/hetzner/ai-engine/                          # VPS
 ~/Projects/ai-engine/                     # Local
 
 # CONFIGURATION
