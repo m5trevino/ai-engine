@@ -1,0 +1,60 @@
+# LIM Security Protocol Workspace Implementation
+
+Resuming from the intel recovered from conversation `4be3c92e-a0b4-46b2-a2ce-f9afbae8464a`. We are building out the **LIM Security Protocol** architecture strictly within the `Payload Striker` workspace.
+
+## User Review Required
+
+> [!IMPORTANT]
+> I have identified that the backend work previously marked as completed in your logs is missing from the current `app/` filesystem. I will be re-implementing these endpoints as part of this plan.
+> 
+> [!CAUTION]
+> The redesign involves "ripping out" the current vertical layout for the Payload Striker area. Please confirm if there is any legacy logic in `gateway.js` that must be preserved.
+
+## Proposed Changes
+
+### Backend (FastAPI)
+
+#### [NEW] [lim.py](file:///home/flintx/ai-handler/app/routes/lim.py)
+- `GET /v1/lim/prompts`: Scans `/home/flintx/peacock/prompts` and returns file list.
+- `GET /v1/lim/payloads`: Scans `/home/flintx/ammo` and returns file list.
+- `POST /v1/lim/save`: Accepts a payload result and writes it to disk as `payload-filename-done.YY-MM-DD-HHMM.md`.
+
+#### [MODIFY] [main.py](file:///home/flintx/ai-handler/app/main.py)
+- Import and register the `lim` router with prefix `/v1/lim`.
+
+### Frontend (Tailwind/JS)
+
+#### [MODIFY] [gateway.js](file:///home/flintx/ai-handler/peacock-ui/src/gateway.js)
+- Implement the 4-column state machine.
+- **State A (Prompt Phase)**: Load prompts into Box 1.
+- **State B (Payload Phase)**: Prompt selected -> Box 1 displays payloads -> Click to stage in Box 2.
+- **State C (Execution)**: Launch triggered -> Payloads move to Box 1 for tracking -> Box 2 flashes terminal output.
+- Hook up the `LAUNCH SEQUENCE` to the model striker.
+
+#### [MODIFY] [index.html](file:///home/flintx/ai-handler/peacock-ui/index.html) (or a designated workspace file)
+- Architect the 4-column lateral structure:
+    - **Box 1 (Director)**: Left column.
+    - **Box 2 (Response Bay)**: Middle column.
+    - **Box 3 (Telemetry)**: Right-wing top block.
+    - **Box 4 (Control Node)**: Right-wing sidebar.
+- Implement the "Anchored Telemetry" (Horizontal logs below the columns).
+
+## Open Questions
+
+1. **Workspace Entry**: Is the "Payload Striker" workspace a separate page (like `payload.html`) or a view toggle inside `index.html`?
+2. **Path Confirmation**: Are `/home/flintx/peacock/prompts` and `/home/flintx/ammo` the definitive targets for the LIM protocol?
+3. **Model Selection**: Should the LIM protocol use a specific hardcoded model (e.g., Gemini 3 Flash), or should it use the global selector from the header?
+
+## Verification Plan
+
+### Automated Tests
+- Test `/v1/lim/prompts` and `/v1/lim/payloads` via `curl` to ensure directory traversal is working.
+- Test `POST /v1/lim/save` to verify the timestamped file naming convention.
+
+### Manual Verification
+- Walk through the 4-Column UI states:
+    - Select a Prompt.
+    - Stage 5 Payloads.
+    - Hit `LAUNCH SEQUENCE`.
+    - Verify real-time telemetry updates (TPS/RPM).
+    - Check the filesystem for the generated `.md` report.

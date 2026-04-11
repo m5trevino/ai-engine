@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#f8f7ff",
+                    "on-tertiary-container": "#005f2e",
+                    "primary": "#f9d94a",
+                    "tertiary": "#c4ffcd",
+                    "primary-container": "#bb9f04",
+                    "on-tertiary-fixed": "#004a22",
+                    "secondary-container": "#0053db",
+                    "inverse-on-surface": "#565457",
+                    "on-surface-variant": "#adaaad",
+                    "on-secondary-fixed": "#002d80",
+                    "primary-fixed-dim": "#eacb3d",
+                    "outline": "#767577",
+                    "error-container": "#b92902",
+                    "tertiary-dim": "#5def8f",
+                    "error-dim": "#d53d18",
+                    "surface-container-low": "#131315",
+                    "error": "#ff7351",
+                    "on-primary-container": "#2a2200",
+                    "on-surface": "#f9f5f8",
+                    "outline-variant": "#48474a",
+                    "on-primary": "#5a4c00",
+                    "primary-dim": "#eacb3d",
+                    "on-tertiary": "#006833",
+                    "surface-variant": "#262528",
+                    "on-background": "#f9f5f8",
+                    "inverse-primary": "#705e00",
+                    "inverse-surface": "#fcf8fb",
+                    "secondary-fixed": "#c4d0ff",
+                    "surface-dim": "#0e0e10",
+                    "on-secondary": "#001b55",
+                    "surface-container-lowest": "#000000",
+                    "surface-container": "#19191c",
+                    "surface-container-high": "#1f1f22",
+                    "secondary-fixed-dim": "#b0c2ff",
+                    "on-error": "#450900",
+                    "on-error-container": "#ffd2c8",
+                    "primary-fixed": "#f9d94a",
+                    "tertiary-container": "#6dfe9c",
+                    "surface-tint": "#f9d94a",
+                    "secondary": "#7799ff",
+                    "on-secondary-fixed-variant": "#0047bd",
+                    "on-primary-fixed-variant": "#655500",
+                    "tertiary-fixed-dim": "#5def8f",
+                    "on-tertiary-fixed-variant": "#006a34",
+                    "surface": "#0e0e10",
+                    "surface-bright": "#2c2c2f",
+                    "secondary-dim": "#316bf3",
+                    "surface-container-highest": "#262528",
+                    "on-primary-fixed": "#453900",
+                    "tertiary-fixed": "#6dfe9c",
+                    "background": "#0e0e10"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Space Grotesk"],
+                    "body": ["Space Grotesk"],
+                    "label": ["Space Grotesk"],
+                    "mono": ["JetBrains Mono"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0c;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262528;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f9d94a;
+        }
+        .kinetic-terminal-glow {
+            box-shadow: 0 0 15px rgba(249, 217, 74, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 10px;
+        }
+        .sidebar-transition {
+            transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #1f1f22;
+            height: 4px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 12px;
+            width: 12px;
+            background: #f9d94a;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0c] text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen bg-[#171717] w-[260px] border-r border-white/5 sidebar-transition relative group overflow-hidden" id="left-sidebar">
+<div class="p-3 space-y-2 shrink-0">
+<!-- Top Controls -->
+<button class="w-full flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-white/5 transition-colors group">
+<div class="w-7 h-7 flex items-center justify-center rounded-full border border-white/20">
+<span class="material-symbols-outlined text-[18px] text-zinc-300">add</span>
+</div>
+<span class="text-sm font-medium text-zinc-200 whitespace-nowrap">New chat</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-[20px] text-zinc-400">search</span>
+<span class="text-sm text-zinc-300 whitespace-nowrap">Search</span>
+</button>
+</div>
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto px-3 mt-4 custom-scrollbar">
+<div class="px-3 mb-2">
+<span class="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider whitespace-nowrap">Starred</span>
+</div>
+<div class="space-y-[2px]">
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">Consumer musculoskeletal imagin...</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">Director of transportation operati...</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">Case File Strategy Puzzle</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">Claude UI Research Project Update</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">**VECTOR DATABASE</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">Peacock Memory Project History</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">Peacock Playbook Strategy</a>
+<a class="block px-3 py-2 rounded-lg text-sm font-mono font-semibold text-zinc-300 hover:bg-white/5 truncate" href="#">Peacock Bird Prompt Optimization</a>
+</div>
+</div>
+<!-- Footer -->
+<div class="p-3 border-t border-white/5 shrink-0">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 cursor-pointer overflow-hidden">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-8 h-8 rounded-full bg-[#ccc5b9] flex-shrink-0 flex items-center justify-center text-black font-bold text-sm">F</div>
+<div class="flex flex-col truncate">
+<span class="text-sm font-medium text-zinc-200 truncate">flintx</span>
+<span class="text-[10px] text-zinc-500">Free plan</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="flex-1 flex flex-col min-w-0 bg-[#0a0a0c]">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-4 h-14 bg-[#0a0a0c] border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<button class="p-2 text-zinc-500 hover:text-white transition-colors" onclick="toggleSidebar('left-sidebar')">
+<span class="material-symbols-outlined">menu_open</span>
+</button>
+<span class="text-xl font-bold tracking-tighter text-yellow-400 font-['Space_Grotesk'] hidden sm:block">PEACOCK ENGINE</span>
+<nav class="hidden lg:flex items-center gap-6 ml-4">
+<a class="text-zinc-500 font-['Space_Grotesk'] font-medium text-xs tracking-tight hover:text-white transition-colors" href="#">SYSTEM</a>
+<a class="text-yellow-400 border-b-2 border-yellow-400 pb-1 font-['Space_Grotesk'] font-medium text-xs tracking-tight" href="#">TELEMETRY</a>
+<a class="text-zinc-500 font-['Space_Grotesk'] font-medium text-xs tracking-tight hover:text-white transition-colors" href="#">VULKAN</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container-highest/50 border border-outline-variant/20">
+<span class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(196,255,205,0.5)]"></span>
+<span class="font-mono text-[10px] text-zinc-400">NODE_01_ACTIVE</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="text-zinc-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 bg-surface-container-high overflow-hidden border border-outline-variant/30 hidden sm:block">
+<img alt="Operator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAnaxPkoXcgLXQjna-tolQalOSwEm4XXWgtiqjKuUOib5FYVFMXgMmnyUGLRqM0P7c9SnuAfIzzBjLkK8MFy4jamUJc7F3rK0C241VCOaLug1VasSKit4W52cB-H8naYA9n2wRMjs6d_yCYAl-skCx4YQVqVshhRP0TVKwLYAqTH434YbYXcvJiIQXJlCaZ4KzmJdOxU_Ps0IjXbuKlzl5YduJrDqDzj_9wxyz40qZEezAzG6jpWWjA9RQ0cMqxAnayGhFTmPRmw"/>
+</div>
+<button class="p-2 text-zinc-500 hover:text-white transition-colors" onclick="toggleSidebar('right-sidebar')">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Chat Canvas -->
+<div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+<!-- System Banner -->
+<div class="flex justify-center">
+<div class="px-4 py-1.5 bg-[#131315] border border-outline-variant/10">
+<p class="font-mono text-[10px] text-zinc-500 tracking-widest uppercase">ENCRYPTED SESSION INITIALIZED • THREAD_ID: 0XF4A2</p>
+</div>
+</div>
+<!-- Bot Message -->
+<div class="flex gap-4 max-w-4xl mx-auto w-full">
+<div class="flex-shrink-0 w-10 h-10 bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</div>
+<div class="flex-1 space-y-2">
+<div class="flex items-center gap-3">
+<span class="font-mono text-[10px] font-bold text-yellow-400 tracking-widest uppercase">PEACOCK_ENGINE</span>
+<span class="font-mono text-[9px] text-zinc-600">14:02:45</span>
+</div>
+<div class="bg-[#1a1a1e] border-l-2 border-yellow-400 p-5 kinetic-terminal-glow shadow-lg">
+<p class="font-mono text-sm leading-relaxed text-on-surface">
+                            Welcome, Operator. The telemetry stream for <span class="text-secondary">CLUSTER_OMEGA</span> is currently reporting a 4.2% increase in latency across European nodes.
+                        </p>
+<div class="mt-4 p-4 bg-black/40 font-mono text-xs text-secondary-dim border border-outline-variant/10">
+<span class="text-zinc-500">// RUNNING SYSTEM_DIAGNOSTICS</span><br/>
+                            &gt; status: WARNING<br/>
+                            &gt; packet_loss: 0.02%<br/>
+                            &gt; recommendation: Shift overflow to US_EAST_01
+                        </div>
+</div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 max-w-4xl mx-auto w-full flex-row-reverse">
+<div class="flex-shrink-0 w-10 h-10 bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+<img alt="Operator" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByhushO8M7D2xurfReHrwT2e-dVjgCydbuu4lz3K1Gd35vYIj1DKN9MK4-0Dxvz9b7iZ6BTk09gfCAdI60BUnOrzSDaYgBf51ULi_ohQlEA_AJwwfJRd1gPa_VhP0gJeedA5W4bw0k5gp35xwxOMxKRpwtLIutArBM2a5xC3e3lYUNl7Yw9nKrw8kNfgiXxsCr0r3WHaGilYfsluXi3cIMptp0JY5f3Gi-yioF7hQNbRsjZB1eIgWlD_DjUGjGJ2kkHAXtR7LtxA"/>
+</div>
+<div class="flex-1 space-y-2 text-right">
+<div class="flex items-center gap-3 justify-end">
+<span class="font-mono text-[9px] text-zinc-600">14:03:12</span>
+<span class="font-mono text-[10px] font-bold text-zinc-400 tracking-widest uppercase">OPERATOR_LEAD</span>
+</div>
+<div class="bg-[#2a2a2e] border-r-2 border-zinc-500 p-5 inline-block text-left shadow-lg">
+<p class="font-mono text-sm leading-relaxed text-zinc-200">
+                            Reallocate 40% of the European buffer to US_EAST_01 immediately.
+                        </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<footer class="p-6 bg-[#0a0a0c]">
+<div class="max-w-4xl mx-auto">
+<div class="relative group">
+<div class="relative flex items-end gap-3 p-3 bg-[#131315] border-b-2 border-transparent focus-within:border-primary transition-all shadow-xl">
+<button class="flex-shrink-0 p-2 text-zinc-500 hover:text-yellow-400 transition-colors">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 font-mono text-sm text-on-surface placeholder:text-zinc-600 resize-none py-2" placeholder="ENTER COMMAND OR QUERY..." rows="1"></textarea>
+<button class="w-10 h-10 bg-primary text-on-primary flex items-center justify-center hover:bg-primary-dim transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</div>
+</footer>
+</main>
+<!-- Right Configuration Sidebar -->
+<aside class="hidden xl:flex flex-col w-[320px] bg-[#131315] border-l border-outline-variant/10 sidebar-transition overflow-hidden" id="right-sidebar">
+<div class="p-6 space-y-8 overflow-y-auto custom-scrollbar h-full">
+<!-- Box 1: Model Selector -->
+<section>
+<h3 class="font-mono text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">ENGINE_MODEL</h3>
+<div class="relative">
+<select class="w-full bg-[#1f1f22] border border-outline-variant/10 text-on-surface font-mono text-xs p-3 appearance-none focus:border-primary focus:ring-0">
+<option>CLAUDE_3_5_SONNET</option>
+<option>GPT_4O_LATEST</option>
+<option>PEACOCK_ULTRA_X1</option>
+<option>LLAMA_3_70B_INST</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-sm">expand_more</span>
+</div>
+</section>
+<!-- Box 2: System Prompt -->
+<section>
+<h3 class="font-mono text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">SYSTEM_INSTRUCTIONS</h3>
+<div class="bg-[#1f1f22] border border-outline-variant/10 p-3">
+<textarea class="w-full bg-transparent border-none focus:ring-0 font-mono text-xs text-zinc-300 resize-none h-32 custom-scrollbar" placeholder="Enter system prime directives...">You are the Peacock Engine Controller. Prioritize system stability and low-latency responses above all. Use technical terminal aesthetics in all communications.</textarea>
+</div>
+</section>
+<!-- Box 3: Persona -->
+<section>
+<h3 class="font-mono text-[10px] font-bold text-zinc-500 tracking-widest uppercase mb-4">OPERATOR_PERSONA</h3>
+<div class="grid grid-cols-2 gap-2">
+<button class="p-2 border border-primary bg-primary/10 text-primary font-mono text-[10px] text-center">ANALYTICAL</button>
+<button class="p-2 border border-outline-variant/10 hover:border-zinc-500 text-zinc-500 font-mono text-[10px] text-center">CREATIVE</button>
+<button class="p-2 border border-outline-variant/10 hover:border-zinc-500 text-zinc-500 font-mono text-[10px] text-center">CONCISE</button>
+<button class="p-2 border border-outline-variant/10 hover:border-zinc-500 text-zinc-500 font-mono text-[10px] text-center">DEBUG</button>
+</div>
+</section>
+<!-- Box 4: Temperature -->
+<section>
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-mono text-[10px] font-bold text-zinc-500 tracking-widest uppercase">THERMAL_ENTROPY</h3>
+<span class="font-mono text-[10px] text-primary" id="temp-val">0.7</span>
+</div>
+<div class="px-1">
+<input class="w-full cursor-pointer accent-primary" max="100" min="0" oninput="document.getElementById('temp-val').innerText = (this.value/100).toFixed(1)" type="range" value="70"/>
+<div class="flex justify-between mt-2 font-mono text-[8px] text-zinc-600">
+<span>STABLE</span>
+<span>CREATIVE</span>
+</div>
+</div>
+</section>
+<div class="mt-auto pt-6 border-t border-outline-variant/10 text-center">
+<div class="font-mono text-[10px] text-zinc-700 tracking-widest uppercase">PEACOCK_SYSTEMS_GLOBAL</div>
+</div>
+</div>
+</aside>
+</div>
+<script>
+    function toggleSidebar(id) {
+        const sidebar = document.getElementById(id);
+        const isCollapsed = sidebar.classList.contains('w-0');
+        
+        if (id === 'left-sidebar') {
+            if (isCollapsed) {
+                sidebar.classList.remove('w-0', 'p-0', 'border-none');
+                sidebar.classList.add('w-[260px]');
+            } else {
+                sidebar.classList.remove('w-[260px]');
+                sidebar.classList.add('w-0', 'p-0', 'border-none');
+            }
+        } else {
+            if (isCollapsed) {
+                sidebar.classList.remove('w-0', 'p-0', 'border-none');
+                sidebar.classList.add('w-[320px]');
+            } else {
+                sidebar.classList.remove('w-[320px]');
+                sidebar.classList.add('w-0', 'p-0', 'border-none');
+            }
+        }
+    }
+</script>
+</body></html>

@@ -1,0 +1,4 @@
+- `[x]` Add Target icon toggle in Header
+- `[x]` Wire 'Initialize Sequence' button in Left Sidebar
+- `[x]` Harden Right Sidebar scroll mechanics
+- `[x]` Final UI Polish & Validation

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Syndicate Payload Deck | Data Stream Cyberpunk</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&amp;family=Fira+Code:wght@300;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "cyber-black": "#020204",
+                        "cyber-deep": "#05050a",
+                        "neon-purple": "#bc13fe",
+                        "neon-cyan": "#00f3ff",
+                        "neon-pink": "#ff00e6",
+                        "danger-red": "#ff003c",
+                        "hazard-yellow": "#f3ef00",
+                        "surface-accent": "#11111d"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px"
+                    },
+                    fontFamily: {
+                        "headline": ["Orbitron", "sans-serif"],
+                        "body": ["Fira Code", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+    :root {
+        --glow-cyan: 0 0 15px rgba(0, 243, 255, 0.6);
+        --glow-purple: 0 0 15px rgba(188, 19, 254, 0.6);
+        --glow-pink: 0 0 15px rgba(255, 0, 230, 0.6);
+        --pop-shadow: 8px 8px 0px rgba(188, 19, 254, 0.3), -4px -4px 0px rgba(0, 243, 255, 0.2);
+    }
+    body {
+        background-color: #020204;
+        background-image: 
+            radial-gradient(circle at 50% 50%, rgba(188, 19, 254, 0.05) 0%, transparent 50%),
+            linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+            linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        background-size: 100% 100%, 100% 2px, 3px 100%;
+    }
+    .pop-3d {
+        box-shadow: var(--pop-shadow);
+        border: 1px solid rgba(0, 243, 255, 0.3);
+        transform: perspective(1000px) rotateX(2deg);
+        transition: all 0.3s ease;
+    }
+    .pop-3d:hover {
+        transform: perspective(1000px) rotateX(0deg) translateZ(10px);
+        box-shadow: 12px 12px 20px rgba(188, 19, 254, 0.4), -6px -6px 20px rgba(0, 243, 255, 0.3);
+    }
+    .data-glow {
+        text-shadow: 0 0 8px currentColor;
+    }
+    .light-bleed-cyan {
+        box-shadow: 0 10px 30px -10px rgba(0, 243, 255, 0.8);
+    }
+    .light-bleed-purple {
+        box-shadow: 0 10px 30px -10px rgba(188, 19, 254, 0.8);
+    }
+    .light-bleed-red {
+        box-shadow: 0 0 25px rgba(255, 0, 60, 0.5);
+    }
+    input[type="range"] {
+        -webkit-appearance: none;
+        background: #11111d;
+        height: 2px;
+        border: 1px solid rgba(188, 19, 254, 0.3);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 18px;
+        width: 6px;
+        background: #00f3ff;
+        box-shadow: 0 0 10px #00f3ff;
+        cursor: pointer;
+        border-radius: 0;
+    }
+    .glitch-text {
+        position: relative;
+    }
+    .glitch-text::before {
+        content: attr(data-text);
+        position: absolute;
+        left: -1px;
+        text-shadow: 1px 0 #ff00e6;
+        background: transparent;
+        overflow: hidden;
+        clip: rect(0, 900px, 0, 0);
+    }
+    .scanline {
+        width: 100%;
+        height: 100px;
+        z-index: 100;
+        background: linear-gradient(0deg, rgba(0, 243, 255, 0) 0%, rgba(0, 243, 255, 0.05) 50%, rgba(0, 243, 255, 0) 100%);
+        position: absolute;
+        pointer-events: none;
+    }
+</style>
+</head>
+<body class="text-neon-cyan font-body overflow-hidden">
+<div class="flex h-screen w-full flex-col relative">
+<div class="scanline"></div>
+<header class="flex items-center justify-between border-b-2 border-neon-purple/30 px-6 py-4 bg-cyber-black/80 backdrop-blur-md">
+<div class="flex items-center gap-6">
+<div class="size-8 text-neon-pink drop-shadow-[0_0_8px_rgba(255,0,230,0.8)]">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="font-headline text-2xl font-black italic tracking-tighter text-white data-glow">
+                SYNDICATE <span class="text-neon-cyan">PAYLOAD DECK</span> <span class="text-neon-purple">//</span> <span class="text-neon-pink">THE LIM PROTOCOL</span>
+</h2>
+</div>
+<div class="flex gap-4">
+<button class="h-12 w-12 bg-surface-accent border border-neon-cyan/50 text-neon-cyan flex items-center justify-center hover:bg-neon-cyan hover:text-black transition-all shadow-[0_0_10px_rgba(0,243,255,0.2)]">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="h-12 w-12 bg-surface-accent border border-neon-purple/50 text-neon-purple flex items-center justify-center hover:bg-neon-purple hover:text-white transition-all shadow-[0_0_10px_rgba(188,19,254,0.2)]">
+<span class="material-symbols-outlined">terminal</span>
+</button>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden p-4 gap-4 bg-cyber-black">
+<section class="w-80 flex flex-col gap-4">
+<div class="p-3 bg-surface-accent/50 border-l-4 border-neon-cyan light-bleed-cyan">
+<p class="text-[10px] font-headline font-bold text-neon-cyan/70 tracking-[0.2em] uppercase">ZONE 01 // DIRECTOR</p>
+<h3 class="font-headline text-xl text-white font-black italic">FILESYSTEM</h3>
+</div>
+<div class="flex-1 overflow-y-auto space-y-4 pr-2">
+<div class="pop-3d p-4 bg-surface-accent border-r-2 border-neon-purple group cursor-pointer">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-white data-glow">initial_breach.md</span>
+<span class="text-[10px] text-neon-cyan/60 uppercase mt-1">2m ago // 4.2kb</span>
+</div>
+<span class="material-symbols-outlined text-neon-pink text-lg">visibility</span>
+</div>
+</div>
+<div class="pop-3d p-4 bg-surface-accent border-r-2 border-neon-cyan/30 group cursor-pointer opacity-80 hover:opacity-100">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-white/70">lateral_movement.md</span>
+<span class="text-[10px] text-neon-cyan/40 uppercase mt-1">15m ago // 1.8kb</span>
+</div>
+<span class="material-symbols-outlined text-neon-cyan/40 group-hover:text-neon-cyan text-lg">visibility</span>
+</div>
+</div>
+<div class="pop-3d p-4 bg-surface-accent border-r-2 border-neon-cyan/30 group cursor-pointer opacity-80 hover:opacity-100">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-white/70">exfiltration_v2.md</span>
+<span class="text-[10px] text-neon-cyan/40 uppercase mt-1">1h ago // 12.4kb</span>
+</div>
+<span class="material-symbols-outlined text-neon-cyan/40 group-hover:text-neon-cyan text-lg">visibility</span>
+</div>
+</div>
+</div>
+<div class="p-4 bg-surface-accent/80 border border-neon-cyan/20">
+<div class="flex justify-between items-center text-[10px] text-neon-cyan font-headline font-bold">
+<span>STORAGE LOAD</span>
+<span class="text-neon-pink">88%</span>
+</div>
+<div class="h-2 bg-cyber-black mt-2 p-[2px] border border-neon-cyan/20">
+<div class="h-full bg-neon-cyan shadow-[0_0_10px_#00f3ff]" style="width: 88%"></div>
+</div>
+</div>
+</section>
+<section class="w-96 flex flex-col gap-4">
+<div class="p-3 bg-surface-accent/50 border-l-4 border-neon-purple light-bleed-purple">
+<p class="text-[10px] font-headline font-bold text-neon-purple/70 tracking-[0.2em] uppercase">ZONE 02 // STAGING</p>
+<h3 class="font-headline text-xl text-white font-black italic">PAYLOAD QUEUE</h3>
+</div>
+<div class="flex-1 overflow-y-auto space-y-4 pr-2">
+<div class="pop-3d p-5 bg-cyber-deep border-b-2 border-neon-cyan/50">
+<div class="flex justify-between text-[10px] font-black text-neon-cyan mb-3 tracking-widest">
+<span>ID: PL-8821-X</span>
+<span class="bg-neon-cyan text-black px-1">READY</span>
+</div>
+<div class="text-[11px] text-white/80 font-medium leading-relaxed italic border-l border-neon-cyan/30 pl-3">
+                        GET /api/v1/auth/provision?scope=admin&amp;nonce=992817... <span class="text-neon-pink">[ENCRYPTED]</span>
+</div>
+</div>
+<div class="pop-3d p-5 bg-cyber-deep border-b-2 border-neon-purple/30 opacity-60">
+<div class="flex justify-between text-[10px] font-black text-neon-purple/70 mb-3 tracking-widest">
+<span>ID: PL-8822-X</span>
+<span>STAGING</span>
+</div>
+<div class="text-[11px] text-white/40 leading-relaxed italic border-l border-neon-purple/20 pl-3">
+                        POST /api/v1/internal/config?bypass=true&amp;force=1... [PENDING SIGNATURE]
+                    </div>
+</div>
+</div>
+</section>
+<section class="flex-1 flex flex-col gap-4">
+<div class="p-6 bg-surface-accent border-2 border-neon-cyan/30 flex-1 pop-3d relative">
+<div class="absolute top-0 right-0 p-2 text-[8px] text-neon-cyan/20 font-headline uppercase">Logic Core v4.2</div>
+<p class="text-[10px] font-headline font-bold text-neon-cyan/70 tracking-[0.2em] uppercase mb-8">ZONE 03 // LOGIC CORE</p>
+<div class="grid grid-cols-2 gap-10">
+<div class="space-y-10">
+<div>
+<div class="flex justify-between text-[11px] font-headline font-black mb-3">
+<span class="text-white uppercase tracking-tighter">Temperature</span>
+<span class="text-neon-cyan data-glow">0.85</span>
+</div>
+<input class="w-full" type="range"/>
+</div>
+<div>
+<div class="flex justify-between text-[11px] font-headline font-black mb-3">
+<span class="text-white uppercase tracking-tighter">Top-P Sampling</span>
+<span class="text-neon-cyan data-glow">0.92</span>
+</div>
+<input class="w-full" type="range"/>
+</div>
+<div>
+<div class="flex justify-between text-[11px] font-headline font-black mb-3">
+<span class="text-white uppercase tracking-tighter">Thread Count</span>
+<span class="text-neon-cyan data-glow">16</span>
+</div>
+<input class="w-full" type="range"/>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-cyber-deep border border-neon-purple/30 group">
+<span class="text-[11px] font-headline font-black uppercase text-white/70 group-hover:text-white transition-colors">Batch Processing</span>
+<div class="w-12 h-6 bg-cyber-black border border-neon-purple p-1 flex justify-end shadow-[0_0_10px_rgba(188,19,254,0.4)]">
+<div class="w-4 h-full bg-neon-purple"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-cyber-deep border border-white/10 opacity-50">
+<span class="text-[11px] font-headline font-black uppercase text-white/50">Force Overwrite</span>
+<div class="w-12 h-6 bg-cyber-black border border-white/20 p-1 flex justify-start">
+<div class="w-4 h-full bg-white/20"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-cyber-deep border border-neon-cyan/30 group">
+<span class="text-[11px] font-headline font-black uppercase text-white/70 group-hover:text-white">JSON Lock</span>
+<div class="w-12 h-6 bg-cyber-black border border-neon-cyan p-1 flex justify-end shadow-[0_0_10px_rgba(0,243,255,0.4)]">
+<div class="w-4 h-full bg-neon-cyan"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-cyber-deep border-2 border-neon-pink/50 light-bleed-red">
+<span class="text-[11px] font-headline font-black uppercase text-neon-pink data-glow">Kernel Isolation</span>
+<div class="w-12 h-6 bg-cyber-black border border-neon-pink p-1 flex justify-end">
+<div class="w-4 h-full bg-neon-pink shadow-[0_0_10px_#ff00e6]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-56 p-6 bg-surface-accent border border-neon-cyan/10 flex items-center justify-around relative overflow-hidden pop-3d">
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#00f3ff 1px, transparent 1px); background-size: 15px 15px;"></div>
+<div class="text-center z-10">
+<div class="relative size-32 mx-auto flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border-4 border-neon-cyan/10 border-t-neon-cyan border-r-neon-cyan shadow-[0_0_20px_rgba(0,243,255,0.3)] rotate-45"></div>
+<div class="flex flex-col">
+<span class="text-3xl font-headline font-black text-white data-glow">124.5</span>
+<span class="text-[9px] text-neon-cyan font-bold tracking-widest uppercase">Tokens / Sec</span>
+</div>
+</div>
+<p class="mt-4 text-[10px] font-headline font-black text-neon-cyan/50 tracking-widest">CORE TELEMETRY</p>
+</div>
+<div class="text-center z-10">
+<div class="relative size-32 mx-auto flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border-4 border-neon-pink/10 border-b-neon-pink border-l-neon-pink shadow-[0_0_20px_rgba(255,0,230,0.3)] -rotate-12"></div>
+<div class="flex flex-col">
+<span class="text-3xl font-headline font-black text-white data-glow">14.2k</span>
+<span class="text-[9px] text-neon-pink font-bold tracking-widest uppercase">RPM / LOAD</span>
+</div>
+</div>
+<p class="mt-4 text-[10px] font-headline font-black text-neon-pink/50 tracking-widest">SYSTEM PRESSURE</p>
+</div>
+</div>
+</section>
+<section class="w-80 flex flex-col gap-4">
+<div class="p-3 bg-surface-accent/50 border-l-4 border-danger-red light-bleed-red">
+<p class="text-[10px] font-headline font-bold text-danger-red/70 tracking-[0.2em] uppercase">ZONE 04 // EXECUTION</p>
+<h3 class="font-headline text-xl text-white font-black italic">REAL-TIME STATS</h3>
+</div>
+<div class="p-6 bg-surface-accent border border-white/5 flex-1 flex flex-col gap-8 pop-3d">
+<div class="relative">
+<p class="text-[9px] text-neon-cyan/60 uppercase font-black tracking-widest mb-1">Total Payloads</p>
+<p class="text-5xl font-headline font-black text-white data-glow tracking-tighter">1,024</p>
+<div class="absolute -right-2 top-0 text-neon-purple text-[8px] opacity-30">0xFF1A2</div>
+</div>
+<div>
+<p class="text-[9px] text-neon-pink/60 uppercase font-black tracking-widest mb-1">Remaining</p>
+<p class="text-5xl font-headline font-black text-white data-glow tracking-tighter">88</p>
+</div>
+<div>
+<p class="text-[9px] text-neon-cyan/60 uppercase font-black tracking-widest mb-1">Avg. Latency</p>
+<p class="text-5xl font-headline font-black text-neon-cyan data-glow tracking-tighter">12<span class="text-2xl ml-1">ms</span></p>
+</div>
+<div class="mt-auto space-y-6">
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-headline font-black text-white/50 uppercase tracking-widest mb-3">Master Arm Safety</span>
+<div class="flex w-full h-14 bg-cyber-deep border border-white/10 p-1">
+<button class="flex-1 bg-danger-red text-black flex items-center justify-center text-[11px] font-black uppercase shadow-[inset_0_0_15px_rgba(0,0,0,0.5)]">Disarm</button>
+<button class="flex-1 flex items-center justify-center text-[11px] font-black text-white/30 uppercase">Safe</button>
+</div>
+</div>
+<button class="w-full h-28 bg-hazard-yellow text-black flex flex-col items-center justify-center gap-1 group relative overflow-hidden transition-all hover:scale-[1.02] shadow-[0_20px_40px_-10px_rgba(243,239,0,0.5)] active:scale-95">
+<div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent"></div>
+<span class="material-symbols-outlined text-4xl font-black mb-1">bolt</span>
+<span class="font-headline font-black text-xl uppercase tracking-widest italic">LAUNCH SEQUENCE</span>
+</button>
+</div>
+</div>
+<div class="p-4 bg-cyber-deep border-t border-neon-cyan/30 text-[9px] font-body font-bold leading-tight space-y-1">
+<p class="text-neon-cyan">LIM_PROTOCOL_V2.0.4_INITIALIZED</p>
+<p class="text-neon-purple">ENCRYPTION: AES-256-GCM ACTIVE</p>
+<p class="text-danger-red animate-pulse">STATUS: AWAITING COMMAND...</p>
+</div>
+</section>
+</main>
+</div>
+
+</body></html>

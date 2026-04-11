@@ -23,6 +23,10 @@ success_strikes.log
 failed_strikes.log
 manual_strikes.log
 
+# System Generated / Agent Context
+**/.system_generated/
+.gemini/
+
 # Legacy Design Research & Scraps
 website-ui/
 webui/
@@ -55,39 +59,21 @@ probe_*.py
 inspect_*.py
 syndicate_key_*.py
 groq-test.py
-<<<<<<< HEAD
 
-# === CLEANUP: Temp/merged files ===
+# === CLEANUP ===
 merged_*.txt
 merged.*.files.txt
 manual.txt
-*.log
-
-# === CLEANUP: Deployment artifacts ===
 deploy.zip
-
-# === CLEANUP: Backup files ===
 *.1.py
 *.2.py
 *.3.py
 *.4.py
 old/
-
-# === CLEANUP: Design/Research folders ===
-nanobanana-output/
-og/
-og-patched/
-stitch/
-masterpiece/
 masterpiece-ai-engine-ui/
 api_key_management_stellar_style/
 model_registry/
 tool_configuration/
-finals/
-recon/
-openclaw/
-
-# === CLEANUP: Mission/notes docs ===
 AGENTS.md
 DEPLOY.md
 FIX-DEPLOY.md
@@ -101,64 +87,31 @@ TASK_DELEGATION.md
 WEBUI_FEATURE_SPEC.md
 app/AGENT_ONBOARDING.md
 app/TACTICAL_COMMAND.md
-
-# === CLEANUP: Data/logs ===
-vault/
-*.log
 peacock.db
 peacock-engine-legacy.zip
 *_probe_results.json
 striker_status.json
 all_skills_metadata.json
-manual_strikes.log
-success_strikes.log
-failed_strikes.log
 mission_miner.log
 ai_engine.log
 server.log
-
-# === CLEANUP: Artifacts ===
 screen*.png
-deploy.zip
-make_db.py
-update-repo.sh
-
-# === CLEANUP: Deployment scripts ===
 deploy.sh
 purge-vps.sh
 push-to-github.sh
 setup-openclaw.sh
 MissionMiner.py
 deploy/
-=======
 audit_*.py
 make_db.py
-setup-openclaw.sh
-purge-vps.sh
-update-repo.sh
-push-to-github.sh
-PROJECT_HANDOFF.md
 PEACOCK_SYSTEM_HANDOFF.md
 MISSION_SUMMARY.md
 MISSION_DOSSIER.html
-TASK_DELEGATION.md
-WEBUI_FEATURE_SPEC.md
-SYNDICATE_MANIFEST.md
 PEACOCK_MEMORY_MASTER_MANIFEST.md
 PEACOCK_MASTER_OPERATOR_MANUAL_*.md
 PEACOCK_ENGINE_V2_WRITEUP.md
 PEACOCK_ENGINE_REFERENCE.md
-FIX-DEPLOY.md
-DEPLOY.md
-deploy.sh
-MissionMiner.py
 owl_probe_results.json
-all_skills_metadata.json
-striker_status.json
-ai_engine.log
-server.log
-mission_miner.log
 ai-engine
 engine-manual.md
 AI_INTEGRATION_GUIDE.md
->>>>>>> d81e057 (PEACOCK ENGINE V3 - TRANSITION TO UNIFIED WEBUI & ARCHITECTURAL HARDENING)

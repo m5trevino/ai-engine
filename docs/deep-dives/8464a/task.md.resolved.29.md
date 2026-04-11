@@ -1,0 +1,9 @@
+# Campaign Mode Feature Tracking
+
+- `[x]` Define Campaign Blueprint and map structural flow.
+- `[x]` Upgrade SequenceOrchestrator to accept dynamic internal slots via `customPayload`.
+- `[x]` Wire multi-mode logic inside `PayloadStrikerScreen` holding `MONOLITHIC` or `CAMPAIGN` options.
+- `[x]` Create active "Strike Groups" UI array representing payload blocks in Editor pane.
+- `[x]` Override loadAmmo/unloadAmmo to pipe assets into active Loadout Groups.
+- `[x]` Hijack the Sequence Tracker sidebar view to render exactly N dynamic pending strikes.
+- `[x]` Compile and verify Sand Hill structural build success.

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SYNDICATE PAYLOAD DECK | TACTICAL_OPS</title>
+<link href="https://fonts.googleapis.com/css2?family=Stardos+Stencil:wght@400;700&amp;family=IBM+Plex+Mono:wght@300;400;600;700&amp;family=Black+Ops+One&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "mil-olive": "#4b5320",
+                        "mil-olive-dark": "#353b16",
+                        "mil-charcoal": "#1a1a1a",
+                        "mil-charcoal-deep": "#0d0d0d",
+                        "mil-offwhite": "#e0e2d5",
+                        "mil-accent": "#ff8c00", // Signal Orange
+                        "mil-border": "#2a2d1d",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "2px",
+                        "lg": "4px",
+                    },
+                    fontFamily: {
+                        "headline": ["Stardos Stencil", "serif"],
+                        "body": ["IBM Plex Mono", "monospace"],
+                        "rugged": ["Black Ops One", "cursive"],
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --mil-accent: #ff8c00;
+        }
+        body {
+            background-color: #1a1a1a;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(75, 83, 32, 0.05) 0%, transparent 80%),
+                linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+        }
+        .shadow-box-recessed {
+            background: #0d0d0d;
+            box-shadow: inset 4px 4px 10px rgba(0,0,0,0.8), 
+                        inset -1px -1px 2px rgba(255,255,255,0.05);
+            border: 2px solid #2a2d1d;
+            border-bottom-color: #3a3d2d;
+            border-right-color: #3a3d2d;
+        }
+        .shadow-box-popout {
+            background: #4b5320;
+            box-shadow: 4px 4px 0px #0d0d0d,
+                        inset 1px 1px 1px rgba(255,255,255,0.2);
+            border: 1px solid #5b6330;
+        }
+        .beveled-border {
+            border: 3px solid #1a1a1a;
+            border-top-color: #333;
+            border-left-color: #333;
+            border-right-color: #000;
+            border-bottom-color: #000;
+        }
+        .radar-scan {
+            background: radial-gradient(circle, rgba(255, 140, 0, 0.1) 0%, transparent 70%);
+            position: relative;
+        }
+        .radar-scan::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 2px;
+            background: var(--mil-accent);
+            transform-origin: left;
+            opacity: 0.3;
+            animation: sweep 4s linear infinite;
+        }
+        @keyframes sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .stark-bar {
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 4px,
+                #0d0d0d 4px,
+                #0d0d0d 6px
+            );
+        }
+        .stencil-cutout {
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+            letter-spacing: 0.05em;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0d0d0d; }
+        ::-webkit-scrollbar-thumb { background: #4b5320; border: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body class="font-body text-mil-offwhite selection:bg-mil-accent selection:text-black">
+<header class="bg-mil-charcoal-deep border-b-4 border-mil-olive px-6 py-3 sticky top-0 z-50 flex justify-between items-center">
+<div class="flex items-center gap-6">
+<h1 class="text-3xl font-bold font-headline stencil-cutout text-mil-offwhite flex items-center gap-2">
+<span class="material-symbols-outlined text-mil-accent">shield</span>
+            SYNDICATE
+        </h1>
+<div class="h-8 w-px bg-mil-olive mx-2"></div>
+<span class="text-xs font-bold text-mil-accent tracking-widest font-body bg-mil-charcoal px-3 py-1 beveled-border">UNIT_ALPHA_01 // SECURE</span>
+</div>
+<nav class="hidden md:flex items-center gap-10 font-headline text-sm tracking-widest uppercase">
+<a class="text-mil-accent border-b-2 border-mil-accent pb-1" href="#">COMMAND</a>
+<a class="text-mil-offwhite/60 hover:text-mil-offwhite transition-colors" href="#">PAYLOAD</a>
+<a class="text-mil-offwhite/60 hover:text-mil-offwhite transition-colors" href="#">INTEL</a>
+<a class="text-mil-offwhite/60 hover:text-mil-offwhite transition-colors" href="#">UP-LINK</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-3 px-3 py-1 shadow-box-recessed bg-black/50">
+<span class="text-[10px] font-bold text-mil-offwhite/50">NET_STAT</span>
+<div class="w-3 h-3 bg-mil-accent shadow-[0_0_8px_rgba(255,140,0,0.5)]"></div>
+</div>
+<button class="material-symbols-outlined text-mil-offwhite hover:text-mil-accent">settings_input_component</button>
+</div>
+</header>
+<main class="grid grid-cols-12 grid-rows-6 gap-2 p-2 h-[calc(100vh-68px)] overflow-hidden bg-mil-charcoal">
+<section class="col-span-12 md:col-span-2 row-span-4 flex flex-col shadow-box-recessed p-3">
+<div class="flex justify-between items-center border-b-2 border-mil-olive-dark mb-4 pb-1">
+<h2 class="font-headline text-sm font-bold tracking-widest uppercase text-mil-offwhite/80">THE DIRECTOR</h2>
+<span class="text-[10px] font-bold text-mil-accent tabular-nums">01:00:22</span>
+</div>
+<div class="flex-grow overflow-y-auto font-body text-[11px] space-y-1">
+<div class="flex items-center gap-2 p-2 hover:bg-mil-olive/20 cursor-pointer border-l-2 border-transparent">
+<span class="material-symbols-outlined text-sm">folder_open</span>
+<span>ROOT/SYSTEM/BIN</span>
+</div>
+<div class="flex items-center gap-2 p-2 bg-mil-olive/30 border-l-2 border-mil-accent text-mil-accent font-bold">
+<span class="material-symbols-outlined text-sm">terminal</span>
+<span>KERNEL_EXEC_01.SH</span>
+</div>
+<div class="flex items-center gap-2 p-2 hover:bg-mil-olive/20 cursor-pointer">
+<span class="material-symbols-outlined text-sm">description</span>
+<span>DOCKER-COMPOSE.YML</span>
+</div>
+<div class="p-2 text-mil-offwhite/40 italic">
+<span>&gt; NODE_MODULES/</span>
+</div>
+<div class="p-2 text-mil-offwhite/40 italic">
+<span>&gt; PROTOCOLS/</span>
+</div>
+<div class="flex items-center gap-2 p-2 hover:bg-mil-olive/20 cursor-pointer">
+<span class="material-symbols-outlined text-sm">database</span>
+<span>LOCAL_DB.SQLITE</span>
+</div>
+<div class="flex items-center gap-2 p-2 hover:bg-mil-olive/20 cursor-pointer">
+<span class="material-symbols-outlined text-sm">key</span>
+<span>RSA_KEY_PUB.PEM</span>
+</div>
+</div>
+</section>
+<section class="col-span-12 md:col-span-2 row-span-4 flex flex-col shadow-box-recessed p-3">
+<div class="flex justify-between items-center border-b-2 border-mil-olive-dark mb-4 pb-1">
+<h2 class="font-headline text-sm font-bold tracking-widest uppercase text-mil-offwhite/80">STAGING QUEUE</h2>
+<span class="text-[8px] bg-mil-accent text-black font-bold px-1 rounded-sm">LOCKED</span>
+</div>
+<div class="flex-grow overflow-y-auto space-y-3">
+<div class="p-3 bg-mil-olive-dark/20 border border-mil-olive/30 rounded-sm">
+<div class="flex justify-between text-[10px] mb-2 font-bold">
+<span class="text-mil-offwhite/70">ID: #8821</span>
+<span class="text-mil-offwhite/40">WAITING</span>
+</div>
+<div class="h-3 bg-mil-charcoal-deep border border-mil-olive-dark relative">
+<div class="h-full bg-mil-olive w-1/3 stark-bar"></div>
+</div>
+</div>
+<div class="p-3 bg-mil-olive-dark/40 border border-mil-accent/30 rounded-sm">
+<div class="flex justify-between text-[10px] mb-2 font-bold">
+<span class="text-mil-offwhite/70">ID: #8822</span>
+<span class="text-mil-accent">ENCRYPTING</span>
+</div>
+<div class="h-3 bg-mil-charcoal-deep border border-mil-accent/50 relative">
+<div class="h-full bg-mil-accent stark-bar"></div>
+</div>
+</div>
+<div class="p-3 bg-mil-olive-dark/10 opacity-40">
+<div class="flex justify-between text-[10px] mb-2 font-bold">
+<span class="text-mil-offwhite/40">ID: #8823</span>
+<span class="text-mil-offwhite/30">QUEUED</span>
+</div>
+<div class="h-3 bg-mil-charcoal-deep border border-mil-olive-dark/20"></div>
+</div>
+</div>
+</section>
+<section class="col-span-12 md:col-span-5 row-span-2 grid grid-cols-2 gap-2">
+<div class="shadow-box-recessed p-4 flex flex-col justify-between">
+<h3 class="font-headline text-mil-offwhite/60 text-[10px] uppercase mb-4 tracking-widest font-bold">POWER DISTRIBUTION</h3>
+<div class="flex justify-around items-end h-24 gap-4 px-4">
+<div class="flex-1 h-full bg-mil-charcoal-deep border border-mil-olive-dark relative">
+<div class="absolute bottom-0 w-full bg-mil-olive h-3/4 stark-bar"></div>
+<span class="absolute -bottom-5 left-0 text-[10px] w-full text-center font-bold text-mil-offwhite/50">GRID_A</span>
+</div>
+<div class="flex-1 h-full bg-mil-charcoal-deep border-2 border-mil-accent relative shadow-[0_0_10px_rgba(255,140,0,0.2)]">
+<div class="absolute bottom-0 w-full bg-mil-accent h-1/2 stark-bar"></div>
+<span class="absolute -bottom-5 left-0 text-[10px] w-full text-center font-bold text-mil-accent">GRID_B</span>
+</div>
+<div class="flex-1 h-full bg-mil-charcoal-deep border border-mil-olive-dark relative">
+<div class="absolute bottom-0 w-full bg-mil-olive h-full stark-bar"></div>
+<span class="absolute -bottom-5 left-0 text-[10px] w-full text-center font-bold text-mil-offwhite/50">GRID_C</span>
+</div>
+</div>
+</div>
+<div class="shadow-box-recessed p-4 flex flex-col gap-4">
+<h3 class="font-headline text-mil-offwhite/60 text-[10px] uppercase tracking-widest font-bold">CORE LOGIC TOGGLES</h3>
+<div class="grid grid-cols-2 gap-2 h-full">
+<button class="shadow-box-popout text-mil-offwhite py-1 text-[10px] font-rugged">OVERRIDE</button>
+<button class="bg-mil-charcoal-deep border border-mil-olive-dark text-mil-offwhite/40 py-1 text-[10px] font-rugged hover:border-mil-olive">STEALTH</button>
+<button class="bg-mil-charcoal-deep border border-mil-olive-dark text-mil-offwhite/40 py-1 text-[10px] font-rugged hover:border-mil-olive">BYPASS</button>
+<button class="bg-mil-charcoal-deep border-2 border-mil-accent text-mil-accent py-1 text-[10px] font-rugged shadow-[0_0_10px_rgba(255,140,0,0.1)]">PURGE</button>
+</div>
+<div class="border border-mil-olive-dark bg-black/40 h-8 flex items-center p-1 mt-2">
+<span class="text-[9px] text-mil-offwhite/40 px-2 font-bold">GAIN_LVL</span>
+<div class="flex-grow h-1 bg-mil-charcoal-deep relative">
+<div class="absolute top-1/2 -translate-y-1/2 left-[60%] w-2 h-4 bg-mil-accent shadow-[0_0_5px_rgba(255,140,0,0.5)]"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="col-span-12 md:col-span-3 row-span-2 shadow-box-recessed p-5 flex flex-col justify-between border-l-4 border-mil-accent">
+<div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-headline text-3xl text-mil-offwhite font-bold uppercase stencil-cutout">EXECUTION</h2>
+<p class="text-[8px] text-mil-accent font-bold tracking-[0.2em]">DIRECTIVE: 04-B / TACTICAL</p>
+</div>
+<span class="material-symbols-outlined text-mil-offwhite/40 hover:text-mil-accent cursor-pointer">cancel</span>
+</div>
+<div class="space-y-4 font-body">
+<div class="flex justify-between items-end border-b border-mil-olive-dark pb-2">
+<span class="text-[10px] text-mil-offwhite/50 font-bold uppercase">PAYLOAD TOTAL</span>
+<span class="text-xl font-bold tabular-nums">14.02 <span class="text-xs">TB</span></span>
+</div>
+<div class="flex justify-between items-end border-b border-mil-olive-dark pb-2">
+<span class="text-[10px] text-mil-offwhite/50 font-bold uppercase">DATA LATENCY</span>
+<span class="text-xl text-mil-accent font-bold tabular-nums">14 <span class="text-xs">MS</span></span>
+</div>
+</div>
+</div>
+<button class="w-full py-4 shadow-box-popout text-mil-offwhite font-rugged text-xl tracking-widest hover:brightness-110 active:translate-y-1 active:shadow-none transition-all">
+            LAUNCH SEQUENCE
+        </button>
+</section>
+<section class="col-span-12 md:col-span-8 row-span-2 grid grid-cols-2 gap-2">
+<div class="shadow-box-recessed p-6 flex items-center justify-center radar-scan overflow-hidden">
+<div class="w-32 h-32 relative flex items-center justify-center rounded-full border-2 border-mil-olive/20">
+<div class="absolute inset-0 rounded-full border-[6px] border-mil-olive/10 border-t-mil-accent/60"></div>
+<div class="absolute inset-4 rounded-full border border-mil-olive/30 border-dashed"></div>
+<div class="flex flex-col items-center z-10">
+<span class="text-4xl font-bold text-mil-offwhite font-rugged tracking-widest">4.2</span>
+<span class="text-[9px] text-mil-accent font-bold">TK/SEC</span>
+</div>
+</div>
+<div class="ml-8 space-y-3 border-l-2 border-mil-olive-dark pl-6">
+<h3 class="font-headline text-mil-offwhite/80 uppercase text-xs tracking-widest font-bold">THROUGHPUT</h3>
+<p class="text-[10px] text-mil-offwhite/40 max-w-[160px] font-bold leading-tight uppercase">NODE_01: STABLE<br/>PLOSS: 0.001%</p>
+<div class="flex gap-1.5">
+<div class="w-2 h-4 bg-mil-accent"></div>
+<div class="w-2 h-4 bg-mil-accent"></div>
+<div class="w-2 h-4 bg-mil-accent"></div>
+<div class="w-2 h-4 bg-mil-olive-dark"></div>
+</div>
+</div>
+</div>
+<div class="shadow-box-recessed p-6 flex items-center justify-center radar-scan overflow-hidden">
+<div class="w-32 h-32 relative flex items-center justify-center rounded-full border-2 border-mil-olive/20">
+<div class="absolute inset-0 rounded-full border-[6px] border-mil-olive/10 border-r-mil-accent/60"></div>
+<div class="absolute inset-2 rounded-full border border-mil-olive-dark"></div>
+<div class="flex flex-col items-center z-10">
+<span class="text-4xl font-bold text-mil-offwhite font-rugged tracking-widest">124</span>
+<span class="text-[9px] text-mil-accent font-bold">RPM</span>
+</div>
+</div>
+<div class="ml-8 space-y-3 border-l-2 border-mil-olive-dark pl-6">
+<h3 class="font-headline text-mil-offwhite/80 uppercase text-xs tracking-widest font-bold">ENGINE STRESS</h3>
+<p class="text-[10px] text-mil-offwhite/40 max-w-[160px] font-bold leading-tight uppercase">TEMP: NOMINAL<br/>COOLING: 40%</p>
+<div class="flex gap-1.5">
+<div class="w-2 h-4 bg-mil-accent"></div>
+<div class="w-2 h-4 bg-mil-olive-dark"></div>
+<div class="w-2 h-4 bg-mil-olive-dark"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="col-span-12 row-span-2 flex flex-col shadow-box-recessed bg-black/60">
+<div class="flex justify-between items-center border-b-2 border-mil-olive-dark px-6 py-2 bg-mil-charcoal-deep">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-mil-accent text-sm animate-pulse">radio_button_checked</span>
+<h2 class="font-headline text-xs text-mil-offwhite font-bold uppercase tracking-[0.4em]">LIVE TERMINAL FEED</h2>
+</div>
+<div class="flex gap-8 text-[10px] font-bold text-mil-offwhite/40 uppercase">
+<span class="flex items-center gap-1"><span class="w-1 h-1 bg-mil-accent rounded-full"></span> INPUT: UTF-8</span>
+<span class="flex items-center gap-1"><span class="w-1 h-1 bg-mil-accent rounded-full"></span> BUFFER: 4096KB</span>
+</div>
+</div>
+<div class="flex-grow p-5 overflow-y-auto text-[12px] leading-relaxed font-body bg-black/40">
+<p class="text-mil-offwhite/40 font-bold">[00:12:44] SYSINIT: ATTACHING TO DOCKER_CONTAINER_ID: e5521b</p>
+<p class="text-mil-offwhite">[00:12:45] AUTH: CREDENTIALS ACCEPTED FOR NODE_OPERATOR_01</p>
+<p class="text-mil-offwhite">[00:12:47] NET: TUNNEL ESTABLISHED AT 12.0.4.111:443</p>
+<p class="text-mil-accent font-bold bg-mil-accent/10 px-1">[00:12:50] WARN: PACKET_JITTER DETECTED ON PORT 8080. AUTOCORRECTING...</p>
+<p class="text-mil-offwhite">[00:12:55] EXEC: KERNEL_EXEC_01.SH STARTING...</p>
+<p class="text-mil-offwhite">[00:12:56] LOG: LOADING PAYLOAD MODULES <span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span><span class="text-mil-olive font-bold">|</span> 100%</p>
+<p class="text-mil-offwhite/60">[00:13:02] LOG: SYNCING WITH CLOUD_OVERSEER...</p>
+<span class="inline-block w-2 h-4 bg-mil-accent ml-1 animate-pulse"></span>
+</div>
+</section>
+</main>
+<footer class="fixed bottom-0 w-full h-8 bg-mil-charcoal-deep border-t-2 border-mil-olive flex items-center justify-between px-6 z-50 text-[10px] font-bold uppercase">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 bg-mil-accent"></div>
+<span class="text-mil-offwhite tracking-widest">UPLINK: ONLINE</span>
+</div>
+<div class="h-4 w-px bg-mil-olive-dark"></div>
+<span class="text-mil-offwhite/50 tracking-tighter">LATENCY: 14MS</span>
+</div>
+<div class="flex items-center gap-6">
+<span class="text-mil-offwhite/50 tracking-tighter">ENCRYPTION: AES-256-GCM</span>
+<span class="bg-mil-accent text-black px-3 py-0.5 font-rugged tracking-[0.1em]">SYNDICATE_V1.4.0</span>
+</div>
+</footer>
+
+</body></html>

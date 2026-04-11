@@ -1,0 +1,11 @@
+- `[x]` Define `STRIKER` tab in Top Nav and `Screen` type
+- `[x]` Strip Tactical Sidebar logic out of `Dashboard` component
+- `[x]` Create `PayloadStrikerScreen` component
+- `[x]` Implement Box Layout in `PayloadStrikerScreen`:
+    - `[x]` Middle-Top: Context Vault / Ammo Loading
+    - `[x]` Middle-Center: Payload Editor
+    - `[x]` Middle-Bottom-Left: Strike Output Logs
+    - `[x]` Middle-Bottom-Right: Run Settings (Temp/TopP)
+    - `[x]` Right-Sidebar: Tactical Command (Modes, Slots, Launch, Telemetry)
+- `[x]` Wire `PayloadStrikerScreen` to `App` state
+- `[x]` Verify clean compilation and layout aesthetics

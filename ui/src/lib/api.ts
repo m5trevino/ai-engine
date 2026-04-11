@@ -100,6 +100,34 @@ export const PeacockAPI = {
       console.error("[PeacockAPI] Ammo Save Error:", e);
       return false;
     }
+  },
+
+  /** --- REFINERY (OPERATOR-01) ENDPOINTS --- **/
+
+  async getMolds(): Promise<any[]> {
+    const res = await fetch(`${API_BASE}/v1/refinery/molds`);
+    return await res.json();
+  },
+
+  async browseLegos(path?: string): Promise<any> {
+    const url = path ? `${API_BASE}/v1/refinery/browse?path=${encodeURIComponent(path)}` : `${API_BASE}/v1/refinery/browse`;
+    const res = await fetch(url);
+    return await res.json();
+  },
+
+  async getRefineryFile(path: string): Promise<string> {
+    const res = await fetch(`${API_BASE}/v1/refinery/file?path=${encodeURIComponent(path)}`);
+    const data = await res.json();
+    return data.content || "";
+  },
+
+  async processStrike(moldPath: string, legoPaths: string[], modelId: string): Promise<any> {
+    const res = await fetch(`${API_BASE}/v1/refinery/process`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mold_path: moldPath, lego_paths: legoPaths, model_id: modelId })
+    });
+    return await res.json();
   }
 };
 

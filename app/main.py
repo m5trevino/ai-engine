@@ -26,6 +26,7 @@ from app.routes.docs import router as docs_router
 from app.routes.chat_ui import router as chat_ui_router
 from app.routes.audit import router as audit_router
 from app.routes.telemetry import router as telemetry_router
+from app.routes.refinery import router as refinery_router
 
 # Import key pools for health check
 from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool
@@ -75,6 +76,7 @@ app.include_router(profile_router, prefix="/v1/profile", tags=["PROFILE"])
 app.include_router(docs_router, prefix="/v1/docs", tags=["DOCS"])
 app.include_router(audit_router, prefix="/v1/audit", tags=["AUDIT"])
 app.include_router(telemetry_router, prefix="/v1/telemetry", tags=["TELEMETRY"])
+app.include_router(refinery_router, prefix="/v1/refinery", tags=["REFINERY"])
 
 # Include WebUI API routes
 app.include_router(models_api_router, prefix="/v1/webui/models", tags=["WEBUI_MODELS"])

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowchart: Payload Striker</title>
+    <style>
+        body { background-color: #111; color: #E0E0E0; font-family: 'Roboto Mono', monospace; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 800px; }
+        h1 { color: #00AFFF; border-bottom: 2px solid #00AFFF; padding-bottom: 10px; text-align: center; }
+        .flowchart { display: flex; flex-direction: column; align-items: center; }
+        .step { background-color: #222; border: 1px solid #444; border-left: 5px solid #00AFFF; padding: 15px 20px; margin: 10px 0; width: 90%; box-shadow: 0 4px 8px rgba(0,0,0,0.5); text-align: left; }
+        .step.initial { border-left-color: #FFA500; }
+        .step.final { border-left-color: #00FF7F; }
+        .step strong { color: #00FF7F; }
+        .step code { color: #FFD700; background-color: #333; padding: 2px 5px; border-radius: 3px; }
+        .arrow { color: #555; font-size: 2rem; margin: 0; padding: 0; line-height: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Feature Evolution: Payload Striker</h1>
+        <div class="flowchart">
+            <div class="step initial">
+                <strong>START: Concept "Campaign Grid"</strong><br>
+                Initial blueprint for a 3-column horizontal workstation for batch operations (Director, Vault, Loadout).
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>IMPLEMENTATION: "Pilot's Dashboard"</strong><br>
+                First functional version built as a 10-slot sequence manifest with a Context Vault. Introduced "Ultra" (continuous) and "Regular" (batched) threading modes.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>LOGIC UPGRADE 1: Advanced Prompt Routing</strong><br>
+                Evolved state management to support a <strong>Global Default Prompt</strong> that could be overridden by <strong>Custom Specific Prompts</strong> for individual assets.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>LOGIC UPGRADE 2: Asset Distribution Mode</strong><br>
+                Added a toggle to switch payload routing between <strong>Monolithic Mode</strong> (all assets in one strike) and <strong>Distributed Mode</strong> (one isolated strike per asset).
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>ARCHITECTURAL PIVOT: Hierarchical "Campaign Mode"</strong><br>
+                Introduced a completely new paradigm: <strong>Strike Groups</strong>. This allows grouping multiple assets under a single primary instruction, creating a hierarchical campaign instead of a flat list. A master toggle was added to switch between modes.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step final">
+                <strong>FINAL: 4-Zone LIM Security Protocol UI</strong><br>
+                The ultimate evolution. A full-screen, multi-column command center with a direct filesystem bridge. Features state-based columns for file exploration, payload staging, live execution tracking, and a dedicated response terminal.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
