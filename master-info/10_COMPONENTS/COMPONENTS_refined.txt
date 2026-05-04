@@ -1,0 +1,58 @@
+# ==========================================
+# SYNDICATE ASSET: COMPONENTS (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 45
+# ==========================================
+# --- DATA CONTENT START ---
+DirectorPanel (File Explorer / Prompt List)
+StagingBay (Selected Payloads)
+ResponseTerminal (Live LLM Output)
+LogicCore (Settings Sliders & Toggles)
+ModelSelectionCards (3D Pop-out cards)
+Gauges (TPS & RPM Dials)
+SpectrumHUD (Global Header Ticker)
+MissionHistory (Sidebar List)
+TacticalViewer (Split-pane File Peeker)
+SafetyBadge (Safe/Warning/Danger indicators)
+LaunchTrigger (Master Arm + Launch Button)
+LiveTerminalTray (Full-width bottom tray)
+Director Panel: mold management and prompt versioning
+Staging Panel: liquid-semiotic filesystem integration
+Manifest Panel: 10-slot strike control with Master Arm
+Engine: Batch and Ultra modes with throughput gauges
+Model Garden dropdown for model selection
+Context Vault (Ammo Pile and Loaded Payload)
+4-Zone LIM Security Protocol UI integration
+Zone 1: Director flips from Prompt list to File Explorer for payloads
+Zone 2: Staging Bay transforms into LLM Response Terminal during execution
+Zone 3: Master Strike Settings (Temp, Top-P, Threads, Batch/Ultra)
+Zone 3: Rev-Limiter / Governor panel with TPS and RPM gauges
+Zone 4: Metrics Panel (Total, Remaining, Latency) and Master Arm trigger
+StatusBadge component for payload status
+Gauge component for throughput and engine stress
+Toggle component for logic overrides
+Modal for Forensics File Preview
+Message input area (multi-line, resizable)
+Send button with keyboard shortcut
+Stop generation button
+New conversation button
+Favorite/star models
+Recently used models
+Copy message button
+Delete message button
+Edit message button
+Regenerate response button
+File picker button
+File type indicators
+Remove file button
+Expand/collapse tool results
+Retry tool button
+Add custom tool form
+Custom tool list management
+Test custom tool button
+Standalone token counter page/popup
+Paste text to count tokens
+Upload file to count tokens
+Select model for accurate counting
+Multimodal token counting
+Add new key button
+# --- DATA CONTENT END ---

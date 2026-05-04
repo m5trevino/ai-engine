@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0a0a0c;
+        }
+        .kinetic-terminal-glow:focus-within {
+            box-shadow: 0 4px 20px -5px rgba(249, 217, 74, 0.15);
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Sidebar transition styles */
+        .sidebar-transition {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .collapsed-sidebar {
+            width: 60px !important;
+        }
+        .collapsed-content {
+            display: none !important;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #f9d94a;
+            cursor: pointer;
+            border-radius: 0;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-container": "#f8f7ff",
+                      "on-tertiary-container": "#005f2e",
+                      "primary": "#f9d94a",
+                      "tertiary": "#c4ffcd",
+                      "primary-container": "#bb9f04",
+                      "on-tertiary-fixed": "#004a22",
+                      "secondary-container": "#0053db",
+                      "inverse-on-surface": "#565457",
+                      "on-surface-variant": "#adaaad",
+                      "on-secondary-fixed": "#002d80",
+                      "primary-fixed-dim": "#eacb3d",
+                      "outline": "#767577",
+                      "error-container": "#b92902",
+                      "tertiary-dim": "#5def8f",
+                      "error-dim": "#d53d18",
+                      "surface-container-low": "#131315",
+                      "error": "#ff7351",
+                      "on-primary-container": "#2a2200",
+                      "on-surface": "#f9f5f8",
+                      "outline-variant": "#48474a",
+                      "on-primary": "#5a4c00",
+                      "primary-dim": "#eacb3d",
+                      "on-tertiary": "#006833",
+                      "surface-variant": "#262528",
+                      "on-background": "#f9f5f8",
+                      "inverse-primary": "#705e00",
+                      "inverse-surface": "#fcf8fb",
+                      "secondary-fixed": "#c4d0ff",
+                      "surface-dim": "#0e0e10",
+                      "on-secondary": "#001b55",
+                      "surface-container-lowest": "#000000",
+                      "surface-container": "#19191c",
+                      "surface-container-high": "#1f1f22",
+                      "secondary-fixed-dim": "#b0c2ff",
+                      "on-error": "#450900",
+                      "on-error-container": "#ffd2c8",
+                      "primary-fixed": "#f9d94a",
+                      "tertiary-container": "#6dfe9c",
+                      "surface-tint": "#f9d94a",
+                      "secondary": "#7799ff",
+                      "on-secondary-fixed-variant": "#0047bd",
+                      "on-primary-fixed-variant": "#655500",
+                      "tertiary-fixed-dim": "#5def8f",
+                      "on-tertiary-fixed-variant": "#006a34",
+                      "surface": "#0e0e10",
+                      "surface-bright": "#2c2c2f",
+                      "secondary-dim": "#316bf3",
+                      "surface-container-highest": "#262528",
+                      "on-primary-fixed": "#453900",
+                      "tertiary-fixed": "#6dfe9c",
+                      "background": "#0e0e10"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0px",
+                      "lg": "0px",
+                      "xl": "0px",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Space Grotesk"],
+                      "body": ["Space Grotesk"],
+                      "label": ["Space Grotesk"],
+                      "mono": ["JetBrains Mono"]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="font-body text-on-surface selection:bg-primary selection:text-on-primary-container">
+<div class="flex h-screen overflow-hidden">
+<!-- Collapsible Left Sidebar -->
+<aside class="hidden md:flex flex-col h-screen bg-[#171717] w-[260px] border-r border-white/5 sidebar-transition relative group" id="leftSidebar">
+<!-- Toggle Button Left -->
+<button class="absolute -right-3 top-6 z-30 w-6 h-6 bg-[#171717] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors" onclick="toggleSidebar('leftSidebar')">
+<span class="material-symbols-outlined text-sm" id="leftToggleIcon">chevron_left</span>
+</button>
+<div class="px-3 pt-3 pb-2 space-y-1 sidebar-content">
+<button class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors group">
+<div class="w-7 h-7 flex items-center justify-center rounded-full border border-white/20 text-white/80 group-hover:text-white shrink-0">
+<span class="material-symbols-outlined text-lg">add</span>
+</div>
+<span class="text-sm font-medium text-white/90 sidebar-text">New chat</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group">
+<span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">search</span>
+<span class="text-sm font-medium text-white/90 sidebar-text">Search</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group">
+<span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">toolbox</span>
+<span class="text-sm font-medium text-white/90 sidebar-text">Customize</span>
+</button>
+</div>
+<div class="px-3 mt-4 space-y-1 sidebar-content">
+<button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group">
+<span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">chat_bubble</span>
+<span class="text-sm font-medium text-white/90 sidebar-text">Chats</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group">
+<span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">folder</span>
+<span class="text-sm font-medium text-white/90 sidebar-text">Projects</span>
+</button>
+<button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group">
+<span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">widgets</span>
+<span class="text-sm font-medium text-white/90 sidebar-text">Artifacts</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto scrollbar-hide px-3 mt-6 sidebar-content">
+<p class="px-3 text-[11px] font-semibold text-white/40 mb-2 uppercase tracking-tight sidebar-text">Starred</p>
+<div class="space-y-0.5">
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Consumer musculoskeletal imagin...</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Director of transportation operati...</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Case File Strategy Puzzle</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Claude UI Research Project Update</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">**VECTOR DATABASE</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Peacock Memory Project History</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Peacock Playbook Strategy</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Peacock Bird Prompt Optimization</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Frustrated AI Interaction Complaint</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">ChatGPT JSON Import Troublesho...</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Peacock Memory Project Restart</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Code Section Marking App</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">PDF Search Webapp with Themes</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Picard Memory Project Troublesh...</a>
+<a class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Check It Out</a>
+</div>
+</div>
+<div class="p-3 border-t border-white/5 sidebar-content">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer group">
+<div class="flex items-center gap-3 overflow-hidden">
+<div class="w-10 h-10 rounded-full bg-[#d0d0c8] flex items-center justify-center text-[#171717] font-bold text-sm shrink-0">F</div>
+<div class="sidebar-text truncate">
+<p class="text-sm font-semibold text-white/90">flintx</p>
+<p class="text-xs text-white/50">Free plan</p>
+</div>
+</div>
+<div class="flex items-center gap-1 sidebar-text">
+<div class="w-8 h-8 rounded border border-white/20 flex items-center justify-center relative">
+<span class="material-symbols-outlined text-lg text-white/60">download</span>
+<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-[#4a9eff] rounded-full"></span>
+</div>
+<span class="material-symbols-outlined text-white/40 text-sm">unfold_more</span>
+</div>
+</div>
+</div>
+<!-- Icons-only view when collapsed -->
+<div class="flex-col items-center py-4 space-y-6 hidden" id="leftCollapsedIcons">
+<span class="material-symbols-outlined text-white/60">add</span>
+<span class="material-symbols-outlined text-white/60">search</span>
+<span class="material-symbols-outlined text-white/60">chat_bubble</span>
+<span class="material-symbols-outlined text-white/60">folder</span>
+<span class="material-symbols-outlined text-white/60">widgets</span>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col bg-[#0a0a0c] relative min-w-0">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-6 h-14 bg-[#0a0a0c] z-20 border-b border-white/5">
+<div class="flex items-center gap-8">
+<div class="text-xl font-bold tracking-tighter text-yellow-400 font-['Space_Grotesk']">PEACOCK ENGINE</div>
+<nav class="hidden lg:flex items-center gap-6 font-['Space_Grotesk'] tracking-tight text-[11px] font-bold">
+<a class="text-yellow-400 border-b-2 border-yellow-400 pb-1 hover:text-white transition-colors" href="#">SYSTEM</a>
+<a class="text-zinc-500 hover:text-white transition-colors" href="#">TELEMETRY</a>
+<a class="text-zinc-500 hover:text-white transition-colors" href="#">VULKAN</a>
+<a class="text-zinc-500 hover:text-white transition-colors" href="#">BUFFERS</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center gap-2 mr-4">
+<button class="text-zinc-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-xl">settings</span>
+</button>
+<button class="text-zinc-500 hover:text-white transition-colors relative">
+<span class="material-symbols-outlined text-xl">notifications</span>
+<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-primary rounded-full"></span>
+</button>
+</div>
+<button class="bg-secondary-container text-on-secondary-container px-4 py-1.5 text-[10px] font-bold tracking-widest hover:opacity-90 active:opacity-80 transition-opacity">
+                    DEPLOY
+                </button>
+<div class="w-8 h-8 bg-surface-container-high border border-outline-variant/20 overflow-hidden">
+<img alt="Operator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCELa-N3fcO9tcd7K--cQwV3N2LrJnTJbOVv_l3N4j_OCTNz2BKHJDjNzYDG6q-NAkf2z0uDzK7RyRRKTmSnbi2Ge3tunxevNq1Cyp-fRYQ2Bou4w9VuX5n5JazIGzMiSlLZJDP-rK9cv2X6YlWIUboryrRiQVHE0RDkKuUYd5JRy5TDw-xxYBKy3staNJvSFsdwRShh09SVXuIS4zw6eilqZWt_ewp8MeumpKncZa0Da-tYM7K4Y0ANQIu3QfPhgxcQlujWlExpw"/>
+</div>
+</div>
+</header>
+<!-- Hero/Chat Landing Area -->
+<div class="flex-1 flex flex-col items-center justify-center px-6 pb-24 overflow-y-auto">
+<div class="relative mb-12 text-center group">
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 w-px h-10 bg-primary/30"></div>
+<div class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-px h-10 bg-primary/30"></div>
+<div class="flex flex-col items-center gap-2">
+<span class="text-[10px] font-mono tracking-[0.5em] text-secondary mb-2">INTELLIGENT KERNEL</span>
+<h1 class="text-7xl md:text-9xl font-headline font-extrabold tracking-tighter text-on-surface flex items-baseline">
+                        PEA<span class="text-primary italic">COCK</span>
+<span class="text-xs font-mono text-primary ml-2 mb-4 tracking-tighter">V1.0.4</span>
+</h1>
+<div class="w-48 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+</div>
+</div>
+<div class="w-full max-w-3xl">
+<div class="bg-surface-container-high kinetic-terminal-glow group transition-all duration-300">
+<div class="flex items-center p-2 min-h-[64px]">
+<button class="p-3 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 font-mono text-sm placeholder:text-on-surface-variant/40 py-4 px-2" placeholder="Ask away. Pics work too." type="text"/>
+<div class="flex items-center gap-2 px-2">
+<button class="p-3 text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">image</span>
+</button>
+<button class="bg-primary text-on-primary-container px-5 py-2 flex items-center justify-center group-focus-within:shadow-[0_0_15px_rgba(249,217,74,0.3)] transition-all">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="px-5 py-2 bg-surface-container-highest flex justify-between items-center border-t border-outline-variant/5">
+<div class="flex gap-4">
+<div class="flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-[14px]">language</span>
+<span class="text-[9px] font-mono tracking-widest uppercase">Search</span>
+</div>
+<div class="flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-[14px]">memory</span>
+<span class="text-[9px] font-mono tracking-widest uppercase">Deep Think</span>
+</div>
+</div>
+<div class="text-[9px] font-mono text-on-surface-variant/30 uppercase tracking-tighter">
+                            Secure Line: 256-bit Encrypted
+                        </div>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+<button class="bg-surface-container-low p-3 text-left hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-primary text-lg mb-2 block">auto_awesome</span>
+<span class="text-[10px] font-mono text-on-surface-variant block uppercase tracking-wider leading-tight">Analyze system logs for anomalies</span>
+</button>
+<button class="bg-surface-container-low p-3 text-left hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-secondary text-lg mb-2 block">code</span>
+<span class="text-[10px] font-mono text-on-surface-variant block uppercase tracking-wider leading-tight">Optimise Vulkan pipeline buffers</span>
+</button>
+<button class="bg-surface-container-low p-3 text-left hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-tertiary-dim text-lg mb-2 block">visibility</span>
+<span class="text-[10px] font-mono text-on-surface-variant block uppercase tracking-wider leading-tight">Identify visual regressions in telemetry</span>
+</button>
+<button class="bg-surface-container-low p-3 text-left hover:bg-surface-container transition-colors group">
+<span class="material-symbols-outlined text-error-dim text-lg mb-2 block">history</span>
+<span class="text-[10px] font-mono text-on-surface-variant block uppercase tracking-wider leading-tight">Recall previous deployment states</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<footer class="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl flex justify-center items-center gap-8 opacity-20 hover:opacity-50 transition-opacity z-10">
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-tertiary-dim rounded-full"></div>
+<span class="text-[9px] font-mono tracking-widest">NETWORK: ACTIVE</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+<span class="text-[9px] font-mono tracking-widest">LATENCY: 14MS</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-secondary rounded-full"></div>
+<span class="text-[9px] font-mono tracking-widest">ENCRYPT: AES-256</span>
+</div>
+</footer>
+<!-- Background Decorative Texture -->
+<div class="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden z-0">
+<div class="absolute inset-0" style="background-image: linear-gradient(rgba(249, 217, 74, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(249, 217, 74, 0.1) 1px, transparent 1px); background-size: 40px 40px;"></div>
+</div>
+</main>
+<!-- Collapsible Right Sidebar -->
+<aside class="hidden lg:flex flex-col h-screen bg-[#171717] w-[300px] border-l border-white/5 sidebar-transition relative" id="rightSidebar">
+<!-- Toggle Button Right -->
+<button class="absolute -left-3 top-6 z-30 w-6 h-6 bg-[#171717] border border-white/10 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors" onclick="toggleSidebar('rightSidebar')">
+<span class="material-symbols-outlined text-sm" id="rightToggleIcon">chevron_right</span>
+</button>
+<div class="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-8 sidebar-content">
+<!-- Box 1: Model Selector -->
+<div class="space-y-3">
+<label class="text-[10px] font-mono tracking-[0.2em] text-primary uppercase">Model Selection</label>
+<div class="relative">
+<select class="w-full bg-surface-container text-sm text-on-surface border border-white/10 p-3 appearance-none focus:outline-none focus:border-primary/50 font-mono">
+<option>K2.5 Instant</option>
+<option selected="">K2.5 Ultra</option>
+<option>K2.0 Legacy</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-sm">expand_more</span>
+</div>
+</div>
+<!-- Box 2: System Prompt -->
+<div class="space-y-3">
+<label class="text-[10px] font-mono tracking-[0.2em] text-primary uppercase">System Directives</label>
+<textarea class="w-full bg-surface-container text-xs text-on-surface border border-white/10 p-3 min-h-[120px] focus:outline-none focus:border-primary/50 font-mono resize-none leading-relaxed" placeholder="Enter behavioral parameters..."></textarea>
+</div>
+<!-- Box 3: Persona -->
+<div class="space-y-3">
+<label class="text-[10px] font-mono tracking-[0.2em] text-primary uppercase">Agent Persona</label>
+<div class="grid grid-cols-1 gap-2">
+<button class="w-full text-left p-2 border border-primary/40 bg-primary/5 flex items-center gap-3">
+<div class="w-2 h-2 bg-primary"></div>
+<span class="text-xs font-mono uppercase tracking-tighter">Analytical Engine</span>
+</button>
+<button class="w-full text-left p-2 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] flex items-center gap-3">
+<div class="w-2 h-2 bg-white/20"></div>
+<span class="text-xs font-mono uppercase tracking-tighter">Creative Synth</span>
+</button>
+<button class="w-full text-left p-2 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] flex items-center gap-3">
+<div class="w-2 h-2 bg-white/20"></div>
+<span class="text-xs font-mono uppercase tracking-tighter">Technical Lead</span>
+</button>
+</div>
+</div>
+<!-- Box 4: Temperature -->
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<label class="text-[10px] font-mono tracking-[0.2em] text-primary uppercase">Temperature</label>
+<span class="text-[10px] font-mono text-on-surface/50" id="tempValue">0.7</span>
+</div>
+<input class="w-full h-1 bg-white/10 appearance-none cursor-pointer outline-none" max="1" min="0" oninput="document.getElementById('tempValue').innerText = this.value" step="0.1" type="range" value="0.7"/>
+<div class="flex justify-between text-[8px] font-mono text-white/20 uppercase tracking-tighter">
+<span>Precise</span>
+<span>Creative</span>
+</div>
+</div>
+</div>
+<!-- Icons view when collapsed -->
+<div class="flex-col items-center py-4 space-y-6 hidden" id="rightCollapsedIcons">
+<span class="material-symbols-outlined text-white/60">model_training</span>
+<span class="material-symbols-outlined text-white/60">terminal</span>
+<span class="material-symbols-outlined text-white/60">psychology</span>
+<span class="material-symbols-outlined text-white/60">thermostat</span>
+</div>
+</aside>
+</div>
+<script>
+    function toggleSidebar(id) {
+        const sidebar = document.getElementById(id);
+        const isLeft = id === 'leftSidebar';
+        const isCollapsed = sidebar.classList.contains('collapsed-sidebar');
+        const icon = document.getElementById(isLeft ? 'leftToggleIcon' : 'rightToggleIcon');
+        const contents = sidebar.querySelectorAll('.sidebar-content');
+        const iconView = document.getElementById(isLeft ? 'leftCollapsedIcons' : 'rightCollapsedIcons');
+
+        if (isCollapsed) {
+            sidebar.classList.remove('collapsed-sidebar');
+            contents.forEach(c => c.classList.remove('collapsed-content'));
+            iconView.classList.add('hidden');
+            iconView.classList.remove('flex');
+            icon.innerText = isLeft ? 'chevron_left' : 'chevron_right';
+        } else {
+            sidebar.classList.add('collapsed-sidebar');
+            contents.forEach(c => c.classList.add('collapsed-content'));
+            iconView.classList.remove('hidden');
+            iconView.classList.add('flex');
+            icon.innerText = isLeft ? 'chevron_right' : 'chevron_left';
+        }
+    }
+</script>
+</body></html>

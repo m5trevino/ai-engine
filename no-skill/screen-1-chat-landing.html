@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PEACOCK ENGINE | Intelligent Kernel</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Fonts: Oswald for headers, Share Tech Mono for terminal/data -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "chrome-dark": "#0a0a0c",
+                        "chrome-panel": "#131315",
+                        "chrome-light": "#262528",
+                        "cyber-gold": "#f9d94a",
+                        "cyber-blue": "#00f3ff",
+                        "cyber-magenta": "#ff0055",
+                    },
+                    borderRadius: { "DEFAULT": "0px" },
+                    fontFamily: {
+                        "headline": ["Oswald", "sans-serif"],
+                        "body": ["Share Tech Mono", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* ===== GOLDEN CHROME 3D ENGINE ===== */
+        :root {
+            --bezel-shadow: inset 4px 4px 10px rgba(0,0,0,0.9), inset -1px -1px 2px rgba(255,255,255,0.05), 0 0 0 1px #2a2d1d;
+            --pop-out: 4px 4px 0px #0a0a0c, 6px 6px 15px rgba(0,0,0,0.8), inset 1px 1px 1px rgba(255,255,255,0.2);
+            --neon-gold-glow: 0 0 10px rgba(249, 217, 74, 0.4), 0 0 20px rgba(249, 217, 74, 0.2);
+        }
+        
+        body { 
+            background-color: #0a0a0c;
+            background-image: linear-gradient(to bottom, transparent 50%, rgba(249, 217, 74, 0.02) 50%);
+            background-size: 100% 4px;
+        }
+        
+        /* Rugged recessed panels - metal enclosures */
+        .hw-panel-recessed { 
+            background: #0d0d0d; 
+            box-shadow: var(--bezel-shadow); 
+            border: 2px solid #1a1a1c; 
+            border-bottom-color: #262528; 
+            border-right-color: #262528; 
+        }
+        
+        /* 3D pop-out surfaces for buttons/cards */
+        .hw-surface-3d { 
+            background: linear-gradient(145deg, #2a2d30, #131416); 
+            border: 1px solid #444; 
+            box-shadow: var(--pop-out); 
+            transition: all 0.1s; 
+            cursor: pointer; 
+        }
+        .hw-surface-3d:active { 
+            transform: translate(3px, 3px); 
+            box-shadow: 1px 1px 0px #0a0a0c; 
+        }
+        .hw-surface-3d:hover {
+            filter: brightness(1.15);
+        }
+        
+        /* Primary gold launch/send buttons */
+        .hw-button-gold { 
+            background: linear-gradient(145deg, #f9d94a, #bb9f04); 
+            color: #000; 
+            box-shadow: 4px 4px 0px #000, inset 1px 1px 1px rgba(255,255,255,0.5); 
+            border: 1px solid #705e00; 
+            transition: all 0.1s; 
+            cursor: pointer;
+        }
+        .hw-button-gold:active { 
+            transform: translate(3px, 3px); 
+            box-shadow: 1px 1px 0px #000; 
+        }
+        .hw-button-gold:hover {
+            filter: brightness(1.1);
+        }
+        
+        /* Shiny metallic text for big headers */
+        .hw-metallic-text { 
+            background: linear-gradient(to bottom, #ffffff 0%, #a0a0a0 50%, #ffffff 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+        }
+        
+        /* Gold glow effect */
+        .glow-gold { 
+            color: #f9d94a; 
+            text-shadow: var(--neon-gold-glow); 
+        }
+        
+        /* Material icons setup */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Scrollbar hiding */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Sidebar transitions */
+        .sidebar-transition { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .collapsed-sidebar { width: 60px !important; }
+        .collapsed-content { display: none !important; }
+        
+        /* Input focus glow */
+        .input-glow:focus-within {
+            box-shadow: 0 0 20px rgba(249, 217, 74, 0.15), inset 4px 4px 10px rgba(0,0,0,0.9);
+        }
+    </style>
+</head>
+
+<body class="font-body text-gray-300 selection:bg-cyber-gold selection:text-black overflow-hidden">
+    <div class="flex h-screen">
+        
+        <!-- ===== COLLAPSIBLE LEFT SIDEBAR ===== -->
+        <aside class="hidden md:flex flex-col h-screen bg-chrome-panel w-[260px] border-r border-white/5 sidebar-transition relative group" id="leftSidebar">
+            <!-- Toggle Button -->
+            <button class="absolute -right-3 top-6 z-30 w-6 h-6 bg-chrome-panel border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors" onclick="toggleSidebar('leftSidebar')">
+                <span class="material-symbols-outlined text-sm" id="leftToggleIcon">chevron_left</span>
+            </button>
+            
+            <!-- Sidebar Content -->
+            <div class="px-3 pt-3 pb-2 space-y-1 sidebar-content">
+                <button class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/5 transition-colors group">
+                    <div class="w-7 h-7 flex items-center justify-center border border-white/20 text-white/80 group-hover:text-white shrink-0">
+                        <span class="material-symbols-outlined text-lg">add</span>
+                    </div>
+                    <span class="text-sm font-medium text-white/90 sidebar-text">New chat</span>
+                </button>
+                <button class="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors group">
+                    <span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">search</span>
+                    <span class="text-sm font-medium text-white/90 sidebar-text">Search</span>
+                </button>
+                <button class="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors group">
+                    <span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">toolbox</span>
+                    <span class="text-sm font-medium text-white/90 sidebar-text">Customize</span>
+                </button>
+            </div>
+            
+            <div class="px-3 mt-4 space-y-1 sidebar-content">
+                <button class="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors group">
+                    <span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">chat_bubble</span>
+                    <span class="text-sm font-medium text-white/90 sidebar-text">Chats</span>
+                </button>
+                <button class="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors group">
+                    <span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">folder</span>
+                    <span class="text-sm font-medium text-white/90 sidebar-text">Projects</span>
+                </button>
+                <button class="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors group">
+                    <span class="material-symbols-outlined text-white/60 group-hover:text-white shrink-0">widgets</span>
+                    <span class="text-sm font-medium text-white/90 sidebar-text">Artifacts</span>
+                </button>
+            </div>
+            
+            <!-- Starred Chats -->
+            <div class="flex-1 overflow-y-auto scrollbar-hide px-3 mt-6 sidebar-content">
+                <p class="px-3 text-[11px] font-semibold text-white/40 mb-2 uppercase tracking-tight sidebar-text">Starred</p>
+                <div class="space-y-0.5">
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Consumer musculoskeletal imagin...</a>
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Director of transportation operati...</a>
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Case File Strategy Puzzle</a>
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Claude UI Research Project Update</a>
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">**VECTOR DATABASE</a>
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Peacock Memory Project History</a>
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Peacock Playbook Strategy</a>
+                    <a class="block px-3 py-2 hover:bg-white/5 text-sm text-white/80 truncate font-mono font-semibold" href="#">Peacock Bird Prompt Optimization</a>
+                </div>
+            </div>
+            
+            <!-- User Profile -->
+            <div class="p-3 border-t border-white/5 sidebar-content">
+                <div class="flex items-center justify-between p-2 hover:bg-white/5 transition-colors cursor-pointer group">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-10 h-10 bg-cyber-gold flex items-center justify-center text-black font-bold text-sm shrink-0">F</div>
+                        <div class="sidebar-text truncate">
+                            <p class="text-sm font-semibold text-white/90">flintx</p>
+                            <p class="text-xs text-white/50">Free plan</p>
+                        </div>
+                    </div>
+                    <span class="material-symbols-outlined text-white/40 text-sm">unfold_more</span>
+                </div>
+            </div>
+            
+            <!-- Collapsed Icons View -->
+            <div class="flex-col items-center py-4 space-y-6 hidden" id="leftCollapsedIcons">
+                <span class="material-symbols-outlined text-white/60">add</span>
+                <span class="material-symbols-outlined text-white/60">search</span>
+                <span class="material-symbols-outlined text-white/60">chat_bubble</span>
+                <span class="material-symbols-outlined text-white/60">folder</span>
+                <span class="material-symbols-outlined text-white/60">widgets</span>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN CONTENT AREA ===== -->
+        <main class="flex-1 flex flex-col bg-chrome-dark relative min-w-0">
+            
+            <!-- Top Header -->
+            <header class="flex justify-between items-center w-full px-6 h-14 bg-chrome-dark z-20 border-b border-white/5">
+                <div class="flex items-center gap-8">
+                    <div class="text-xl font-bold tracking-tighter text-cyber-gold font-headline glow-gold">PEACOCK ENGINE</div>
+                    <nav class="hidden lg:flex items-center gap-6 font-headline tracking-tight text-[11px] font-bold">
+                        <a class="text-cyber-gold border-b-2 border-cyber-gold pb-1 hover:text-white transition-colors" href="#">SYSTEM</a>
+                        <a class="text-zinc-500 hover:text-white transition-colors" href="#">TELEMETRY</a>
+                        <a class="text-zinc-500 hover:text-white transition-colors" href="#">VULKAN</a>
+                        <a class="text-zinc-500 hover:text-white transition-colors" href="#">BUFFERS</a>
+                    </nav>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="hidden sm:flex items-center gap-2 mr-4">
+                        <button class="text-zinc-500 hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-xl">settings</span>
+                        </button>
+                        <button class="text-zinc-500 hover:text-white transition-colors relative">
+                            <span class="material-symbols-outlined text-xl">notifications</span>
+                            <span class="absolute top-0 right-0 w-1.5 h-1.5 bg-cyber-gold rounded-full"></span>
+                        </button>
+                    </div>
+                    <button class="hw-surface-3d px-4 py-1.5 text-[10px] font-bold tracking-widest text-white">
+                        DEPLOY
+                    </button>
+                    <div class="w-8 h-8 bg-chrome-light border border-white/20 overflow-hidden">
+                        <img alt="Operator Profile" class="w-full h-full object-cover" src="https://i.pravatar.cc/150?img=11"/>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ===== HERO / CHAT LANDING AREA ===== -->
+            <div class="flex-1 flex flex-col items-center justify-center px-6 pb-24 overflow-y-auto relative">
+                
+                <!-- Logo Section -->
+                <div class="relative mb-12 text-center group">
+                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-px h-10 bg-cyber-gold/30"></div>
+                    <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-px h-10 bg-cyber-gold/30"></div>
+                    <div class="flex flex-col items-center gap-2">
+                        <span class="text-[10px] font-mono tracking-[0.5em] text-cyber-blue mb-2">INTELLIGENT KERNEL</span>
+                        <h1 class="text-7xl md:text-9xl font-headline font-bold tracking-tighter hw-metallic-text flex items-baseline italic">
+                            PEA<span class="text-cyber-gold glow-gold not-italic">COCK</span>
+                        </h1>
+                        <span class="text-xs font-mono text-cyber-gold ml-2 mb-4 tracking-tighter">V1.0.4</span>
+                        <div class="w-48 h-[2px] bg-gradient-to-r from-transparent via-cyber-gold/50 to-transparent"></div>
+                    </div>
+                </div>
+
+                <!-- Central Input Container - RECESSED PANEL -->
+                <div class="w-full max-w-3xl">
+                    <div class="hw-panel-recessed input-glow group transition-all duration-300">
+                        <!-- Input Row -->
+                        <div class="flex items-center p-2 min-h-[64px]">
+                            <button class="p-3 text-gray-400 hover:text-cyber-gold transition-colors flex items-center justify-center">
+                                <span class="material-symbols-outlined">attach_file</span>
+                            </button>
+                            <input 
+                                class="flex-1 bg-transparent border-none focus:ring-0 font-mono text-sm placeholder:text-gray-500 py-4 px-2 text-white" 
+                                placeholder="Ask away. Pics work too." 
+                                type="text"
+                            />
+                            <div class="flex items-center gap-2 px-2">
+                                <button class="p-3 text-gray-400 hover:text-cyber-blue transition-colors">
+                                    <span class="material-symbols-outlined">image</span>
+                                </button>
+                                <!-- GOLD SEND BUTTON -->
+                                <button class="hw-button-gold px-5 py-2 flex items-center justify-center">
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Bottom Bar -->
+                        <div class="px-5 py-2 bg-black/40 flex justify-between items-center border-t border-white/5">
+                            <div class="flex gap-4">
+                                <div class="flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
+                                    <span class="material-symbols-outlined text-[14px]">language</span>
+                                    <span class="text-[9px] font-mono tracking-widest uppercase">Search</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
+                                    <span class="material-symbols-outlined text-[14px]">memory</span>
+                                    <span class="text-[9px] font-mono tracking-widest uppercase">Deep Think</span>
+                                </div>
+                            </div>
+                            <div class="text-[9px] font-mono text-gray-600 uppercase tracking-tighter">
+                                Secure Line: 256-bit Encrypted
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 4 QUICK ACTION CARDS - 3D POP-OUT ===== -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                        <!-- Card 1 -->
+                        <button class="hw-surface-3d p-4 text-left group">
+                            <span class="material-symbols-outlined text-cyber-gold text-xl mb-3 block">auto_awesome</span>
+                            <span class="text-[10px] font-mono text-gray-400 block uppercase tracking-wider leading-tight group-hover:text-white transition-colors">Analyze system logs for anomalies</span>
+                        </button>
+                        
+                        <!-- Card 2 -->
+                        <button class="hw-surface-3d p-4 text-left group">
+                            <span class="material-symbols-outlined text-cyber-blue text-xl mb-3 block">code</span>
+                            <span class="text-[10px] font-mono text-gray-400 block uppercase tracking-wider leading-tight group-hover:text-white transition-colors">Optimise Vulkan pipeline buffers</span>
+                        </button>
+                        
+                        <!-- Card 3 -->
+                        <button class="hw-surface-3d p-4 text-left group">
+                            <span class="material-symbols-outlined text-cyber-magenta text-xl mb-3 block">visibility</span>
+                            <span class="text-[10px] font-mono text-gray-400 block uppercase tracking-wider leading-tight group-hover:text-white transition-colors">Identify visual regressions in telemetry</span>
+                        </button>
+                        
+                        <!-- Card 4 -->
+                        <button class="hw-surface-3d p-4 text-left group">
+                            <span class="material-symbols-outlined text-gray-400 text-xl mb-3 block">history</span>
+                            <span class="text-[10px] font-mono text-gray-400 block uppercase tracking-wider leading-tight group-hover:text-white transition-colors">Recall previous deployment states</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Meta -->
+            <footer class="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-3xl flex justify-center items-center gap-8 opacity-30 hover:opacity-60 transition-opacity z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 bg-cyber-gold rounded-full"></div>
+                    <span class="text-[9px] font-mono tracking-widest text-gray-400">NETWORK: ACTIVE</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 bg-cyber-gold rounded-full"></div>
+                    <span class="text-[9px] font-mono tracking-widest text-gray-400">LATENCY: 14MS</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 bg-cyber-blue rounded-full"></div>
+                    <span class="text-[9px] font-mono tracking-widest text-gray-400">ENCRYPT: AES-256</span>
+                </div>
+            </footer>
+
+            <!-- Background Decorative Grid -->
+            <div class="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden z-0">
+                <div class="absolute inset-0" style="background-image: linear-gradient(rgba(249, 217, 74, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(249, 217, 74, 0.1) 1px, transparent 1px); background-size: 40px 40px;"></div>
+            </div>
+        </main>
+
+        <!-- ===== COLLAPSIBLE RIGHT SIDEBAR ===== -->
+        <aside class="hidden lg:flex flex-col h-screen bg-chrome-panel w-[300px] border-l border-white/5 sidebar-transition relative" id="rightSidebar">
+            <!-- Toggle Button -->
+            <button class="absolute -left-3 top-6 z-30 w-6 h-6 bg-chrome-panel border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-colors" onclick="toggleSidebar('rightSidebar')">
+                <span class="material-symbols-outlined text-sm" id="rightToggleIcon">chevron_right</span>
+            </button>
+            
+            <div class="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-8 sidebar-content">
+                <!-- Model Selector -->
+                <div class="space-y-3">
+                    <label class="text-[10px] font-mono tracking-[0.2em] text-cyber-gold uppercase">Model Selection</label>
+                    <div class="relative">
+                        <select class="w-full bg-chrome-dark text-sm text-white border border-white/10 p-3 appearance-none focus:outline-none focus:border-cyber-gold/50 font-mono">
+                            <option>K2.5 Instant</option>
+                            <option selected>K2.5 Ultra</option>
+                            <option>K2.0 Legacy</option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-sm">expand_more</span>
+                    </div>
+                </div>
+                
+                <!-- System Prompt -->
+                <div class="space-y-3">
+                    <label class="text-[10px] font-mono tracking-[0.2em] text-cyber-gold uppercase">System Directives</label>
+                    <textarea class="w-full bg-chrome-dark text-xs text-white border border-white/10 p-3 min-h-[120px] focus:outline-none focus:border-cyber-gold/50 font-mono resize-none leading-relaxed" placeholder="Enter behavioral parameters..."></textarea>
+                </div>
+                
+                <!-- Persona Selection -->
+                <div class="space-y-3">
+                    <label class="text-[10px] font-mono tracking-[0.2em] text-cyber-gold uppercase">Agent Persona</label>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button class="w-full text-left p-2 border border-cyber-gold/40 bg-cyber-gold/5 flex items-center gap-3">
+                            <div class="w-2 h-2 bg-cyber-gold"></div>
+                            <span class="text-xs font-mono uppercase tracking-tighter text-white">Analytical Engine</span>
+                        </button>
+                        <button class="w-full text-left p-2 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] flex items-center gap-3">
+                            <div class="w-2 h-2 bg-white/20"></div>
+                            <span class="text-xs font-mono uppercase tracking-tighter text-gray-400">Creative Synth</span>
+                        </button>
+                        <button class="w-full text-left p-2 border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] flex items-center gap-3">
+                            <div class="w-2 h-2 bg-white/20"></div>
+                            <span class="text-xs font-mono uppercase tracking-tighter text-gray-400">Technical Lead</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Temperature Slider -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-[10px] font-mono tracking-[0.2em] text-cyber-gold uppercase">Temperature</label>
+                        <span class="text-[10px] font-mono text-gray-400" id="tempValue">0.7</span>
+                    </div>
+                    <input class="w-full h-1 bg-black appearance-none cursor-pointer outline-none border border-white/10" max="1" min="0" oninput="document.getElementById('tempValue').innerText = this.value" step="0.1" type="range" value="0.7"/>
+                    <div class="flex justify-between text-[8px] font-mono text-white/20 uppercase tracking-tighter">
+                        <span>Precise</span>
+                        <span>Creative</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Collapsed Icons View -->
+            <div class="flex-col items-center py-4 space-y-6 hidden" id="rightCollapsedIcons">
+                <span class="material-symbols-outlined text-white/60">model_training</span>
+                <span class="material-symbols-outlined text-white/60">terminal</span>
+                <span class="material-symbols-outlined text-white/60">psychology</span>
+                <span class="material-symbols-outlined text-white/60">thermostat</span>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        function toggleSidebar(id) {
+            const sidebar = document.getElementById(id);
+            const isLeft = id === 'leftSidebar';
+            const isCollapsed = sidebar.classList.contains('collapsed-sidebar');
+            const icon = document.getElementById(isLeft ? 'leftToggleIcon' : 'rightToggleIcon');
+            const contents = sidebar.querySelectorAll('.sidebar-content');
+            const iconView = document.getElementById(isLeft ? 'leftCollapsedIcons' : 'rightCollapsedIcons');
+
+            if (isCollapsed) {
+                sidebar.classList.remove('collapsed-sidebar');
+                contents.forEach(c => c.classList.remove('collapsed-content'));
+                iconView.classList.add('hidden');
+                iconView.classList.remove('flex');
+                icon.innerText = isLeft ? 'chevron_left' : 'chevron_right';
+            } else {
+                sidebar.classList.add('collapsed-sidebar');
+                contents.forEach(c => c.classList.add('collapsed-content'));
+                iconView.classList.remove('hidden');
+                iconView.classList.add('flex');
+                icon.innerText = isLeft ? 'chevron_right' : 'chevron_left';
+            }
+        }
+    </script>
+</body>
+</html>

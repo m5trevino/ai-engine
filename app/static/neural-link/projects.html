@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PEACOCK ENGINE | PROJECT FORGE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #101418; }
+::-webkit-scrollbar-thumb { background: #363a3e; border-radius: 2px; }
+.tracking-mono { letter-spacing: 0.05em; }
+.phase-active { border-color: #f0cd2d !important; color: #f0cd2d !important; }
+.phase-complete { border-color: #4ade80 !important; color: #4ade80 !important; }
+.phase-error { border-color: #ffb4ab !important; color: #ffb4ab !important; }
+.file-tree-line { position: relative; }
+.file-tree-line::before { content: ''; position: absolute; left: -12px; top: 0; bottom: 0; width: 1px; background: #363a3e; }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 5px rgba(240,205,45,0.2)} 50%{box-shadow:0 0 15px rgba(240,205,45,0.4)} }
+.generating { animation: pulse-glow 2s infinite; }
+</style>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        bg: "#101418", surface: "#1c2024", "surface-high": "#262a2f", "surface-low": "#181c20",
+        primary: "#d6e2ff", secondary: "#f0cd2d", tertiary: "#c3e7ff",
+        outline: "#8e909a", "outline-dim": "#363a3e", error: "#ffb4ab",
+        accent: "#aac7ff", success: "#4ade80"
+      },
+      fontFamily: { headline: ["Space Grotesk"], body: ["Inter"], mono: ["JetBrains Mono"] }
+    }
+  }
+}
+</script>
+</head>
+<body class="bg-bg text-primary font-body h-screen flex flex-col overflow-hidden">
+
+<!-- Header -->
+<header class="bg-surface-low border-b border-outline-dim h-14 flex items-center justify-between px-4 shrink-0">
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined text-secondary">architecture</span>
+    <span class="font-headline font-bold text-sm tracking-widest uppercase text-primary">Project Forge</span>
+    <span class="text-[10px] font-mono text-outline bg-surface-high px-2 py-0.5">v3.1</span>
+  </div>
+  <nav class="flex items-center gap-1">
+    <a href="/" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-outline hover:text-primary hover:bg-surface-high transition-colors">Dashboard</a>
+    <a href="/neural-link/" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-outline hover:text-primary hover:bg-surface-high transition-colors">Neural Link</a>
+    <a href="/neural-link/projects.html" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-secondary bg-surface-high border-b-2 border-secondary">Project Forge</a>
+    <a href="/v1/aviary/" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-outline hover:text-primary hover:bg-surface-high transition-colors">Aviary</a>
+  </nav>
+  <div class="flex items-center gap-3">
+    <div id="status-badge" class="flex items-center gap-1.5 px-2 py-1 bg-surface-high border border-outline-dim text-[10px] font-mono text-outline">
+      <span class="material-symbols-outlined text-[14px]">radio_button_checked</span>
+      <span id="status-text">IDLE</span>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex overflow-hidden">
+
+<!-- Left: Project Config & Progress -->
+<section class="w-96 bg-surface-low border-r border-outline-dim flex flex-col shrink-0 overflow-y-auto">
+  <div class="p-4 space-y-4">
+    <div class="text-[10px] font-mono text-outline uppercase tracking-widest">New Project</div>
+    
+    <div>
+      <label class="text-[10px] font-mono text-outline block mb-1">PROJECT NAME</label>
+      <input type="text" id="proj-name" class="w-full bg-bg border border-outline-dim p-2 text-sm text-primary focus:border-secondary outline-none" placeholder="my-fastapi-service">
+    </div>
+    
+    <div>
+      <label class="text-[10px] font-mono text-outline block mb-1">DESCRIPTION</label>
+      <textarea id="proj-desc" class="w-full bg-bg border border-outline-dim p-2 text-sm text-primary focus:border-secondary outline-none h-24 resize-none" placeholder="Build a FastAPI auth service with JWT tokens, rate limiting, and SQLite storage..."></textarea>
+    </div>
+    
+    <div>
+      <label class="text-[10px] font-mono text-outline block mb-1">MODEL</label>
+      <select id="proj-model" class="w-full bg-bg border border-outline-dim p-2 text-sm text-primary focus:border-secondary outline-none">
+        <option value="">Loading...</option>
+      </select>
+    </div>
+    
+    <div>
+      <label class="text-[10px] font-mono text-outline block mb-1">TYPE HINT</label>
+      <select id="proj-type" class="w-full bg-bg border border-outline-dim p-2 text-sm text-primary focus:border-secondary outline-none">
+        <option value="">Auto-detect</option>
+        <option value="fastapi">FastAPI</option>
+        <option value="flask">Flask</option>
+        <option value="django">Django</option>
+        <option value="react">React</option>
+        <option value="vue">Vue</option>
+        <option value="cli">CLI Tool</option>
+        <option value="chrome-extension">Chrome Extension</option>
+        <option value="library">Python Library</option>
+        <option value="docker">Docker Service</option>
+      </select>
+    </div>
+    
+    <div class="flex items-center gap-2">
+      <input type="checkbox" id="proj-memory" class="accent-secondary" checked>
+      <label class="text-xs text-primary">Query Peacock Memory for invariants</label>
+    </div>
+    
+    <button onclick="generateProject()" id="generate-btn" class="w-full bg-secondary text-bg py-2 font-headline font-bold text-[11px] uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined text-[16px]">auto_fix_high</span>
+      Generate Project
+    </button>
+  </div>
+  
+  <!-- Phase Tracker -->
+  <div class="p-4 border-t border-outline-dim">
+    <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-3">Pipeline</div>
+    <div class="space-y-2">
+      <div id="phase-ingest" class="flex items-center gap-2 px-3 py-2 border border-outline-dim bg-surface-high text-[11px] font-mono text-outline transition-all">
+        <span class="material-symbols-outlined text-[14px]">database</span>
+        <span>INGEST</span>
+      </div>
+      <div id="phase-architect" class="flex items-center gap-2 px-3 py-2 border border-outline-dim bg-surface-high text-[11px] font-mono text-outline transition-all">
+        <span class="material-symbols-outlined text-[14px]">architecture</span>
+        <span>ARCHITECT</span>
+      </div>
+      <div id="phase-generate" class="flex items-center gap-2 px-3 py-2 border border-outline-dim bg-surface-high text-[11px] font-mono text-outline transition-all">
+        <span class="material-symbols-outlined text-[14px]">code</span>
+        <span>GENERATE</span>
+      </div>
+      <div id="phase-validate" class="flex items-center gap-2 px-3 py-2 border border-outline-dim bg-surface-high text-[11px] font-mono text-outline transition-all">
+        <span class="material-symbols-outlined text-[14px]">fact_check</span>
+        <span>VALIDATE</span>
+      </div>
+      <div id="phase-package" class="flex items-center gap-2 px-3 py-2 border border-outline-dim bg-surface-high text-[11px] font-mono text-outline transition-all">
+        <span class="material-symbols-outlined text-[14px]">deployed_code</span>
+        <span>PACKAGE</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Metrics -->
+  <div class="p-4 border-t border-outline-dim space-y-2">
+    <div class="text-[10px] font-mono text-outline uppercase tracking-widest">Metrics</div>
+    <div class="flex justify-between text-[10px] font-mono text-outline">
+      <span>TOKENS</span>
+      <span id="metric-tokens" class="text-primary">0</span>
+    </div>
+    <div class="flex justify-between text-[10px] font-mono text-outline">
+      <span>DURATION</span>
+      <span id="metric-duration" class="text-tertiary">--</span>
+    </div>
+    <div class="flex justify-between text-[10px] font-mono text-outline">
+      <span>FILES</span>
+      <span id="metric-files" class="text-secondary">0</span>
+    </div>
+    <div class="flex justify-between text-[10px] font-mono text-outline">
+      <span>ERRORS</span>
+      <span id="metric-errors" class="text-error">0</span>
+    </div>
+  </div>
+</section>
+
+<!-- Center: File Browser & Content -->
+<section class="flex-1 flex flex-col min-w-0">
+  <!-- Tabs -->
+  <div class="flex border-b border-outline-dim bg-surface-low">
+    <button onclick="showTab('files')" id="tab-files" class="px-4 py-2 text-[11px] font-mono uppercase tracking-wider text-secondary border-b-2 border-secondary bg-surface-high/50">Files</button>
+    <button onclick="showTab('deploy')" id="tab-deploy" class="px-4 py-2 text-[11px] font-mono uppercase tracking-wider text-outline border-b-2 border-transparent hover:text-primary transition-colors">Deploy Script</button>
+    <button onclick="showTab('readme')" id="tab-readme" class="px-4 py-2 text-[11px] font-mono uppercase tracking-wider text-outline border-b-2 border-transparent hover:text-primary transition-colors">README</button>
+    <button onclick="showTab('validation')" id="tab-validation" class="px-4 py-2 text-[11px] font-mono uppercase tracking-wider text-outline border-b-2 border-transparent hover:text-primary transition-colors">Validation</button>
+    <button onclick="showTab('manifest')" id="tab-manifest" class="px-4 py-2 text-[11px] font-mono uppercase tracking-wider text-outline border-b-2 border-transparent hover:text-primary transition-colors">Manifest</button>
+  </div>
+  
+  <!-- File Tree + Content -->
+  <div id="panel-files" class="flex-1 flex overflow-hidden">
+    <div class="w-64 bg-surface border-r border-outline-dim overflow-y-auto p-3">
+      <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-2">File Tree</div>
+      <div id="file-tree" class="space-y-1">
+        <span class="text-[10px] text-outline/40">No files yet...</span>
+      </div>
+    </div>
+    <div class="flex-1 flex flex-col min-w-0">
+      <div class="flex items-center justify-between px-3 py-2 bg-surface-high border-b border-outline-dim">
+        <span id="file-path" class="text-[11px] font-mono text-secondary">Select a file</span>
+        <div class="flex gap-1">
+          <button onclick="copyCurrentFile()" class="px-2 py-1 text-[10px] font-mono bg-surface border border-outline-dim hover:border-secondary text-primary transition-colors">Copy</button>
+          <button onclick="downloadCurrentFile()" class="px-2 py-1 text-[10px] font-mono bg-surface border border-outline-dim hover:border-secondary text-primary transition-colors">Download</button>
+        </div>
+      </div>
+      <pre id="file-content" class="flex-1 overflow-auto p-4 text-[12px] font-mono text-tertiary bg-bg whitespace-pre-wrap">Project files will appear here after generation.</pre>
+    </div>
+  </div>
+  
+  <!-- Deploy Script -->
+  <div id="panel-deploy" class="flex-1 flex flex-col overflow-hidden hidden">
+    <div class="flex items-center justify-between px-3 py-2 bg-surface-high border-b border-outline-dim">
+      <span class="text-[11px] font-mono text-secondary">deploy.sh</span>
+      <div class="flex gap-1">
+        <button onclick="copyDeployScript()" class="px-2 py-1 text-[10px] font-mono bg-surface border border-outline-dim hover:border-secondary text-primary transition-colors">Copy All</button>
+        <button onclick="downloadDeployScript()" class="px-2 py-1 text-[10px] font-mono bg-secondary text-bg hover:opacity-90 transition-colors">Download .sh</button>
+      </div>
+    </div>
+    <pre id="deploy-content" class="flex-1 overflow-auto p-4 text-[12px] font-mono text-tertiary bg-bg whitespace-pre-wrap">Deploy script will appear here...</pre>
+  </div>
+  
+  <!-- README -->
+  <div id="panel-readme" class="flex-1 overflow-auto p-4 hidden">
+    <div id="readme-content" class="prose prose-invert prose-sm max-w-none">
+      <p class="text-outline">README will be generated with the project...</p>
+    </div>
+  </div>
+  
+  <!-- Validation -->
+  <div id="panel-validation" class="flex-1 overflow-auto p-4 hidden">
+    <div id="validation-content" class="text-sm">
+      <p class="text-outline">Validation results will appear here...</p>
+    </div>
+  </div>
+  
+  <!-- Manifest -->
+  <div id="panel-manifest" class="flex-1 overflow-auto p-4 hidden">
+    <pre id="manifest-content" class="text-[12px] font-mono text-tertiary whitespace-pre-wrap">Manifest will appear here...</pre>
+  </div>
+</section>
+
+<!-- Right: Architecture & Context -->
+<aside class="w-80 bg-surface border-l border-outline-dim flex flex-col shrink-0">
+  <div class="p-3 border-b border-outline-dim">
+    <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-2">Architecture</div>
+    <div id="arch-info" class="text-[11px] text-primary/70">
+      <p class="text-outline/40">Project architecture will be designed here...</p>
+    </div>
+  </div>
+  
+  <div class="flex-1 flex flex-col min-h-0 p-3">
+    <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-2">Live Log</div>
+    <div id="live-log" class="flex-1 overflow-y-auto bg-bg border border-outline-dim p-2 font-mono text-[10px] text-tertiary leading-relaxed space-y-1">
+      <span class="text-outline/40">Waiting for generation...</span>
+    </div>
+  </div>
+</aside>
+
+</main>
+
+<script>
+const API_BASE = window.location.origin;
+let currentModel = '';
+let currentProjectId = null;
+let currentProjectData = null;
+let selectedFilePath = null;
+let pollInterval = null;
+
+async function init() {
+  await loadModels();
+}
+
+async function loadModels() {
+  try {
+    const res = await fetch(`${API_BASE}/v1/chat/models`);
+    const data = await res.json();
+    const select = document.getElementById('proj-model');
+    select.innerHTML = '<option value="">Select model...</option>';
+    const defaults = ['models/gemini-2.5-flash', 'llama-3.3-70b-versatile', 'models/gemini-2.5-pro'];
+    for (const [gw, models] of Object.entries(data)) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = gw.toUpperCase();
+      for (const m of models) {
+        if (m.status === 'frozen') continue;
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = `${m.id} (${m.tier})`;
+        optgroup.appendChild(opt);
+      }
+      select.appendChild(optgroup);
+    }
+    // Set default
+    for (const def of defaults) {
+      if (Array.from(select.options).some(o => o.value === def)) {
+        select.value = def;
+        currentModel = def;
+        break;
+      }
+    }
+    select.addEventListener('change', (e) => { currentModel = e.target.value; });
+  } catch (e) {
+    log('Failed to load models: ' + e.message, 'error');
+  }
+}
+
+function log(msg, type = 'info') {
+  const container = document.getElementById('live-log');
+  const div = document.createElement('div');
+  const time = new Date().toLocaleTimeString('en-US', {hour12: false});
+  const color = type === 'error' ? 'text-error' : type === 'success' ? 'text-success' : type === 'active' ? 'text-secondary' : 'text-tertiary';
+  div.className = color;
+  div.textContent = `[${time}] ${msg}`;
+  container.appendChild(div);
+  container.scrollTo(0, container.scrollHeight);
+}
+
+function setPhase(phase, state) {
+  const el = document.getElementById(`phase-${phase}`);
+  el.classList.remove('phase-active', 'phase-complete', 'phase-error');
+  if (state === 'active') el.classList.add('phase-active', 'generating');
+  else if (state === 'complete') el.classList.add('phase-complete');
+  else if (state === 'error') el.classList.add('phase-error');
+  else el.classList.remove('generating');
+}
+
+function setStatus(status) {
+  document.getElementById('status-text').textContent = status;
+  const badge = document.getElementById('status-badge');
+  if (status === 'GENERATING') {
+    badge.classList.add('generating');
+    badge.classList.replace('border-outline-dim', 'border-secondary');
+  } else {
+    badge.classList.remove('generating');
+    badge.classList.replace('border-secondary', 'border-outline-dim');
+  }
+}
+
+async function generateProject() {
+  const name = document.getElementById('proj-name').value.trim();
+  const desc = document.getElementById('proj-desc').value.trim();
+  const model = document.getElementById('proj-model').value;
+  const typeHint = document.getElementById('proj-type').value;
+  const enableMemory = document.getElementById('proj-memory').checked;
+  
+  if (!name || !desc || !model) {
+    log('Please fill in name, description, and select a model', 'error');
+    return;
+  }
+  
+  // Reset UI
+  currentProjectId = null;
+  currentProjectData = null;
+  if (pollInterval) clearInterval(pollInterval);
+  document.getElementById('file-tree').innerHTML = '<span class="text-[10px] text-outline/40">Generating...</span>';
+  document.getElementById('file-content').textContent = 'Generating project...';
+  document.getElementById('deploy-content').textContent = 'Generating deploy script...';
+  document.getElementById('readme-content').innerHTML = '<p class="text-outline">Generating README...</p>';
+  document.getElementById('validation-content').innerHTML = '<p class="text-outline">Running validation...</p>';
+  document.getElementById('manifest-content').textContent = 'Generating manifest...';
+  document.getElementById('arch-info').innerHTML = '<p class="text-outline/40">Designing architecture...</p>';
+  document.getElementById('live-log').innerHTML = '';
+  
+  ['ingest', 'architect', 'generate', 'validate', 'package'].forEach(p => setPhase(p, 'pending'));
+  
+  log(`Starting project generation: ${name}`, 'active');
+  setStatus('GENERATING');
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/projects/generate`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name: name,
+        description: desc,
+        model: model,
+        temperature: 0.3,
+        max_iterations: 3,
+        files_per_batch: 5,
+        enable_memory: enableMemory,
+        project_type_hint: typeHint || undefined,
+      })
+    });
+    
+    const data = await res.json();
+    if (data.id) {
+      currentProjectId = data.id;
+      log(`Project queued: ${data.id}`, 'success');
+      // Start polling
+      pollInterval = setInterval(pollProjectStatus, 2000);
+    } else {
+      log('Failed to queue project', 'error');
+      setStatus('ERROR');
+    }
+  } catch (e) {
+    log('Generation failed: ' + e.message, 'error');
+    setStatus('ERROR');
+  }
+}
+
+async function pollProjectStatus() {
+  if (!currentProjectId) return;
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/projects/${currentProjectId}`);
+    const data = await res.json();
+    currentProjectData = data;
+    
+    // Update phases based on status
+    const status = data.status;
+    if (status === 'ingesting') setPhase('ingest', 'active');
+    else if (status === 'architecting') { setPhase('ingest', 'complete'); setPhase('architect', 'active'); }
+    else if (status.startsWith('generating')) { setPhase('ingest', 'complete'); setPhase('architect', 'complete'); setPhase('generate', 'active'); }
+    else if (status.startsWith('validating')) { setPhase('ingest', 'complete'); setPhase('architect', 'complete'); setPhase('generate', 'complete'); setPhase('validate', 'active'); }
+    else if (status === 'packaging') { setPhase('ingest', 'complete'); setPhase('architect', 'complete'); setPhase('generate', 'complete'); setPhase('validate', 'complete'); setPhase('package', 'active'); }
+    else if (status === 'complete') {
+      ['ingest', 'architect', 'generate', 'validate', 'package'].forEach(p => setPhase(p, 'complete'));
+      setStatus('COMPLETE');
+      clearInterval(pollInterval);
+      log('Project generation complete!', 'success');
+    } else if (status === 'failed') {
+      setPhase('generate', 'error');
+      setStatus('FAILED');
+      clearInterval(pollInterval);
+      log('Project generation failed: ' + (data.errors?.[0] || 'Unknown error'), 'error');
+    }
+    
+    // Update metrics
+    const m = data.metrics || {};
+    document.getElementById('metric-tokens').textContent = m.total_tokens || 0;
+    document.getElementById('metric-duration').textContent = m.total_duration_ms ? `${(m.total_duration_ms/1000).toFixed(1)}s` : '--';
+    document.getElementById('metric-files').textContent = data.files?.length || 0;
+    
+    // Update architecture info
+    if (data.architecture) {
+      const arch = data.architecture;
+      const decisions = (arch.architecture_decisions || []).map(d => `<li class="mb-1">• ${escapeHtml(d)}</li>`).join('');
+      document.getElementById('arch-info').innerHTML = `
+        <div class="font-bold text-primary mb-1">${escapeHtml(arch.project_name || 'Unknown')}</div>
+        <div class="text-outline mb-2">${escapeHtml(arch.description || '')}</div>
+        <div class="text-[10px] text-secondary mb-1">DECISIONS:</div>
+        <ul class="text-[10px] text-tertiary">${decisions}</ul>
+        <div class="text-[10px] text-secondary mt-2 mb-1">DEPENDENCIES:</div>
+        <div class="text-[10px] text-tertiary">${(arch.dependencies || []).join(', ')}</div>
+      `;
+    }
+    
+    // Update file tree
+    if (data.files && data.files.length > 0) {
+      renderFileTree(data.files);
+      document.getElementById('metric-files').textContent = data.files.length;
+    }
+    
+    // Update deploy script
+    if (data.status === 'complete' || data.status === 'packaging') {
+      // Fetch deploy script
+      fetchDeployScript();
+    }
+    
+    // Update validation
+    if (data.validation) {
+      document.getElementById('validation-content').innerHTML = data.validation.report ? markdownToHtml(data.validation.report) : '<p class="text-outline">No validation data.</p>';
+      const errors = (data.validation.results || []).reduce((sum, r) => sum + r.errors, 0);
+      document.getElementById('metric-errors').textContent = errors;
+    }
+    
+    // Update README
+    if (data.status === 'complete' || data.status === 'packaging') {
+      fetchReadme();
+    }
+    
+    // Update manifest
+    if (data.manifest) {
+      document.getElementById('manifest-content').textContent = JSON.stringify(data.manifest, null, 2);
+    }
+    
+  } catch (e) {
+    log('Poll error: ' + e.message, 'error');
+  }
+}
+
+async function fetchDeployScript() {
+  if (!currentProjectId) return;
+  try {
+    const res = await fetch(`${API_BASE}/v1/projects/${currentProjectId}/deploy`);
+    const data = await res.json();
+    if (data.script) {
+      document.getElementById('deploy-content').textContent = data.script;
+    }
+  } catch (e) {}
+}
+
+async function fetchReadme() {
+  if (!currentProjectId) return;
+  try {
+    const res = await fetch(`${API_BASE}/v1/projects/${currentProjectId}/readme`);
+    const data = await res.json();
+    if (data.readme) {
+      document.getElementById('readme-content').innerHTML = markdownToHtml(data.readme);
+    }
+  } catch (e) {}
+}
+
+function renderFileTree(files) {
+  const container = document.getElementById('file-tree');
+  container.innerHTML = '';
+  
+  files.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'flex items-center gap-1.5 px-2 py-1 hover:bg-surface-high cursor-pointer text-[11px] font-mono text-tertiary transition-colors';
+    if (f.executable) div.classList.add('text-secondary');
+    div.innerHTML = `
+      <span class="material-symbols-outlined text-[14px] ${f.executable ? 'text-secondary' : 'text-outline'}">${f.executable ? 'terminal' : 'description'}</span>
+      <span class="truncate">${escapeHtml(f.path)}</span>
+      <span class="text-[9px] text-outline ml-auto">${formatBytes(f.size || 0)}</span>
+    `;
+    div.onclick = () => selectFile(f);
+    container.appendChild(div);
+  });
+}
+
+function selectFile(file) {
+  selectedFilePath = file.path;
+  document.getElementById('file-path').textContent = file.path;
+  document.getElementById('file-content').textContent = file.content;
+}
+
+function showTab(tab) {
+  ['files', 'deploy', 'readme', 'validation', 'manifest'].forEach(t => {
+    document.getElementById(`panel-${t}`).classList.add('hidden');
+    document.getElementById(`tab-${t}`).classList.remove('text-secondary', 'border-secondary', 'bg-surface-high/50');
+    document.getElementById(`tab-${t}`).classList.add('text-outline', 'border-transparent');
+  });
+  document.getElementById(`panel-${tab}`).classList.remove('hidden');
+  document.getElementById(`tab-${tab}`).classList.add('text-secondary', 'border-secondary', 'bg-surface-high/50');
+  document.getElementById(`tab-${tab}`).classList.remove('text-outline', 'border-transparent');
+}
+
+function copyCurrentFile() {
+  const content = document.getElementById('file-content').textContent;
+  navigator.clipboard.writeText(content).then(() => log('File copied to clipboard', 'success'));
+}
+
+function downloadCurrentFile() {
+  if (!selectedFilePath) return;
+  const file = currentProjectData?.files?.find(f => f.path === selectedFilePath);
+  if (!file) return;
+  const blob = new Blob([file.content], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.path.split('/').pop();
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyDeployScript() {
+  const content = document.getElementById('deploy-content').textContent;
+  navigator.clipboard.writeText(content).then(() => log('Deploy script copied', 'success'));
+}
+
+function downloadDeployScript() {
+  const content = document.getElementById('deploy-content').textContent;
+  const blob = new Blob([content], {type: 'text/x-shellscript'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'deploy.sh';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + 'KB';
+  return (bytes/(1024*1024)).toFixed(1) + 'MB';
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function markdownToHtml(md) {
+  // Simple markdown parser
+  let html = escapeHtml(md);
+  // Headers
+  html = html.replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold text-primary mt-3 mb-1">$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2 class="text-base font-bold text-primary mt-4 mb-2">$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1 class="text-lg font-bold text-primary mt-4 mb-2">$1</h1>');
+  // Bold
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>');
+  // Code inline
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-surface-high px-1 py-0.5 text-[11px] font-mono text-secondary">$1</code>');
+  // Code blocks
+  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-bg border border-outline-dim p-2 my-2 text-[11px] font-mono text-tertiary overflow-x-auto">$2</pre>');
+  // Lists
+  html = html.replace(/^\s*-\s+(.*$)/gim, '<li class="ml-4 text-tertiary">$1</li>');
+  // Line breaks
+  html = html.replace(/\n/g, '<br>');
+  return html;
+}
+
+init();
+</script>
+</body>
+</html>

@@ -115,3 +115,33 @@ owl_probe_results.json
 ai-engine
 engine-manual.md
 AI_INTEGRATION_GUIDE.md
+
+# === SYNC CONFLICTS ===
+*.sync-conflict-*
+
+# === RESEARCH / NOTES / GARBAGE ===
+.syndicate/
+MUST-READ/
+gemini-ui-ux-blender/
+gemini-web-design/
+APP-*.md
+FEATURE_GUIDE.md
+TACTICAL_COMMAND.md
+TERMINAL_LAUNCHER.md
+WIRING.md
+SKILL_APP_BUILDER_GAP_ANALYSIS.md
+"Finalizing Peacock Engine Refinery.md"
+audit_report.json
+frozen_models.json
+
+# === LOCAL CONFIG ===
+Caddyfile
+
+# === SECRETS / API KEYS ===
+**/*Security Protocol*.md
+**/*security protocol*.md
+must/striker_master_blueprint.txt
+**/*_probe_results.json
+striker_status.json
+logs/conversations/
+ui4site.md

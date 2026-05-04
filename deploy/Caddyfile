@@ -75,3 +75,17 @@ herbert.save-aichats.com {
         }
     }
 }
+
+# 5. THE SKILLZ BANK (Skillz Vault UI)
+skillz.save-aichats.com {
+    import security
+    encode gzip
+    reverse_proxy localhost:8000
+    
+    log {
+        output file /var/log/caddy/skillz-access.log {
+            roll_size 10MB
+            roll_keep 5
+        }
+    }
+}

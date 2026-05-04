@@ -1,0 +1,84 @@
+# ==========================================
+# SYNDICATE ASSET: SECURITY_PROTOCOLS (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 78
+# ==========================================
+# --- DATA CONTENT START ---
+Harden LIM Security Protocol
+Replace gateway-level ThrottleController with per-model tracking
+Implement sliding window rate limiter
+Add RPD (requests per day) tracking with daily reset
+Add per-key rate limit tracking
+Implement predictive throttling
+Parse rate limit headers from Groq (x-ratelimit-*)
+Parse rate limit info from Gemini responses
+Implement automatic backoff with exponential retry
+Add jitter to prevent thundering herd
+Mark keys on cooldown automatically
+Implement health-scored rotation
+Add key performance tracking (success rate, latency)
+Track per-key error counts
+Implement automatic key exclusion on repeated failures
+Add "dead key" detection and alerting
+Track per-key daily usage (requests, tokens)
+Track per-key error rates
+Store key health metrics in database
+Add key usage analytics endpoint
+Create scripts/validate_google.py
+Implement key validation (test auth with list models)
+Implement model validation (test inference on each model)
+Add error pattern detection (discontinued vs temporary)
+Implement freeze decision logic
+Add DISCONTINUED pattern detection
+Add QUOTA_EXCEEDED detection
+Implement _freeze_model() method
+Add freeze reason logging
+Create freeze report generation
+Create scripts/validate_groq.py
+Implement key validation (test with models endpoint)
+Implement API key validation middleware
+Add key-based rate limiting
+Create API key generation/management
+Add key expiration support
+Add JWT token support
+Implement token refresh
+Add role-based access control
+Implement per-IP rate limiting
+Implement per-API-key rate limiting
+Add rate limit headers to responses
+Create rate limit bypass for admin keys
+Add request size limits
+Implement slow request protection
+Add concurrent request limits per client
+Configure rate limiting at edge
+Add fail2ban configuration
+Configure UFW firewall rules
+Add DDoS protection (rate limiting)
+Implement Collateral Overwrite (Skip vs Replace) toggle
+Implement Output Restraint (Max Tokens) mapping from registry
+Implement Structured Format Lock (JSON vs Markdown)
+Implement Auto-Kill (Triple-Fail switch) for API failures
+Implement Ghost Strike (Dry-Run) mode
+Implement Execution Stance (Bulldoze vs HOLD) toggle
+Implement High-Aggression Key Rotation
+Precision Strike support for specific key accounts
+Identity Partitioning (vault/{identity}/)
+"Syndicate" Identity-First Architecture (pk_ secrets)
+Mandatory authentication for all operations
+Authorization: Bearer header with pk_ secret
+Scope actions to specific app profiles
+Isolated vaults and custom configs per profile
+HELLCAT Protocol: BLACK KEY (Stealth) 3.0x safer/slower interval
+HELLCAT Protocol: BLUE KEY (Balanced) 1.15x buffer interval
+HELLCAT Protocol: RED KEY (Apex) 1.02x multiplier (Max throughput)
+SOCKS5 proxy support via PROXY_URL
+Ngrok token rotation across multiple accounts
+Blood Oath (OMERTA): Zero snitching and zero external telemetry
+Internal forensic vault for strike data
+Auto-Freeze Validators for Google and Groq fleets
+Audit Caddyfile for security leaks
+Collective RPM/TPM Pool calculation across key pools
+Model status indicators (Active, Frozen, Deprecated)
+Key health status (Healthy, Warning, Exhausted, Dead)
+Masked key display
+Cooldown timer
+# --- DATA CONTENT END ---

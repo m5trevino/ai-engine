@@ -6,9 +6,15 @@ from pathlib import Path
 
 router = APIRouter()
 
-AMMO_DIR = "/home/flintx/ammo"
-START_DIR = "/home/flintx/peacock/start"
-PROMPTS_BASE = "/home/flintx/peacock/prompts"
+# Dynamic root detection logic to handle VPS vs Local transitions
+PROJECT_ROOT = Path(__file__).parent.parent.parent.resolve()
+# If in /root/hetzner/ai-engine, the relative root is /root/hetzner
+# If in /home/flintx/hetzner/ai-engine, the relative root is /home/flintx/hetzner
+HETZNER_ROOT = PROJECT_ROOT.parent
+
+AMMO_DIR = str(HETZNER_ROOT / "ammo")
+START_DIR = str(HETZNER_ROOT / "peacock" / "start")
+PROMPTS_BASE = str(HETZNER_ROOT / "peacock" / "prompts")
 
 class PromptAsset(BaseModel):
     id: str
@@ -100,8 +106,10 @@ async def delete_prompt(phase: str, name: str):
         raise HTTPException(status_code=500, detail="Failed to purge asset")
 
 @router.get("/browse")
-async def browse_directory(path: str = "/home/flintx"):
+async def browse_directory(path: str = None):
     try:
+        if path is None:
+            path = str(HETZNER_ROOT)
         target = Path(path)
         if not target.exists() or not target.is_dir():
             raise HTTPException(status_code=400, detail="Invalid path")

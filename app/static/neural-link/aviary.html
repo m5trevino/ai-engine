@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEACOCK Aviary — Project Compiler</title>
+<style>
+:root {
+  --bg: #0b0c10; --panel: #1f2833; --accent: #45a29e; --accent2: #66fcf1;
+  --text: #c5c6c7; --text-dim: #8b8d90; --danger: #ef476f; --ok: #06d6a0;
+  --warn: #ffd166; --border: #2a3a4a;
+}
+* { box-sizing: border-box; }
+html { font-size: 18px; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6;
+}
+.container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+header {
+  display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem;
+  border-bottom: 2px solid var(--accent); margin-bottom: 1.5rem;
+}
+header h1 { margin: 0; font-size: 2rem; color: var(--accent2); letter-spacing: -0.5px; }
+header .subtitle { color: var(--text-dim); font-size: 0.95rem; }
+
+/* Step wizard */
+.wizard-steps {
+  display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.step-btn {
+  flex: 1; min-width: 160px; padding: 0.8rem 1rem; background: var(--panel);
+  border: 2px solid var(--border); color: var(--text-dim); cursor: pointer;
+  font-size: 1rem; font-weight: 600; border-radius: 8px; text-align: center;
+  transition: all .2s;
+}
+.step-btn.active { border-color: var(--accent); color: var(--accent2); background: #1a2e35; }
+.step-btn.done { border-color: var(--ok); color: var(--ok); }
+.step-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.step-panel { display: none; }
+.step-panel.active { display: block; animation: fade .3s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: none;} }
+
+h2 { margin: 0 0 1rem; font-size: 1.4rem; color: var(--accent2); }
+h3 { margin: 1.2rem 0 0.6rem; font-size: 1.15rem; color: var(--accent); }
+label { display: block; margin: 0.8rem 0 0.3rem; font-weight: 600; font-size: 0.95rem; }
+select, input[type="text"], input[type="number"], textarea {
+  width: 100%; padding: 0.7rem; font-size: 1rem; background: var(--bg);
+  border: 1px solid var(--border); color: var(--text); border-radius: 6px;
+}
+select:focus, input:focus, textarea:focus { outline: 2px solid var(--accent); }
+textarea { min-height: 120px; font-family: inherit; resize: vertical; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1.2rem; margin-bottom: 1rem;
+}
+.card.compact { padding: 0.8rem 1rem; }
+
+.model-row {
+  display: flex; align-items: center; gap: 1rem; padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border); cursor: pointer;
+}
+.model-row:hover { background: rgba(102,252,241,0.05); }
+.model-row input { width: 1.2rem; height: 1.2rem; accent-color: var(--accent); }
+.model-meta { margin-left: auto; display: flex; gap: 1rem; font-size: 0.85rem; color: var(--text-dim); }
+.model-meta span { white-space: nowrap; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.7rem 1.4rem; font-size: 1rem; font-weight: 600;
+  border: none; border-radius: 8px; cursor: pointer; transition: filter .2s;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-secondary { background: var(--panel); color: var(--accent2); border: 1px solid var(--accent); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.search-row { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+.search-row input { flex: 1; }
+.search-row select { width: 200px; }
+
+.result-item {
+  background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.9rem; margin-bottom: 0.6rem; cursor: pointer; transition: border-color .2s;
+}
+.result-item:hover { border-color: var(--accent); }
+.result-item.selected { border-color: var(--ok); background: rgba(6,214,160,0.08); }
+.result-item .coll-badge {
+  display: inline-block; font-size: 0.75rem; padding: 0.15rem 0.5rem;
+  background: var(--accent); color: #000; border-radius: 4px; font-weight: 700;
+  margin-right: 0.5rem;
+}
+.result-item .meta-line { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem; }
+.result-item .snippet { font-size: 0.9rem; margin-top: 0.4rem; line-height: 1.5; }
+
+.payload-item {
+  display: flex; align-items: flex-start; gap: 0.8rem;
+  background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.8rem; margin-bottom: 0.5rem;
+}
+.payload-item .drag { cursor: grab; color: var(--text-dim); padding-top: 0.2rem; }
+.payload-item .content { flex: 1; }
+.payload-item .content .title { font-weight: 600; font-size: 0.95rem; }
+.payload-item .content .src { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; }
+.payload-item .actions { display: flex; gap: 0.4rem; }
+.payload-item .actions button {
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  border-radius: 4px; padding: 0.2rem 0.5rem; font-size: 0.8rem; cursor: pointer;
+}
+.payload-item .actions button:hover { color: var(--danger); border-color: var(--danger); }
+
+.token-bar {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1.5rem;
+}
+.token-bar .stat { text-align: center; }
+.token-bar .stat .num { font-size: 1.6rem; font-weight: 700; color: var(--accent2); }
+.token-bar .stat .lbl { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
+.token-bar .meter { flex: 1; height: 12px; background: var(--bg); border-radius: 6px; overflow: hidden; }
+.token-bar .meter-fill { height: 100%; background: var(--ok); transition: width .3s, background .3s; }
+.token-bar .meter-fill.warn { background: var(--warn); }
+.token-bar .meter-fill.danger { background: var(--danger); }
+
+.chunk-card {
+  background: rgba(0,0,0,0.2); border-left: 4px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 0.9rem; margin-bottom: 0.6rem;
+}
+.chunk-card .chunk-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+.chunk-card .chunk-hdr strong { color: var(--accent2); }
+
+.phase-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.8rem; margin-bottom: 1rem;
+}
+.phase-box {
+  background: var(--panel); border: 2px solid var(--border); border-radius: 10px;
+  padding: 1rem; text-align: center; transition: all .3s;
+}
+.phase-box.running { border-color: var(--accent); box-shadow: 0 0 12px rgba(69,162,158,0.3); }
+.phase-box.done { border-color: var(--ok); }
+.phase-box.error { border-color: var(--danger); }
+.phase-box .bird { font-size: 1.8rem; margin-bottom: 0.3rem; }
+.phase-box .name { font-weight: 700; font-size: 0.95rem; }
+.phase-box .status { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem; }
+
+.stream-log {
+  background: #000; border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.85rem;
+  max-height: 400px; overflow-y: auto; white-space: pre-wrap; color: #a0a0a0;
+}
+.stream-log .ev-spark { color: #ffd166; }
+.stream-log .ev-falcon { color: #ef476f; }
+.stream-log .ev-eagle { color: #06d6a0; }
+.stream-log .ev-crow { color: #118ab2; }
+.stream-log .ev-owl { color: #9b5de5; }
+.stream-log .ev-raven { color: #f15bb5; }
+.stream-log .ev-hawk { color: #00f5d4; }
+
+.file-tree {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.8rem; max-height: 300px; overflow-y: auto;
+}
+.file-tree .f-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.4rem 0.6rem; border-radius: 4px; cursor: pointer;
+}
+.file-tree .f-item:hover { background: rgba(102,252,241,0.08); }
+.file-tree .f-item .fname { font-family: monospace; font-size: 0.9rem; }
+.file-tree .f-item .flang { font-size: 0.75rem; color: var(--text-dim); }
+
+.tabs { display: flex; gap: 0.4rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+.tab { padding: 0.5rem 1rem; background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.95rem; border-bottom: 2px solid transparent; }
+.tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+.tab:hover { color: var(--text); }
+
+.nav-btns { display: flex; justify-content: space-between; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>🦅 PEACOCK Aviary</h1>
+      <div class="subtitle">7-phase project compiler — SPARK → FALCON → EAGLE → CROW → OWL → RAVEN → HAWK</div>
+    </div>
+  </header>
+
+  <div class="wizard-steps" id="wizardSteps">
+    <button class="step-btn active" data-step="1" onclick="goStep(1)">1. Configure</button>
+    <button class="step-btn" data-step="2" onclick="goStep(2)" disabled>2. Discover</button>
+    <button class="step-btn" data-step="3" onclick="goStep(3)" disabled>3. Assemble</button>
+    <button class="step-btn" data-step="4" onclick="goStep(4)" disabled>4. Review</button>
+    <button class="step-btn" data-step="5" onclick="goStep(5)" disabled>5. Run</button>
+  </div>
+
+  <!-- STEP 1: CONFIGURE -->
+  <div class="step-panel active" id="step1">
+    <div class="grid-2">
+      <div class="card">
+        <h2>Model Selection</h2>
+        <label for="modelSelect">SPARK Model (ontology builder — needs big context)</label>
+        <select id="modelSelect"><option value="">Loading models...</option></select>
+        <div id="modelDetails" style="margin-top:0.8rem;font-size:0.9rem;color:var(--text-dim);"></div>
+
+        <label style="margin-top:1rem;">
+          <input type="checkbox" id="enableMemory" checked style="width:auto;margin-right:0.4rem;">
+          Query Peacock Unified memory before compile
+        </label>
+      </div>
+      <div class="card">
+        <h2>Memory Collections</h2>
+        <div id="collectionToggles">
+          <label><input type="checkbox" value="app_invariants" checked> app_invariants</label>
+          <label><input type="checkbox" value="agent_invariants" checked> agent_invariants</label>
+          <label><input type="checkbox" value="tech_vault"> tech_vault</label>
+          <label><input type="checkbox" value="chat_conversations"> chat_conversations</label>
+          <label><input type="checkbox" value="bindings"> bindings</label>
+          <label><input type="checkbox" value="seed_vault"> seed_vault</label>
+          <label><input type="checkbox" value="case_files_vault"> case_files_vault</label>
+          <label><input type="checkbox" value="personal_vault"> personal_vault</label>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:1rem;">
+      <h2>Source Chat Log</h2>
+      <label>Paste your chat log markdown here (or skip and build from memory)</label>
+      <textarea id="chatLogInput" placeholder="# Chat with Claude..."></textarea>
+    </div>
+    <div class="nav-btns">
+      <span></span>
+      <button class="btn btn-primary" onclick="goStep(2)">Next → Discover</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: DISCOVER -->
+  <div class="step-panel" id="step2">
+    <div class="card">
+      <h2>Search Memory</h2>
+      <div class="search-row">
+        <input type="text" id="searchQuery" placeholder="Search vaults, invariants, bindings..." onkeydown="if(event.key==='Enter')doSearch()">
+        <select id="searchTarget">
+          <option value="unified">Unified Vaults</option>
+          <option value="bindings">API Bindings (port 7878)</option>
+          <option value="invariants">Invariants Browser</option>
+        </select>
+        <button class="btn btn-primary" onclick="doSearch()">Search</button>
+      </div>
+      <div id="searchResults"></div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Next → Assemble</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: ASSEMBLE -->
+  <div class="step-panel" id="step3">
+    <div class="token-bar">
+      <div class="stat"><div class="num" id="tokCount">0</div><div class="lbl">Tokens</div></div>
+      <div class="meter"><div class="meter-fill" id="tokMeter" style="width:0%"></div></div>
+      <div class="stat"><div class="num" id="tokLimit">—</div><div class="lbl">Limit</div></div>
+      <div class="stat"><div class="num" id="tokItems">0</div><div class="lbl">Items</div></div>
+      <button class="btn btn-danger" onclick="clearPayload()">Clear All</button>
+    </div>
+    <div class="card">
+      <h2>Payload Builder</h2>
+      <div id="payloadList"><p style="color:var(--text-dim)">No items selected. Go to Discover and add items.</p></div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Next → Review</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: REVIEW -->
+  <div class="step-panel" id="step4">
+    <div class="card">
+      <h2>Compilation Review</h2>
+      <div id="reviewSummary"></div>
+    </div>
+    <div class="card">
+      <h2>Chunk Preview</h2>
+      <div id="chunkPreview"></div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-primary" id="btnRun" onclick="goStep(5)">🚀 Launch Aviary</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: RUN -->
+  <div class="step-panel" id="step5">
+    <div class="phase-grid" id="phaseGrid">
+      <div class="phase-box" data-phase="spark"><div class="bird">⚡</div><div class="name">SPARK</div><div class="status">Waiting...</div></div>
+      <div class="phase-box" data-phase="falcon"><div class="bird">🦅</div><div class="name">FALCON</div><div class="status">Waiting...</div></div>
+      <div class="phase-box" data-phase="eagle"><div class="bird">🦉</div><div class="name">EAGLE</div><div class="status">Waiting...</div></div>
+      <div class="phase-box" data-phase="crow"><div class="bird">🐦‍⬛</div><div class="name">CROW</div><div class="status">Waiting...</div></div>
+      <div class="phase-box" data-phase="owl"><div class="bird">🦉</div><div class="name">OWL</div><div class="status">Waiting...</div></div>
+      <div class="phase-box" data-phase="raven"><div class="bird">🪶</div><div class="name">RAVEN</div><div class="status">Waiting...</div></div>
+      <div class="phase-box" data-phase="hawk"><div class="bird">🦅</div><div class="name">HAWK</div><div class="status">Waiting...</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>Live Stream</h2>
+        <div class="stream-log" id="streamLog">Ready to launch...</div>
+      </div>
+      <div class="card">
+        <h2>Generated Files</h2>
+        <div class="file-tree" id="fileTree"><p style="color:var(--text-dim)">No files yet.</p></div>
+        <div class="tabs" id="artifactTabs" style="margin-top:1rem;">
+          <button class="tab active" onclick="showArtifact('deploy')">Deploy</button>
+          <button class="tab" onclick="showArtifact('readme')">README</button>
+          <button class="tab" onclick="showArtifact('raven')">Raven Audit</button>
+        </div>
+        <pre id="artifactViewer" style="background:#000;border:1px solid var(--border);border-radius:8px;padding:1rem;max-height:300px;overflow:auto;font-size:0.85rem;color:#c5c6c7;"></pre>
+      </div>
+    </div>
+    <div class="nav-btns">
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 New Run</button>
+      <button class="btn btn-primary" id="btnDownload" style="display:none;" onclick="downloadZip()">📦 Download</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= STATE ================= */
+const state = {
+  step: 1,
+  models: [],
+  selectedModel: null,
+  chatLog: '',
+  enableMemory: true,
+  collections: ['app_invariants','agent_invariants'],
+  searchResults: [],
+  payload: [], // {id, source, collection, title, text, metadata}
+  runId: null,
+  files: [],
+  deployScript: '',
+  readme: '',
+  ravenAudit: '',
+};
+
+const API_BASE = window.location.origin + '/v1';
+const UNIFIED_API = 'http://localhost:8000';
+const BINDINGS_API = 'http://localhost:7878';
+
+/* ================= INIT ================= */
+async function init() {
+  await loadModels();
+  updateTokenBar();
+}
+init();
+
+/* ================= STEP NAV ================= */
+function goStep(n) {
+  if (n === 3 && state.payload.length === 0 && !state.chatLog.trim()) {
+    // Allow empty payload if they have chat log
+  }
+  if (n === 4) buildReview();
+  if (n === 5) startRun();
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.step-btn').forEach(b => {
+    const s = parseInt(b.dataset.step);
+    b.classList.toggle('active', s === n);
+    b.classList.toggle('done', s < n);
+    b.disabled = s > n && n < 5;
+  });
+  state.step = n;
+}
+
+/* ================= MODELS ================= */
+async function loadModels() {
+  try {
+    const res = await fetch(API_BASE + '/models');
+    const data = await res.json();
+    state.models = (data.models || []).filter(m => m.status !== 'deprecated' && m.status !== 'frozen');
+    const sel = document.getElementById('modelSelect');
+    sel.innerHTML = '<option value="">Auto-select by payload size</option>' +
+      state.models.map(m => {
+        const cw = m.context_window ? (m.context_window >= 1000000 ? (m.context_window/1048576).toFixed(1)+'M' : (m.context_window/1024).toFixed(0)+'K') : '?';
+        return `<option value="${m.id}" data-gateway="${m.gateway}">${m.id} — ${cw} ctx | ${m.gateway}</option>`;
+      }).join('');
+    sel.onchange = () => {
+      const m = state.models.find(x => x.id === sel.value);
+      state.selectedModel = m || null;
+      document.getElementById('modelDetails').textContent = m
+        ? `${m.note || ''} | RPM ${m.rpm||'?'} | TPM ${m.tpm? (m.tpm/1000000).toFixed(1)+'M':'?'}`
+        : 'Auto-routing: >100K tokens → Google, ≤100K → Groq';
+      updateTokenBar();
+    };
+  } catch (e) {
+    document.getElementById('modelSelect').innerHTML = '<option>Error loading models</option>';
+  }
+}
+
+/* ================= COLLECTIONS ================= */
+document.getElementById('collectionToggles').addEventListener('change', e => {
+  const boxes = document.querySelectorAll('#collectionToggles input:checked');
+  state.collections = Array.from(boxes).map(cb => cb.value);
+});
+document.getElementById('enableMemory').addEventListener('change', e => {
+  state.enableMemory = e.target.checked;
+});
+document.getElementById('chatLogInput').addEventListener('input', e => {
+  state.chatLog = e.target.value;
+  updateTokenBar();
+});
+
+/* ================= SEARCH ================= */
+async function doSearch() {
+  const q = document.getElementById('searchQuery').value.trim();
+  const target = document.getElementById('searchTarget').value;
+  const container = document.getElementById('searchResults');
+  if (!q) { container.innerHTML = ''; return; }
+  container.innerHTML = '<p style="color:var(--text-dim)">Searching...</p>';
+
+  try {
+    let results = [];
+    if (target === 'unified') {
+      const cols = state.collections.join(',');
+      const res = await fetch(`${API_BASE}/aviary/search?q=${encodeURIComponent(q)}&collections=${cols}&n=12`);
+      const data = await res.json();
+      results = (data.results || []).map(r => ({...r, source:'unified'}));
+    } else if (target === 'bindings') {
+      // Query bindings API directly on port 7878 via our proxy if available, else direct
+      const res = await fetch(`http://localhost:7878/search?intent=${encodeURIComponent(q)}&n=12`);
+      const data = await res.json();
+      results = (data.results || []).map(r => ({...r, source:'bindings'}));
+    } else if (target === 'invariants') {
+      // Search invariants specifically
+      const res = await fetch(`${API_BASE}/aviary/search?q=${encodeURIComponent(q)}&collections=app_invariants,agent_invariants&n=12`);
+      const data = await res.json();
+      results = (data.results || []).map(r => ({...r, source:'invariants'}));
+    }
+    renderResults(results);
+  } catch (e) {
+    container.innerHTML = '<p style="color:var(--danger)">Search failed: '+e.message+'</p>';
+  }
+}
+
+function renderResults(results) {
+  const container = document.getElementById('searchResults');
+  if (!results.length) { container.innerHTML = '<p style="color:var(--text-dim)">No results.</p>'; return; }
+  container.innerHTML = results.map((r, i) => {
+    const id = r.id || r.doc_id || `res_${i}`;
+    const coll = r.collection || r.source || 'unknown';
+    const meta = r.metadata || {};
+    const title = meta.title || meta.file || meta.path || meta.law_id || id;
+    const snippet = (r.document || r.content || r.text || '').slice(0, 300);
+    const isSelected = state.payload.some(p => p.id === id);
+    return `<div class="result-item ${isSelected?'selected':''}" data-id="${escapeHtml(id)}" onclick="togglePayload('${escapeHtml(id)}', this)">
+      <span class="coll-badge">${escapeHtml(coll)}</span>
+      <strong>${escapeHtml(title)}</strong>
+      <div class="meta-line">${formatMeta(meta)}</div>
+      <div class="snippet">${escapeHtml(snippet)}</div>
+    </div>`;
+  }).join('');
+}
+
+function formatMeta(meta) {
+  const parts = [];
+  if (meta.confidence) parts.push('confidence: '+meta.confidence);
+  if (meta.category) parts.push('category: '+meta.category);
+  if (meta.platform) parts.push('platform: '+meta.platform);
+  if (meta.project) parts.push('project: '+meta.project);
+  if (meta.method) parts.push(meta.method);
+  if (meta.intent) parts.push(meta.intent);
+  return parts.join(' | ');
+}
+
+function togglePayload(id, el) {
+  const idx = state.payload.findIndex(p => p.id === id);
+  if (idx >= 0) {
+    state.payload.splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    // Extract data from DOM since we have it there
+    const text = el.querySelector('.snippet').textContent;
+    const title = el.querySelector('strong').textContent;
+    const coll = el.querySelector('.coll-badge').textContent;
+    const metaText = el.querySelector('.meta-line').textContent;
+    const meta = {};
+    metaText.split('|').forEach(kv => {
+      const [k,v] = kv.split(':');
+      if (k && v) meta[k.trim()] = v.trim();
+    });
+    state.payload.push({id, source:'search', collection:coll, title, text, metadata:meta});
+    el.classList.add('selected');
+  }
+  renderPayload();
+  updateTokenBar();
+}
+
+/* ================= PAYLOAD ================= */
+function renderPayload() {
+  const container = document.getElementById('payloadList');
+  if (!state.payload.length) {
+    container.innerHTML = '<p style="color:var(--text-dim)">No items selected. Go to Discover and add items.</p>';
+    return;
+  }
+  container.innerHTML = state.payload.map((item, i) => `
+    <div class="payload-item">
+      <div class="drag">⋮⋮</div>
+      <div class="content">
+        <div class="title">${escapeHtml(item.title || item.id)} <span class="coll-badge">${escapeHtml(item.collection)}</span></div>
+        <div class="src">${escapeHtml((item.text||'').slice(0,200))}</div>
+      </div>
+      <div class="actions">
+        <button onclick="removePayload(${i})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function removePayload(i) {
+  state.payload.splice(i, 1);
+  renderPayload();
+  updateTokenBar();
+  // Also unhighlight in search results if visible
+  const id = state.payload[i]?.id;
+  if (id) {
+    const el = document.querySelector(`.result-item[data-id="${CSS.escape(id)}"]`);
+    if (el) el.classList.remove('selected');
+  }
+}
+
+function clearPayload() {
+  state.payload = [];
+  renderPayload();
+  updateTokenBar();
+  document.querySelectorAll('.result-item.selected').forEach(el => el.classList.remove('selected'));
+}
+
+/* ================= TOKENS ================= */
+function countTokens(text) {
+  if (!text) return 0;
+  return Math.ceil(text.length / 4);
+}
+function updateTokenBar() {
+  const payloadText = state.payload.map(p => p.text).join('\n\n');
+  const totalText = state.chatLog + '\n\n' + payloadText;
+  const tokens = countTokens(totalText);
+  const limit = state.selectedModel?.context_window || 131072;
+  const pct = Math.min(100, (tokens / limit) * 100);
+  document.getElementById('tokCount').textContent = tokens.toLocaleString();
+  document.getElementById('tokLimit').textContent = limit >= 1000000 ? (limit/1048576).toFixed(1)+'M' : (limit/1024).toFixed(0)+'K';
+  document.getElementById('tokItems').textContent = state.payload.length;
+  const fill = document.getElementById('tokMeter');
+  fill.style.width = pct + '%';
+  fill.className = 'meter-fill' + (pct > 90 ? ' danger' : pct > 70 ? ' warn' : '');
+}
+
+/* ================= REVIEW ================= */
+function buildReview() {
+  const payloadText = state.payload.map(p => p.text).join('\n\n');
+  const totalText = state.chatLog + '\n\n' + payloadText;
+  const tokens = countTokens(totalText);
+  const limit = state.selectedModel?.context_window || 131072;
+  const modelName = state.selectedModel?.id || 'Auto-routed';
+  const gateway = state.selectedModel?.gateway || 'auto';
+
+  document.getElementById('reviewSummary').innerHTML = `
+    <div class="grid-2">
+      <div><strong>Model:</strong> ${escapeHtml(modelName)}<br><strong>Gateway:</strong> ${gateway}</div>
+      <div><strong>Total tokens:</strong> ${tokens.toLocaleString()} / ${limit >= 1000000 ? (limit/1048576).toFixed(1)+'M' : (limit/1024).toFixed(0)+'K'}<br><strong>Items:</strong> ${state.payload.length}</div>
+    </div>
+  `;
+
+  // Simple chunk preview: if > limit, show chunks
+  const chunks = [];
+  const chunkLimit = Math.floor(limit * 0.85);
+  if (tokens > chunkLimit) {
+    const allText = totalText;
+    let pos = 0;
+    let chunkNum = 1;
+    while (pos < allText.length) {
+      const slice = allText.slice(pos, pos + chunkLimit * 4);
+      chunks.push({n: chunkNum, text: slice, tokens: countTokens(slice)});
+      pos += slice.length;
+      chunkNum++;
+    }
+  } else {
+    chunks.push({n:1, text: totalText, tokens});
+  }
+
+  document.getElementById('chunkPreview').innerHTML = chunks.map(c => `
+    <div class="chunk-card">
+      <div class="chunk-hdr"><strong>Chunk ${c.n}</strong> <span>${c.tokens.toLocaleString()} tokens</span></div>
+      <div style="font-size:0.85rem;color:var(--text-dim);max-height:120px;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(c.text.slice(0,300))}...</div>
+    </div>
+  `).join('');
+}
+
+/* ================= RUN ================= */
+async function startRun() {
+  if (state.runId) return; // already running
+  const payloadText = state.payload.map(p => p.text).join('\n\n---\n\n');
+  const chatText = state.chatLog + (payloadText ? '\n\n--- MEMORY CONTEXT ---\n\n' + payloadText : '');
+
+  const bucket_metadata = state.payload.map(p => ({
+    doc_id: p.id,
+    collection: p.collection,
+    metadata: p.metadata || {}
+  }));
+
+  const body = {
+    chat_log_text: chatText,
+    conversation_id: '',
+    source_path: '',
+    enable_memory: state.enableMemory,
+    memory_collections: state.collections,
+    model_id: state.selectedModel?.id || null,
+    gateway: state.selectedModel?.gateway || null,
+    bucket_metadata: bucket_metadata.length ? bucket_metadata : null,
+  };
+
+  resetPhases();
+  const log = document.getElementById('streamLog');
+  log.textContent = '🚀 Launching Aviary...\n';
+
+  try {
+    const res = await fetch(API_BASE + '/aviary/compile/stream', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream:true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        handleEvent(line);
+      }
+    }
+    log.textContent += '\n🏁 Stream complete.';
+    document.getElementById('btnDownload').style.display = 'inline-flex';
+  } catch (e) {
+    log.textContent += '\n💥 Error: ' + e.message;
+    setPhaseStatus('spark','error','Failed');
+  }
+}
+
+function handleEvent(line) {
+  if (!line.startsWith('data:')) return;
+  let data = line.slice(5).trim();
+  if (data === '[DONE]') return;
+  try {
+    const ev = JSON.parse(data);
+    const log = document.getElementById('streamLog');
+    const bird = ev.bird || ev.phase || '';
+    const type = ev.event_type || ev.type || '';
+    const msg = ev.message || ev.data || '';
+
+    // Phase tracking
+    if (bird && ['spark','falcon','eagle','crow','owl','raven','hawk'].includes(bird)) {
+      if (type === 'phase_start' || type === 'gateway_switch') {
+        setPhaseStatus(bird, 'running', msg);
+      } else if (type === 'phase_complete') {
+        setPhaseStatus(bird, 'done', 'Complete');
+      } else if (type === 'error') {
+        setPhaseStatus(bird, 'error', 'Error');
+      }
+    }
+
+    // Log coloring
+    const colorClass = 'ev-' + bird;
+    log.innerHTML += `<span class="${colorClass}">[${bird.toUpperCase()}] ${escapeHtml(msg)}</span>\n`;
+    log.scrollTop = log.scrollHeight;
+
+    // File tracking
+    if (type === 'file_complete' && ev.data?.path) {
+      state.files.push(ev.data);
+      renderFiles();
+    }
+    if (type === 'deploy_ready' || type === 'hawk_complete') {
+      if (ev.data?.deploy_script) state.deployScript = ev.data.deploy_script;
+      if (ev.data?.readme) state.readme = ev.data.readme;
+    }
+    if (type === 'raven_complete' && ev.data?.audit_log) {
+      state.ravenAudit = ev.data.audit_log;
+    }
+  } catch (e) {
+    // ignore parse errors
+  }
+}
+
+function resetPhases() {
+  state.files = []; state.deployScript=''; state.readme=''; state.ravenAudit='';
+  document.querySelectorAll('.phase-box').forEach(b => {
+    b.className = 'phase-box';
+    b.querySelector('.status').textContent = 'Waiting...';
+  });
+  document.getElementById('fileTree').innerHTML = '<p style="color:var(--text-dim)">No files yet.</p>';
+  document.getElementById('artifactViewer').textContent = '';
+  document.getElementById('btnDownload').style.display = 'none';
+}
+
+function setPhaseStatus(bird, cls, text) {
+  const box = document.querySelector(`.phase-box[data-phase="${bird}"]`);
+  if (!box) return;
+  box.className = 'phase-box ' + cls;
+  box.querySelector('.status').textContent = text;
+}
+
+function renderFiles() {
+  const tree = document.getElementById('fileTree');
+  tree.innerHTML = state.files.map(f => `
+    <div class="f-item" onclick="viewFile('${escapeHtml(f.path)}')">
+      <span class="fname">${escapeHtml(f.path)}</span>
+      <span class="flang">${f.language||''} ${f.tone||''}</span>
+    </div>
+  `).join('');
+}
+
+function viewFile(path) {
+  const f = state.files.find(x => x.path === path);
+  if (!f) return;
+  showArtifact('file');
+  document.getElementById('artifactViewer').textContent = f.content || '// no content';
+}
+
+function showArtifact(which) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  const viewer = document.getElementById('artifactViewer');
+  if (which === 'deploy') viewer.textContent = state.deployScript || '# Deploy script will appear here';
+  else if (which === 'readme') viewer.textContent = state.readme || '# README will appear here';
+  else if (which === 'raven') viewer.textContent = state.ravenAudit || '# Raven audit will appear here';
+  else if (which === 'file') { /* set by viewFile */ }
+}
+
+function downloadZip() {
+  // Simple concatenated download
+  let out = '# PEACOCK Aviary Output\n\n';
+  state.files.forEach(f => { out += `\n--- ${f.path} ---\n\n${f.content}\n`; });
+  out += '\n--- deploy.sh ---\n\n' + (state.deployScript||'');
+  out += '\n--- README.md ---\n\n' + (state.readme||'');
+  const blob = new Blob([out], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'aviary-output.txt';
+  a.click();
+}
+
+function resetAll() {
+  state.payload = []; state.runId = null; state.files = [];
+  state.deployScript=''; state.readme=''; state.ravenAudit='';
+  document.getElementById('chatLogInput').value = '';
+  state.chatLog = '';
+  renderPayload(); updateTokenBar(); resetPhases();
+  goStep(1);
+}
+
+/* ================= UTILS ================= */
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

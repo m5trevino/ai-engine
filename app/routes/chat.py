@@ -13,22 +13,37 @@ from app.core.striker import execute_strike, execute_streaming_strike
 from app.config import MODEL_REGISTRY
 from app.utils.formatter import CLIFormatter
 from app.db.database import ConversationDB
+from app.core.memory_engine import query_memory
+from app.core.layer_instructions import build_system_prompt
+from app.core.groq_tool_engine import execute_groq_tool_chat, execute_groq_tool_chat_stream
+from app.core.conversation_logger import log_turn
 from fastapi.responses import StreamingResponse
 import json
 
 router = APIRouter()
 
 
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
     """Generic chat request model."""
-    model: str = Field(..., description="Model ID from the registry (e.g., 'gemini-2.0-flash-lite')")
+    model: str = Field(..., description="Model ID from the registry (e.g., 'llama-3.3-70b-versatile')")
     timeout: Optional[int] = Field(default=None, description="Timeout in seconds for this request")
     title: Optional[str] = Field(default=None, description="Clean title for the conversation")
     prompt: str = Field(..., description="The prompt text")
     files: Optional[List[str]] = Field(default=None, description="Optional list of file paths to include as context")
+    memory: bool = Field(default=False, description="Enable Peacock Unified memory retrieval via prompt injection")
+    memory_collections: Optional[List[str]] = Field(default=None, description="Specific collections to query (omit for all)")
+    memory_n: int = Field(default=5, ge=1, le=20, description="Results per collection")
+    project_mode: bool = Field(default=False, description="Enable project generation mode (heredoc output, architecture planning)")
+    tools: bool = Field(default=False, description="Enable native tool calling (Groq models only). Overrides memory prompt injection with autonomous tool use.")
     format: Literal["text", "json", "pydantic"] = Field(default="text", description="Output format")
     schema_definition: Optional[Dict[str, Any]] = Field(default=None, alias="schema", description="Schema definition for 'pydantic' format")
     temp: float = Field(default=0.7, ge=0.0, le=2.0, description="Temperature for generation (Compatibility shorthand)")
+    history: Optional[List[ChatMessage]] = Field(default=None, description="Previous messages for conversation resume/context")
     temperature: Optional[float] = Field(default=None, ge=0.0, le=2.0, description="Temperature for generation")
     top_p: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Nucleus sampling threshold")
     top_k: Optional[int] = Field(default=None, ge=0, description="Top-K sampling")
@@ -38,6 +53,7 @@ class ChatRequest(BaseModel):
     frequency_penalty: Optional[float] = Field(default=None, ge=-2.0, le=2.0, description="Frequency penalty")
     stop: Optional[List[str]] = Field(default=None, description="Stop sequences")
     key: Optional[str] = Field(default=None, description="Optional: specific key account to use")
+    conversation_id: Optional[str] = Field(default=None, description="Optional: conversation thread ID for logging continuity")
 
 
 class ChatResponse(BaseModel):
@@ -49,6 +65,9 @@ class ChatResponse(BaseModel):
     format: str
     usage: Dict[str, int]
     duration_ms: int
+    conversation_id: Optional[str] = Field(default=None, description="Conversation ID for continuity")
+    tool_calls_made: Optional[int] = Field(default=None, description="Number of tool calls executed")
+    tool_trace: Optional[List[Dict[str, Any]]] = Field(default=None, description="Detailed trace of each tool call")
 
 
 @router.post("", response_model=ChatResponse)
@@ -66,7 +85,7 @@ async def chat(request: ChatRequest):
     ```json
     // Simple text request
     {
-      "model": "gemini-2.0-flash-lite",
+      "model": "llama-3.3-70b-versatile",
       "prompt": "Hello, how are you?"
     }
     
@@ -79,14 +98,14 @@ async def chat(request: ChatRequest):
     
     // JSON output format
     {
-      "model": "gemini-2.0-flash-lite",
+      "model": "llama-3.3-70b-versatile",
       "prompt": "Extract info from this text",
       "format": "json"
     }
     
     // Pydantic format with custom schema
     {
-      "model": "gemini-2.0-flash-lite",
+      "model": "llama-3.3-70b-versatile",
       "prompt": "Analyze this code",
       "format": "pydantic",
       "schema": {
@@ -100,6 +119,9 @@ async def chat(request: ChatRequest):
     ```
     """
     start_time = time.time()
+    
+    # Resolve conversation ID early so both tool and non-tool paths can use it
+    conv_id = request.conversation_id or f"conv_{int(time.time() * 1000)}"
     
     # Find model config
     model_config = next((m for m in MODEL_REGISTRY if m.id == request.model), None)
@@ -128,6 +150,16 @@ async def chat(request: ChatRequest):
         if file_contexts:
             final_prompt = f"{request.prompt}\n\nCONTEXT:{''.join(file_contexts)}"
     
+    # Prepend conversation history for resumed chats
+    history_prompt = ""
+    if request.history:
+        history_lines = []
+        for msg in request.history:
+            role_label = msg.role.upper()
+            history_lines.append(f"[{role_label}] {msg.content}")
+        history_prompt = "=== PREVIOUS CONVERSATION ===\n" + "\n".join(history_lines) + "\n=== END PREVIOUS ===\n\n"
+        final_prompt = history_prompt + final_prompt
+    
     # Determine format mode for striker
     format_mode = None
     if request.format == "pydantic":
@@ -136,9 +168,53 @@ async def chat(request: ChatRequest):
         format_mode = "json"
     
     try:
+        # ---- TOOL MODE: Groq-native autonomous tool calling ----
+        COMPOUND_MODELS = {"groq/compound", "groq/compound-mini"}
+        if request.tools and model_config.gateway == "groq" and model_config.id not in COMPOUND_MODELS:
+            tool_result = await execute_groq_tool_chat(
+                model_id=request.model,
+                user_prompt=final_prompt,
+                temperature=request.temperature if request.temperature is not None else request.temp,
+                max_tokens=request.max_tokens,
+                files=request.files,
+                conversation_id=conv_id,
+                history=[{"role": m.role, "content": m.content} for m in request.history] if request.history else None,
+            )
+            duration_ms = int((time.time() - start_time) * 1000)
+            # Log tool mode turn
+            log_turn(
+                conversation_id=conv_id,
+                model_id=request.model,
+                mode="tools",
+                user_prompt=request.prompt,
+                assistant_response=tool_result.get("content", ""),
+                tool_calls=[{"tool": t.get("tool"), "args": t.get("args"), "result": str(t.get("result", ""))[:500]} for t in tool_result.get("tool_trace", [])],
+                usage=tool_result.get("usage", {}),
+                cost=tool_result.get("cost", 0.0),
+                latency_ms=duration_ms,
+                key_account=tool_result.get("key_used"),
+                gateway="groq",
+            )
+            return ChatResponse(
+                content=tool_result["content"],
+                model=request.model,
+                gateway="groq",
+                key_used=tool_result.get("key_used", "unknown"),
+                format=request.format,
+                usage=tool_result.get("usage", {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}),
+                duration_ms=duration_ms,
+                conversation_id=conv_id,
+                tool_calls_made=tool_result.get("tool_calls_made", 0),
+                tool_trace=tool_result.get("tool_trace", []),
+            )
+
         # Collect advanced generation parameters
+        raw_temp = request.temperature if request.temperature is not None else request.temp
+        # Groq recommends 0.0-0.5 for reliable tool calling
+        if request.memory and raw_temp > 0.5:
+            raw_temp = 0.5
         gen_params = {
-            "temperature": request.temperature if request.temperature is not None else request.temp,
+            "temperature": raw_temp,
             "top_p": request.top_p,
             "top_k": request.top_k,
             "max_tokens": request.max_tokens,
@@ -148,13 +224,35 @@ async def chat(request: ChatRequest):
             "stop_sequences": request.stop,
         }
 
+        # Build enriched prompt if memory enabled
+        enriched_prompt = final_prompt
+        memory_queries = []
+        if request.memory:
+            system_prompt = build_system_prompt(
+                active_collections=request.memory_collections,
+                enable_codegen=True,
+                enable_project_mode=request.project_mode,
+            )
+            mem_result = await query_memory(
+                query=request.prompt,
+                collections=request.memory_collections,
+                n=request.memory_n,
+            )
+            mem_context = mem_result.get("context", "")
+            enriched_prompt = f"{system_prompt}\n\n=== RETRIEVED MEMORY CONTEXT ===\n{mem_context}\n\n=== USER MESSAGE ===\n{final_prompt}"
+            memory_queries.append({
+                "query": request.prompt,
+                "collections": request.memory_collections,
+                "hits": mem_result.get("total_hits", 0),
+            })
+
         # If specific key requested, use precision strike
         if request.key:
             from app.core.striker import execute_precision_strike
             result = await execute_precision_strike(
                 gateway=model_config.gateway,
                 model_id=request.model,
-                prompt=final_prompt,
+                prompt=enriched_prompt,
                 target_account=request.key,
                 is_manual=False,
                 timeout=request.timeout,
@@ -165,7 +263,7 @@ async def chat(request: ChatRequest):
             result = await execute_strike(
                 gateway=model_config.gateway,
                 model_id=request.model,
-                prompt=final_prompt,
+                prompt=enriched_prompt,
                 format_mode=format_mode,
                 dynamic_schema=request.schema if request.format == "pydantic" else None,
                 is_manual=False,
@@ -191,14 +289,11 @@ async def chat(request: ChatRequest):
                 # Return as-is if not valid JSON
                 pass
         
-        # Save to database (create conversation if new, add messages)
+        # Save to legacy database (best-effort; conversation_turns is canonical)
         try:
-            # Generate a conversation ID based on model and timestamp if needed
-            import uuid
-            conv_id = str(uuid.uuid4())[:8]
-            
-            # Create conversation
+            # Create conversation entry using our resolved conv_id
             ConversationDB.create(
+                conv_id=conv_id,
                 title=request.title or (request.prompt[:50] + "..." if len(request.prompt) > 50 else request.prompt),
                 model_id=request.model,
                 key_account=key_used
@@ -228,6 +323,22 @@ async def chat(request: ChatRequest):
             # Don't fail the request if DB save fails
             CLIFormatter.warning(f"Failed to save conversation: {e}")
         
+        # Log successful turn
+        mode = "tools" if request.tools else ("memory" if request.memory else "raw")
+        log_turn(
+            conversation_id=conv_id,
+            model_id=request.model,
+            mode=mode,
+            user_prompt=request.prompt,
+            assistant_response=str(content) if content else "",
+            memory_queries=memory_queries if request.memory else None,
+            usage=usage,
+            cost=cost,
+            latency_ms=duration_ms,
+            key_account=key_used,
+            gateway=model_config.gateway,
+        )
+
         return ChatResponse(
             content=content,
             model=request.model,
@@ -235,7 +346,8 @@ async def chat(request: ChatRequest):
             key_used=key_used,
             format=request.format,
             usage=usage,
-            duration_ms=duration_ms
+            duration_ms=duration_ms,
+            conversation_id=conv_id,
         )
         
     except Exception as e:
@@ -254,10 +366,38 @@ async def chat_stream(request: ChatRequest):
 
     async def event_generator():
         try:
+            # ---- TOOL MODE STREAMING ----
+            COMPOUND_MODELS = {"groq/compound", "groq/compound-mini"}
+            if request.tools and model_config.gateway == "groq" and model_config.id not in COMPOUND_MODELS:
+                async for chunk in execute_groq_tool_chat_stream(
+                    model_id=request.model,
+                    user_prompt=request.prompt,
+                    temperature=request.temperature if request.temperature is not None else request.temp,
+                    max_tokens=request.max_tokens,
+                    files=request.files,
+                    conversation_id=request.conversation_id,
+                    history=[{"role": m.role, "content": m.content} for m in request.history] if request.history else None,
+                ):
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                return
+
+            enriched_prompt = request.prompt
+            if request.memory:
+                system_prompt = build_system_prompt(
+                    active_collections=request.memory_collections,
+                    enable_codegen=True,
+                )
+                mem_result = await query_memory(
+                    query=request.prompt,
+                    collections=request.memory_collections,
+                    n=request.memory_n,
+                )
+                mem_context = mem_result.get("context", "")
+                enriched_prompt = f"{system_prompt}\n\n=== RETRIEVED MEMORY CONTEXT ===\n{mem_context}\n\n=== USER MESSAGE ===\n{request.prompt}"
             async for chunk in execute_streaming_strike(
                 gateway=model_config.gateway,
                 model_id=request.model,
-                prompt=request.prompt,
+                prompt=enriched_prompt,
                 timeout=request.timeout,
                 files=request.files,
                 temperature=request.temperature if request.temperature is not None else request.temp,
@@ -267,7 +407,7 @@ async def chat_stream(request: ChatRequest):
                 seed=request.seed,
                 presence_penalty=request.presence_penalty,
                 frequency_penalty=request.frequency_penalty,
-                stop_sequences=request.stop
+                stop_sequences=request.stop,
             ):
                 yield f"data: {json.dumps(chunk)}\n\n"
         except Exception as e:
@@ -288,6 +428,7 @@ async def get_available_models():
             "id": model.id,
             "tier": model.tier,
             "note": model.note,
+            "status": model.status,
             "rpm": model.rpm,
             "tpm": model.tpm,
             "rpd": model.rpd
@@ -332,7 +473,7 @@ async def chat_ws(websocket: WebSocket):
     
     # Session state
     config = {
-        "model": "gemini-2.0-flash-lite",
+        "model": "models/llama-3.3-70b-versatile-001",
         "temp": 0.7,
         "files": []
     }
@@ -405,3 +546,97 @@ async def chat_ws(websocket: WebSocket):
             await websocket.send_json({"type": "error", "content": str(e)})
         except:
             pass
+
+
+# ---------------------------------------------------------------------------
+# CONVERSATION HISTORY & RESUME ENDPOINTS
+# ---------------------------------------------------------------------------
+
+from app.db.database import ConversationTurnDB
+
+
+@router.get("/conversations")
+async def list_conversations(limit: int = 50):
+    """List recent conversations with aggregate metadata."""
+    conversations = ConversationTurnDB.list_conversations(limit=limit)
+    return {
+        "conversations": conversations,
+        "total": len(conversations),
+    }
+
+
+@router.get("/conversations/{conv_id}")
+async def get_conversation(conv_id: str):
+    """Get full conversation with all turns (for resume/browsing)."""
+    turns = ConversationTurnDB.get_conversation_turns(conv_id)
+    if not turns:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return {
+        "conversation_id": conv_id,
+        "turn_count": len(turns),
+        "turns": turns,
+    }
+
+
+class ResumeRequest(BaseModel):
+    selected_turns: Optional[List[int]] = None  # turn_numbers to carry over
+    include_tool_trace: bool = False
+    include_memory_queries: bool = False
+
+
+@router.post("/conversations/{conv_id}/resume")
+async def resume_conversation(conv_id: str, request: ResumeRequest):
+    """
+    Prepare a conversation for resuming.
+    Returns formatted message history that can be injected into the chat context.
+    """
+    turns = ConversationTurnDB.get_conversation_turns(conv_id)
+    if not turns:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    selected = request.selected_turns or [t["turn_number"] for t in turns]
+    
+    messages = []
+    for turn in turns:
+        if turn["turn_number"] not in selected:
+            continue
+        
+        # User message
+        messages.append({
+            "role": "user",
+            "content": turn.get("user_prompt", ""),
+            "turn": turn["turn_number"],
+        })
+        
+        # Optional context injection
+        context_parts = []
+        if request.include_tool_trace and turn.get("tool_calls"):
+            for tc in turn["tool_calls"]:
+                context_parts.append(f"[Tool: {tc.get('tool')}] → {str(tc.get('result', ''))[:200]}")
+        if request.include_memory_queries and turn.get("memory_queries"):
+            for mq in turn["memory_queries"]:
+                context_parts.append(f"[Memory: {mq.get('query', '')}] | Hits: {mq.get('hits', 0)}")
+        
+        if context_parts:
+            messages.append({
+                "role": "system",
+                "content": "\n".join(context_parts),
+                "turn": turn["turn_number"],
+            })
+        
+        # Assistant message
+        messages.append({
+            "role": "assistant",
+            "content": turn.get("assistant_response", ""),
+            "turn": turn["turn_number"],
+            "model": turn.get("model_id", ""),
+            "mode": turn.get("mode", ""),
+        })
+    
+    return {
+        "conversation_id": conv_id,
+        "selected_turns": selected,
+        "messages": messages,
+        "total_turns": len(turns),
+        "selected_count": len([t for t in turns if t["turn_number"] in selected]),
+    }

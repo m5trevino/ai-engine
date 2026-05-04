@@ -1,0 +1,120 @@
+# ==========================================
+# SYNDICATE ASSET: TELEMETRY_FORENSICS (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 113
+# ==========================================
+# --- DATA CONTENT START ---
+Establish WebSocket Telemetry link
+Inject Masterpiece WebSocket Gateway
+Pipe Live Neural Forensics to 4th pane
+Improve SSE streaming reliability
+Add heartbeat/ping to keep connection alive
+Handle client disconnects gracefully
+Add streaming pause/resume support
+GET /v1/tools/executions (history)
+Create WebSocket endpoint for real-time tool updates
+Stream tool execution progress
+Handle tool result callbacks
+GET /v1/keys/usage (analytics)
+GET /v1/health (detailed health check)
+GET /v1/health/gateways (per-gateway health)
+GET /v1/health/keys (per-key health)
+GET /v1/metrics (real-time metrics)
+GET /v1/logs (request logs)
+GET /v1/logs/errors (error logs)
+GET /v1/logs/audit (audit logs)
+WebSocket for real-time logs
+Implement ai-engine mission-control --watch
+Add live-updating metrics display
+Add recent strikes list with sparklines
+Add gateway health gauges
+Log all authentication attempts
+Log API key usage
+Log model freeze/unfreeze actions
+Log configuration changes
+Log all API requests
+Log request/response sizes
+Log errors with full context
+Track requests/tokens per minute/hour/day
+Track error rates
+Track latency percentiles (p50, p95, p99)
+Track cost per gateway/model
+Track per-key success/failure rates
+Track per-key average latency
+Track per-key remaining quota
+Track key cooldown events
+Key exhaustion warning (80% quota)
+Key failure spike alert
+Rate limit approaching alert
+Cost threshold exceeded alert
+Model frozen alert
+Gateway down alert
+Webhook alerts
+Console/log alerts
+Optional: Email alerts
+Optional: Slack/Discord webhooks
+Create /health and /health/detailed endpoints
+Add health check for each gateway and database
+Implement periodic health checks
+Restore Neural Link Bridge (WebSocket) to chat.py
+Build real-time dashboard for tokens, errors, and rate limits
+Wire real-time telemetry feed for dashboard
+Build Spectrum HUD for global engine health
+Implement Sweep Meter for real-time loop progress
+Add Terminal Ticker for real-time mission status
+Implement Partitioned Forensics for mission-isolated outputs
+Add Refinery Ticker scrolling event log
+Build Heartbeat monitors for API gateways
+Implement Cumulative Token Burn counter with glow effect
+Integrate SSE Live Wire for real-time engine output
+Implement streamStrike in gateway.js using ReadableStream API
+Refactor chat.js for real-time UI hydration
+Update appendMessage for ID-targeted streaming hydration
+Anchored Telemetry: Horizontal log block HUD
+Live Wire (SSE): Hardwire backend /stream endpoint to Striker core
+UI hydration using ReadableStream logic
+Implement Server-Sent Events (/v1/chat/stream)
+Pivot to bidirectional WebSocket protocol (/ws/ws)
+API discoverability via /v1/docs/endpoints
+Async generator for SSE format with error handling
+WebSocket protocol handler for config sync and chunk streaming
+Real-time telemetry for batch progress
+Persistent state for batch recovery (striker_status.json)
+Forensic logging with PEA-XXXX tags
+Throttle control using delay/throttle formula
+Full WebSocket "Neural Link" Bridge (/ws/ws)
+Advanced Parameter & Filesystem Control (/v1/lim/)
+Write strike logs to global files (success_strikes.log)
+Partition forensic logs into vault/{identity}/ directories
+Create clean audit trails for users/missions
+WebUI Forensic Explorer (/v1/vault/list)
+Secure, browser-based interface for auditing partitioned vaults
+API endpoint /v1/vault/list to serve log data
+PeacockWS for bidirectional streaming
+Dynamic WebSocket protocol/host resolution (wss vs ws)
+Full-Spectrum Dashboard for engine heartbeat monitoring
+Real-Time Token & Key Dashboard without overhead
+Add items telemetry endpoint to app/routes/payloads.py
+Forensic Logger core engine module
+Throttle Controller core engine module
+ThrottleController RPM/TPM/RPD limit checks
+HighSignalLogger forensic logging (PEA-XXXX.txt)
+KeyUsageDB usage recording in peacock.db
+SSE Stream delivery to EventSource clients
+WebSocket bidirectional real-time communication
+Database Tables: Conversations, Usage Stats, Key Tracking, Vault Logs
+Token Counter Data Flow: Lookup -> Identify Gateway -> API/Estimate -> Cost Calculator
+Audit trail with PEA-XXXX tags
+Log Tags: PEA-XXXX unique 8-character tag
+API Endpoints: /v1/chat, /v1/chat/stream, /v1/chat/ws/ws, /v1/chat/models, /v1/models, /v1/keys, /v1/keys/usage, /health
+Response Format: content, model, gateway, key_used, format, usage, duration_ms
+Operational API status tracking (Groq, Gemini, OpenAI, Anthropic)
+Active environment tracking (Python version, Root path, User)
+Bot 2 Section 2: Monitoring & Dashboard (Metrics, alerts, notifiers, health_checker)
+Internal forensic vault for strike data
+Identity Partitioning for forensic logs (vault/{identity}/)
+WebUI Forensic Explorer (/v1/vault/list)
+Rev Limiter / Governor panel (TPS, RPM gauges)
+Neural Link Bridge: WebSocket Implementation
+Neural Link Restoration: Dynamic API Resolution
+WebSocket for live telemetry in TacticalStriker
+# --- DATA CONTENT END ---

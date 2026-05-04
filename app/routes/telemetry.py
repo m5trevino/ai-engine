@@ -4,28 +4,39 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from datetime import datetime
 
+from app.monitoring.metrics import global_metrics
+
 router = APIRouter()
 
 async def telemetry_event_generator(request: Request):
     """
-    Generates dummy and real telemetry events for the Live Wire.
+    Generates high-fidelity telemetry pulse for the Syndicate HUD.
     """
-    initial_events = [
-        {"time": datetime.now().isoformat(), "msg": "SYSTEM_HANDSHAKE_ESTABLISHED", "type": "success"},
-        {"time": datetime.now().isoformat(), "msg": "LISTENING_ON_PRIMARY_MESH", "type": "info"},
-    ]
-    
-    for event in initial_events:
-        yield f"data: {json.json.dumps(event)}\n\n"
+    # Initial Handshake
+    yield f"data: {json.dumps({'time': datetime.now().isoformat(), 'msg': 'SYNDICATE_HANDSHAKE_ESTABLISHED', 'type': 'success'})}\n\n"
+    await asyncio.sleep(0.5)
 
     while True:
         if await request.is_disconnected():
             break
         
-        # In a real app, you'd pull from a queue or pub/sub
-        # For now, we'll pulse the system status every 10s
-        await asyncio.sleep(10)
-        yield f"data: {json.json.dumps({'time': datetime.now().isoformat(), 'msg': 'HEARTBEAT_PULSE_STABLE', 'type': 'info'})}\n\n"
+        # Pull pulse from global metrics
+        stats = global_metrics.get_realtime_stats()
+        
+        # Package for HUD
+        payload = {
+            "time": datetime.now().isoformat(),
+            "rpm": stats["rpm"],
+            "tps": stats["tps"],
+            "tokens": stats["tokens"],
+            "cost": stats["cost"],
+            "success_rate": stats["success_rate"],
+            "msg": "PULSE_STABLE",
+            "type": "telemetry"
+        }
+        
+        yield f"data: {json.dumps(payload)}\n\n"
+        await asyncio.sleep(0.5) # 2Hz fidelity
 
 @router.get("/stream")
 async def stream_telemetry(request: Request):

@@ -470,9 +470,8 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
             model = OpenAIModel(model_id, provider=provider)
 
         agent = Agent(model)
-        
         async with agent.run_stream(prompt, model_settings=model_settings) as result:
-            async for chunk in result.stream_text():
+            async for chunk in result.stream_text(delta=True):
                 yield {"type": "content", "content": chunk}
             
             # Finalize

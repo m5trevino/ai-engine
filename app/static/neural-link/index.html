@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PEACOCK ENGINE | NEURAL LINK</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<style>
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0a0d11; }
+::-webkit-scrollbar-thumb { background: #2a2e33; border-radius: 2px; }
+.tracking-mono { letter-spacing: 0.05em; }
+.glow-text { text-shadow: 0 0 10px rgba(214, 226, 255, 0.15); }
+.glow-accent { text-shadow: 0 0 8px rgba(170, 199, 255, 0.4); }
+.glow-secondary { text-shadow: 0 0 8px rgba(240, 205, 45, 0.4); }
+.memory-pill { animation: pulse-border 2s infinite; }
+.tool-pill { animation: pulse-border-tool 2s infinite; }
+@keyframes pulse-border { 0%,100%{border-color:rgba(240,205,45,0.3);box-shadow:0 0 0 rgba(240,205,45,0)} 50%{border-color:rgba(240,205,45,0.9);box-shadow:0 0 8px rgba(240,205,45,0.2)} }
+@keyframes pulse-border-tool { 0%,100%{border-color:rgba(170,199,255,0.3);box-shadow:0 0 0 rgba(170,199,255,0)} 50%{border-color:rgba(170,199,255,0.9);box-shadow:0 0 8px rgba(170,199,255,0.2)} }
+.msg-enter { animation: msgIn 0.25s ease-out; }
+@keyframes msgIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.scanline { background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.03) 50%); background-size: 100% 4px; pointer-events: none; }
+.typing-dot { animation: typingBounce 1.4s infinite ease-in-out both; }
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes typingBounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+.progress-glow { box-shadow: 0 0 10px currentColor; }
+.slide-in { animation: slideInRight 0.3s ease-out; }
+@keyframes slideInRight { from { opacity:0; transform: translateX(10px); } to { opacity:1; transform: translateX(0); } }
+.fade-in { animation: fadeIn 0.2s ease-out; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.status-pulse { animation: statusPulse 2s infinite; }
+@keyframes statusPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.terminal-cursor::after { content: '█'; animation: cursorBlink 1s infinite; }
+@keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+.tool-card-enter { animation: toolCardEnter 0.3s ease-out; }
+@keyframes toolCardEnter { from { opacity:0; transform: scale(0.95) translateY(5px); } to { opacity:1; transform: scale(1) translateY(0); } }
+</style>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        bg: "#0a0d11", surface: "#14181d", "surface-high": "#1e2228", "surface-low": "#101418",
+        primary: "#d6e2ff", secondary: "#f0cd2d", tertiary: "#c3e7ff",
+        outline: "#6b6f76", "outline-dim": "#2a2e33", error: "#ffb4ab",
+        accent: "#aac7ff", success: "#7ddba3", warning: "#f0cd2d", info: "#c3e7ff"
+      },
+      fontFamily: { headline: ["Space Grotesk"], body: ["Inter"], mono: ["JetBrains Mono"] }
+    }
+  }
+}
+</script>
+</head>
+<body class="bg-bg text-primary font-body h-screen flex flex-col overflow-hidden">
+
+<!-- Header -->
+<header class="bg-surface-low border-b border-outline-dim h-14 flex items-center justify-between px-4 shrink-0 relative">
+  <div class="absolute inset-0 scanline opacity-30"></div>
+  <div class="flex items-center gap-3 relative z-10">
+    <span class="material-symbols-outlined text-secondary text-lg">hub</span>
+    <span class="font-headline font-bold text-sm tracking-widest uppercase text-primary glow-text">Neural Link</span>
+    <span class="text-[10px] font-mono text-outline bg-surface-high px-2 py-0.5 border border-outline-dim">v3.2</span>
+    <span id="system-status" class="text-[9px] font-mono text-success status-pulse ml-2">● SYSTEM ONLINE</span>
+  </div>
+  <nav class="flex items-center gap-1 relative z-10">
+    <a href="/" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-outline hover:text-primary hover:bg-surface-high transition-colors">Dashboard</a>
+    <a href="/neural-link/" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-secondary bg-surface-high border-b-2 border-secondary">Neural Link</a>
+    <a href="/neural-link/projects.html" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-outline hover:text-primary hover:bg-surface-high transition-colors">Project Forge</a>
+    <a href="/v1/aviary/" class="px-3 py-1.5 text-[11px] font-headline uppercase tracking-wider text-outline hover:text-primary hover:bg-surface-high transition-colors">Aviary</a>
+  </nav>
+  <div class="flex items-center gap-3 relative z-10">
+    <div id="tool-mode-badge" class="hidden items-center gap-1.5 px-2 py-1 bg-surface-high border border-accent/30 text-[10px] font-mono text-accent tool-pill">
+      <span class="material-symbols-outlined text-[14px]">build</span>
+      <span>TOOL_MODE</span>
+    </div>
+    <div id="memory-badge" class="hidden items-center gap-1.5 px-2 py-1 bg-surface-high border border-secondary/30 text-[10px] font-mono text-secondary memory-pill">
+      <span class="material-symbols-outlined text-[14px]">memory</span>
+      <span>MEMORY_ACTIVE</span>
+    </div>
+    <div id="model-badge" class="flex items-center gap-1.5 px-2 py-1 bg-surface-high border border-outline-dim text-[10px] font-mono text-outline">
+      <span class="material-symbols-outlined text-[14px]">smart_toy</span>
+      <span id="current-model-label">Loading...</span>
+    </div>
+    <button onclick="openConversationBrowser()" class="flex items-center gap-1.5 px-2 py-1 bg-surface-high border border-outline-dim hover:border-secondary text-[10px] font-mono text-outline hover:text-secondary transition-colors">
+      <span class="material-symbols-outlined text-[14px]">history</span>
+      <span>History</span>
+    </button>
+    <button onclick="openCodebaseModal()" class="flex items-center gap-1.5 px-2 py-1 bg-surface-high border border-outline-dim hover:border-accent text-[10px] font-mono text-outline hover:text-accent transition-colors">
+      <span class="material-symbols-outlined text-[14px]">folder_code</span>
+      <span>Codebase</span>
+    </button>
+    <div class="flex items-center gap-1">
+      <select id="project-select" onchange="loadSelectedProject()" class="bg-surface-high border border-outline-dim text-[10px] font-mono text-outline px-2 py-1 outline-none focus:border-secondary">
+        <option value="">📁 Projects...</option>
+      </select>
+      <button onclick="openSaveProjectModal()" class="p-1 hover:bg-surface-high text-outline hover:text-secondary transition-colors" title="Save current as project">
+        <span class="material-symbols-outlined text-[14px]">save</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 flex overflow-hidden">
+
+<!-- Left: Chat -->
+<section class="flex-1 flex flex-col min-w-0">
+<!-- Messages -->
+<div id="chat-scroller" class="flex-1 overflow-y-auto p-4 space-y-4">
+  <div class="flex justify-center">
+    <span class="text-[10px] font-mono px-3 py-1 bg-surface-high text-outline uppercase tracking-[0.2em] border border-outline-dim">Neural_Link_Established // Memory_Online // 149,186 Docs</span>
+  </div>
+</div>
+
+<!-- Input -->
+<div class="p-3 border-t border-outline-dim bg-surface-low">
+  <div id="memory-chips" class="flex gap-2 mb-2 overflow-x-auto hidden"></div>
+  <div class="flex gap-2 overflow-x-auto mb-2">
+    <button onclick="injectPreset('memory-dive')" class="px-2 py-1 text-[10px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors shrink-0">🔍 Memory Dive</button>
+    <button onclick="injectPreset('build-invariants')" class="px-2 py-1 text-[10px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors shrink-0">🏗️ Build from Invariants</button>
+    <button onclick="injectPreset('chat-archaeology')" class="px-2 py-1 text-[10px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors shrink-0">💬 Chat Archaeology</button>
+    <button onclick="injectPreset('api-scaffold')" class="px-2 py-1 text-[10px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors shrink-0">🔗 API Scaffolding</button>
+    <button onclick="injectPreset('audit-code')" class="px-2 py-1 text-[10px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors shrink-0">📋 Audit Code</button>
+    <button onclick="injectPreset('full-app-memory')" class="px-2 py-1 text-[10px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors shrink-0">🚀 App from Memory</button>
+    <button onclick="injectPreset('bucket-build')" class="px-2 py-1 text-[10px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors shrink-0">🪣 Bucket Build</button>
+  </div>
+  <div class="flex gap-2">
+    <div class="flex-1 bg-bg border border-outline-dim focus-within:border-secondary transition-colors p-2">
+      <textarea id="prompt-input" class="w-full bg-transparent border-none focus:ring-0 text-sm resize-none h-20 font-body placeholder:text-outline/40" placeholder="Awaiting operational command..."></textarea>
+      <div class="flex items-center justify-between mt-1 pt-1 border-t border-outline-dim/30">
+        <div class="flex items-center gap-1">
+          <button onclick="toggleMemory()" id="mem-toggle" class="p-1.5 hover:bg-surface-high text-outline hover:text-secondary transition-colors" title="Toggle Peacock Memory">
+            <span class="material-symbols-outlined text-[18px]">memory</span>
+          </button>
+          <button onclick="toggleToolMode()" id="tool-toggle" class="p-1.5 hover:bg-surface-high text-outline hover:text-accent transition-colors" title="Toggle Tool Mode (Groq)">
+            <span class="material-symbols-outlined text-[18px]">build</span>
+          </button>
+          <button onclick="document.getElementById('file-input').click()" class="p-1.5 hover:bg-surface-high text-outline hover:text-primary transition-colors">
+            <span class="material-symbols-outlined text-[18px]">attach_file</span>
+          </button>
+          <input type="file" id="file-input" class="hidden" multiple onchange="handleFiles(this)">
+        </div>
+        <button onclick="sendMessage()" class="bg-secondary text-bg px-4 py-1.5 font-headline font-bold text-[10px] uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">send</span>
+          Strike
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- Center: Neural Activity Feed (NEW) -->
+<aside id="activity-panel" class="w-72 bg-surface border-l border-r border-outline-dim flex flex-col shrink-0 hidden">
+  <div class="p-3 border-b border-outline-dim">
+    <div class="flex items-center justify-between">
+      <div class="text-[10px] font-mono text-outline uppercase tracking-widest">Neural Activity</div>
+      <div id="activity-status" class="text-[9px] font-mono text-success">● IDLE</div>
+    </div>
+  </div>
+  
+  <!-- Current Operation -->
+  <div class="p-3 border-b border-outline-dim">
+    <div class="text-[9px] font-mono text-outline mb-2 uppercase">Current Operation</div>
+    <div id="current-operation" class="text-xs font-mono text-primary glow-text">Waiting for command...</div>
+    <div id="operation-progress" class="mt-2 h-1 bg-bg rounded-full overflow-hidden hidden">
+      <div id="operation-progress-bar" class="h-full bg-secondary transition-all duration-500" style="width: 0%"></div>
+    </div>
+  </div>
+  
+  <!-- Token Gauge -->
+  <div class="p-3 border-b border-outline-dim">
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-[9px] font-mono text-outline uppercase">Token Budget</div>
+      <div id="token-gauge-value" class="text-[9px] font-mono text-primary">0 / 6,000</div>
+    </div>
+    <div class="h-2 bg-bg rounded-full overflow-hidden">
+      <div id="token-gauge-bar" class="h-full bg-gradient-to-r from-success via-warning to-error transition-all duration-500" style="width: 0%"></div>
+    </div>
+    <div class="flex justify-between mt-1">
+      <span class="text-[8px] font-mono text-outline">0</span>
+      <span class="text-[8px] font-mono text-warning">4K</span>
+      <span class="text-[8px] font-mono text-error">6K</span>
+    </div>
+  </div>
+  
+  <!-- Tool Call Log -->
+  <div class="flex-1 flex flex-col min-h-0">
+    <div class="p-3 border-b border-outline-dim">
+      <div class="text-[9px] font-mono text-outline uppercase tracking-widest">Tool Call Log</div>
+    </div>
+    <div id="tool-call-log" class="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-[10px]">
+      <div class="text-outline/40 text-center py-4">No activity yet</div>
+    </div>
+  </div>
+  
+  <!-- Pipeline Stages -->
+  <div class="p-3 border-t border-outline-dim">
+    <div class="text-[9px] font-mono text-outline uppercase tracking-widest mb-2">Pipeline</div>
+    <div id="pipeline-stages" class="space-y-1">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+  
+  <!-- Live Metrics -->
+  <div class="p-3 border-t border-outline-dim space-y-1">
+    <div class="flex justify-between text-[9px] font-mono">
+      <span class="text-outline">TOKENS</span>
+      <span id="live-tokens" class="text-primary">0</span>
+    </div>
+    <div class="flex justify-between text-[9px] font-mono">
+      <span class="text-outline">COST</span>
+      <span id="live-cost" class="text-secondary">$0.00</span>
+    </div>
+    <div class="flex justify-between text-[9px] font-mono">
+      <span class="text-outline">LATENCY</span>
+      <span id="live-latency" class="text-tertiary">--</span>
+    </div>
+    <div class="flex justify-between text-[9px] font-mono">
+      <span class="text-outline">STRIKES</span>
+      <span id="live-strikes" class="text-accent">0</span>
+    </div>
+  </div>
+</aside>
+
+<!-- Right: Context Panel -->
+<aside class="w-80 bg-surface border-l border-outline-dim flex flex-col shrink-0">
+<div class="p-3 border-b border-outline-dim">
+  <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-2">Model Selector</div>
+  <select id="model-select" class="w-full bg-bg border border-outline-dim text-sm text-primary p-2 focus:border-secondary outline-none">
+    <option value="">Loading models...</option>
+  </select>
+  <div id="model-warning" class="hidden mt-2 text-[10px] font-mono text-error border border-error/30 bg-error/10 px-2 py-1"></div>
+</div>
+
+<div class="p-3 border-b border-outline-dim space-y-2">
+  <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-1">Mode Config</div>
+  <div id="memory-off-banner" class="p-2 bg-error/10 border border-error/30 text-[10px] font-mono text-error">
+    ⚠️ Memory is OFF — the AI cannot access ChromaDB. Check "Enable Peacock Memory" below.
+  </div>
+  <label class="flex items-center gap-2 cursor-pointer">
+    <input type="checkbox" id="memory-enabled" class="accent-secondary" onchange="updateMemoryUI()">
+    <span class="text-xs text-primary font-bold">Enable Peacock Memory (prompt injection)</span>
+  </label>
+  <label class="flex items-center gap-2 cursor-pointer">
+    <input type="checkbox" id="tool-mode-enabled" class="accent-accent" onchange="updateToolUI()">
+    <span class="text-xs text-primary">Enable Tool Mode <span class="text-[10px] text-accent">(Groq only — native tool calling)</span></span>
+  </label>
+  <div class="text-[10px] text-outline/60 leading-relaxed">
+    Tool Mode lets the LLM autonomously call memory queries, thread reconstruction, binding search, and project generation. Uses native Groq function calling.
+  </div>
+  <div class="text-[10px] text-outline mb-1 mt-1">Active Collections</div>
+  <div id="collection-toggles" class="flex flex-wrap gap-1"></div>
+</div>
+
+<!-- Vault Stats -->
+<div class="p-3 border-b border-outline-dim">
+  <div class="flex items-center justify-between mb-2">
+    <div class="text-[10px] font-mono text-outline uppercase tracking-widest">Vault Stats</div>
+    <span id="vault-total" class="text-[10px] font-mono text-secondary">-- docs</span>
+  </div>
+  <div id="vault-stats" class="space-y-1">
+    <div class="text-[10px] font-mono text-outline/40">Loading...</div>
+  </div>
+</div>
+
+<!-- Standalone Vault Query -->
+<div class="p-3 border-b border-outline-dim">
+  <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-2">Query Vault</div>
+  <div class="flex gap-1 mb-2">
+    <input id="vault-query-input" type="text" placeholder="Search ChromaDB directly..."
+      class="flex-1 bg-bg border border-outline-dim text-[11px] font-mono text-primary px-2 py-1 outline-none focus:border-secondary placeholder:text-outline/30"
+      onkeydown="if(event.key==='Enter') queryVaultDirect()">
+    <button onclick="queryVaultDirect()" class="px-2 py-1 bg-secondary text-bg text-[10px] font-mono font-bold hover:opacity-90">GO</button>
+  </div>
+  <div id="vault-query-results" class="max-h-40 overflow-y-auto space-y-1"></div>
+</div>
+
+<div class="flex-1 flex flex-col min-h-0 p-3">
+  <div class="text-[10px] font-mono text-outline uppercase tracking-widest mb-2">Retrieved Context</div>
+  <div id="memory-panel" class="flex-1 overflow-y-auto bg-bg border border-outline-dim p-2 font-mono text-[10px] text-tertiary leading-relaxed">
+    <span class="text-outline/40">Memory queries will appear here after you send a message with memory enabled...</span>
+  </div>
+</div>
+
+<div class="p-3 border-t border-outline-dim space-y-2">
+  <div class="flex justify-between text-[10px] font-mono text-outline">
+    <span>TOKENS</span>
+    <span id="token-count" class="text-primary">0</span>
+  </div>
+  <div class="flex justify-between text-[10px] font-mono text-outline">
+    <span>COST</span>
+    <span id="cost-count" class="text-secondary">$0.00</span>
+  </div>
+  <div class="flex justify-between text-[10px] font-mono text-outline">
+    <span>LATENCY</span>
+    <span id="latency-count" class="text-tertiary">--</span>
+  </div>
+</div>
+</aside>
+</main>
+
+<script>
+const API_BASE = window.location.origin;
+let currentModel = '';
+let memoryActive = false;
+let toolMode = false;
+let selectedCollections = [];
+let attachedFiles = [];
+let messageHistory = [];
+let currentOperationId = null;
+let toolCallCount = 0;
+
+const ALL_COLLECTIONS = [
+  {id:'agent_invariants', label:'Agent DNA', icon:'🧬'},
+  {id:'app_invariants', label:'App Laws', icon:'🏗️'},
+  {id:'chat_conversations', label:'Chat Logs', icon:'💬'},
+  {id:'tech_vault', label:'Tech Vault', icon:'⚙️'},
+  {id:'seed_vault', label:'Seed Vault', icon:'🌱'},
+  {id:'case_files_vault', label:'Case Files', icon:'📁'},
+  {id:'personal_vault', label:'Personal', icon:'🔒'},
+  {id:'bindings', label:'Bindings', icon:'🔗'},
+  {id:'codebase_vault', label:'Codebases', icon:'🧩'},
+];
+
+// Operation status cycling for visual effect
+const OPERATION_STATUSES = {
+  thinking: ['Analyzing request...', 'Parsing intent...', 'Loading context...'],
+  memory: ['Querying Peacock Unified...', 'Scanning 149K documents...', 'Vector similarity search...', 'Retrieving invariants...'],
+  tools: ['Planning tool sequence...', 'Calling native functions...', 'Executing Groq tool loop...', 'Processing results...'],
+  generating: ['Synthesizing response...', 'Building heredoc blocks...', 'Formatting output...', 'Finalizing delivery...'],
+};
+
+async function init() {
+  await loadModels();
+  await loadMemoryStats();
+  renderCollections();
+  loadProjectList();
+  document.getElementById('prompt-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+}
+
+async function loadModels() {
+  try {
+    const res = await fetch(`${API_BASE}/v1/chat/models`);
+    const data = await res.json();
+    const select = document.getElementById('model-select');
+    select.innerHTML = '';
+    const defaults = ['models/gemini-2.5-flash', 'llama-3.3-70b-versatile', 'models/gemini-2.5-pro', 'deepseek-chat'];
+    let first = true;
+    for (const [gw, models] of Object.entries(data)) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = gw.toUpperCase();
+      for (const m of models) {
+        if (m.status === 'frozen') continue;
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = `${m.id} (${m.tier})`;
+        opt.dataset.gateway = gw;
+        optgroup.appendChild(opt);
+        if (first || defaults.includes(m.id)) {
+          if (first) { currentModel = m.id; first = false; }
+        }
+      }
+      select.appendChild(optgroup);
+    }
+    select.value = currentModel;
+    select.addEventListener('change', (e) => {
+      currentModel = e.target.value;
+      checkToolModeCompatibility();
+    });
+    document.getElementById('current-model-label').textContent = currentModel;
+    checkToolModeCompatibility();
+  } catch (e) {
+    console.error('Failed to load models', e);
+  }
+}
+
+function checkToolModeCompatibility() {
+  const warning = document.getElementById('model-warning');
+  if (!currentModel) return;
+  const isGroq = currentModel.startsWith('groq/') || (document.querySelector(`#model-select option[value="${currentModel}"]`)?.dataset.gateway === 'groq');
+  if (toolMode && !isGroq) {
+    warning.textContent = `⚠️ ${currentModel} does not support local tool calling. Tool Mode requires Groq models.`;
+    warning.classList.remove('hidden');
+  } else {
+    warning.classList.add('hidden');
+  }
+}
+
+async function loadMemoryStats() {
+  try {
+    const res = await fetch(`${API_BASE}/v1/neural-link/memory/stats`);
+    const data = await res.json();
+    const statsContainer = document.getElementById('vault-stats');
+    const totalEl = document.getElementById('vault-total');
+    if (!data.collections || data.collections.error) {
+      statsContainer.innerHTML = '<div class="text-[10px] font-mono text-error">Vault offline</div>';
+      return;
+    }
+    let html = '';
+    let total = 0;
+    for (const [name, info] of Object.entries(data.collections)) {
+      if (typeof info !== 'object') continue;
+      const count = info.count || 0;
+      total += count;
+      const label = info.label || name;
+      html += `<div class="flex justify-between text-[10px] font-mono"><span class="text-outline">${label}</span><span class="text-primary">${count.toLocaleString()}</span></div>`;
+    }
+    statsContainer.innerHTML = html || '<div class="text-[10px] font-mono text-outline/40">No collections</div>';
+    totalEl.textContent = `${total.toLocaleString()} docs`;
+  } catch (e) {
+    document.getElementById('vault-stats').innerHTML = '<div class="text-[10px] font-mono text-error">Failed to load stats</div>';
+  }
+}
+
+function renderCollections() {
+  const container = document.getElementById('collection-toggles');
+  container.innerHTML = ALL_COLLECTIONS.map(c => `
+    <label class="flex items-center gap-1 px-2 py-1 bg-surface-high border border-outline-dim text-[10px] cursor-pointer hover:border-secondary transition-colors select-none">
+      <input type="checkbox" value="${c.id}" class="accent-secondary" onchange="updateCollections()" checked>
+      <span>${c.icon} ${c.label}</span>
+    </label>
+  `).join('');
+  updateCollections();
+}
+
+function updateCollections() {
+  selectedCollections = Array.from(document.querySelectorAll('#collection-toggles input:checked')).map(cb => cb.value);
+}
+
+function toggleMemory() {
+  const cb = document.getElementById('memory-enabled');
+  cb.checked = !cb.checked;
+  updateMemoryUI();
+}
+
+function updateMemoryUI() {
+  memoryActive = document.getElementById('memory-enabled').checked;
+  const badge = document.getElementById('memory-badge');
+  const btn = document.getElementById('mem-toggle');
+  const banner = document.getElementById('memory-off-banner');
+  if (memoryActive) {
+    badge.classList.remove('hidden');
+    badge.classList.add('flex');
+    btn.classList.add('text-secondary', 'bg-surface-high');
+    if (banner) banner.classList.add('hidden');
+  } else {
+    badge.classList.add('hidden');
+    badge.classList.remove('flex');
+    btn.classList.remove('text-secondary', 'bg-surface-high');
+    if (banner) banner.classList.remove('hidden');
+  }
+}
+
+function toggleToolMode() {
+  const cb = document.getElementById('tool-mode-enabled');
+  cb.checked = !cb.checked;
+  updateToolUI();
+}
+
+function updateToolUI() {
+  toolMode = document.getElementById('tool-mode-enabled').checked;
+  const badge = document.getElementById('tool-mode-badge');
+  const btn = document.getElementById('tool-toggle');
+  const activityPanel = document.getElementById('activity-panel');
+  if (toolMode) {
+    badge.classList.remove('hidden');
+    badge.classList.add('flex');
+    btn.classList.add('text-accent', 'bg-surface-high');
+    activityPanel.classList.remove('hidden');
+    if (memoryActive) {
+      document.getElementById('memory-enabled').checked = false;
+      updateMemoryUI();
+    }
+  } else {
+    badge.classList.add('hidden');
+    badge.classList.remove('flex');
+    btn.classList.remove('text-accent', 'bg-surface-high');
+    activityPanel.classList.add('hidden');
+  }
+  checkToolModeCompatibility();
+}
+
+function handleFiles(input) {
+  attachedFiles = Array.from(input.files).map(f => f.name);
+  const chips = document.getElementById('memory-chips');
+  chips.innerHTML = attachedFiles.map(f => `
+    <div class="flex items-center gap-1 px-2 py-1 bg-surface-high border border-outline-dim text-[10px] font-mono text-primary shrink-0">
+      <span class="material-symbols-outlined text-[12px]">description</span>
+      <span>${f}</span>
+    </div>
+  `).join('');
+  chips.classList.remove('hidden');
+}
+
+// ─── NEURAL ACTIVITY PANEL FUNCTIONS ───
+
+function startNeuralActivity(operationType) {
+  currentOperationId = `op-${Date.now()}`;
+  toolCallCount = 0;
+  
+  const statusEl = document.getElementById('activity-status');
+  const opEl = document.getElementById('current-operation');
+  const progressBar = document.getElementById('operation-progress-bar');
+  const progressContainer = document.getElementById('operation-progress');
+  const logEl = document.getElementById('tool-call-log');
+  
+  statusEl.textContent = '● ACTIVE';
+  statusEl.className = 'text-[9px] font-mono text-accent status-pulse';
+  progressContainer.classList.remove('hidden');
+  progressBar.style.width = '10%';
+  
+  logEl.innerHTML = '';
+  
+  // Cycle through status messages
+  const statuses = OPERATION_STATUSES[operationType] || OPERATION_STATUSES.thinking;
+  let statusIdx = 0;
+  const statusInterval = setInterval(() => {
+    if (!currentOperationId) {
+      clearInterval(statusInterval);
+      return;
+    }
+    opEl.innerHTML = `<span class="terminal-cursor">${statuses[statusIdx % statuses.length]}</span>`;
+    statusIdx++;
+  }, 800);
+  
+  // Simulate progress
+  let progress = 10;
+  const progressInterval = setInterval(() => {
+    if (!currentOperationId) {
+      clearInterval(progressInterval);
+      return;
+    }
+    progress += Math.random() * 15;
+    if (progress > 90) progress = 90;
+    progressBar.style.width = `${progress}%`;
+  }, 1000);
+  
+  return { statusInterval, progressInterval };
+}
+
+function stopNeuralActivity() {
+  currentOperationId = null;
+  const statusEl = document.getElementById('activity-status');
+  const opEl = document.getElementById('current-operation');
+  const progressBar = document.getElementById('operation-progress-bar');
+  const progressContainer = document.getElementById('operation-progress');
+  
+  statusEl.textContent = '● IDLE';
+  statusEl.className = 'text-[9px] font-mono text-success';
+  opEl.textContent = 'Waiting for command...';
+  progressBar.style.width = '100%';
+  setTimeout(() => progressContainer.classList.add('hidden'), 500);
+}
+
+function addToolCallLog(toolName, args, result) {
+  toolCallCount++;
+  const logEl = document.getElementById('tool-call-log');
+  const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  
+  const icons = {
+    'query_peacock_memory': 'search',
+    'get_peacock_memory_status': 'storage',
+    'get_chat_thread': 'forum',
+    'fetch_memory_document': 'file_open',
+    'browse_memory_collection': 'folder_open',
+    'search_bindings': 'link',
+    'create_project_bucket': 'create_new_folder',
+    'search_and_fill_bucket': 'folder_zip',
+    'add_to_project_bucket': 'add',
+    'list_project_bucket': 'list',
+    'get_from_project_bucket': 'download',
+    'generate_from_bucket': 'auto_awesome',
+    'generate_project': 'rocket_launch',
+    'count_bucket_tokens': 'calculate',
+    'generate_component_map': 'account_tree',
+    'scaffold_frontend': 'code',
+  };
+  
+  const icon = icons[toolName] || 'build';
+  const resultPreview = result ? (result.substring(0, 80) + (result.length > 80 ? '...' : '')) : 'pending...';
+  
+  const entry = document.createElement('div');
+  entry.className = 'tool-card-enter';
+  entry.innerHTML = `
+    <div class="flex items-start gap-2 p-2 bg-bg border border-outline-dim hover:border-accent/30 transition-colors">
+      <span class="material-symbols-outlined text-[14px] text-accent mt-0.5">${icon}</span>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] text-accent font-medium">${toolName}</span>
+          <span class="text-[8px] text-outline">${timestamp}</span>
+        </div>
+        <div class="text-[9px] text-outline truncate">${JSON.stringify(args).substring(0, 60)}</div>
+        <div class="text-[9px] text-tertiary mt-0.5 truncate">→ ${escapeHtml(resultPreview)}</div>
+      </div>
+    </div>
+  `;
+  
+  logEl.insertBefore(entry, logEl.firstChild);
+  if (logEl.children.length > 50) logEl.lastChild.remove();
+  
+  document.getElementById('live-strikes').textContent = toolCallCount;
+}
+
+function updateTokenGauge(tokens, max = 6000) {
+  const percentage = Math.min((tokens / max) * 100, 100);
+  document.getElementById('token-gauge-bar').style.width = `${percentage}%`;
+  document.getElementById('token-gauge-value').textContent = `${tokens.toLocaleString()} / ${max.toLocaleString()}`;
+  
+  const bar = document.getElementById('token-gauge-bar');
+  bar.className = 'h-full transition-all duration-500 ' + (
+    percentage < 50 ? 'bg-success' : percentage < 80 ? 'bg-warning' : 'bg-error progress-glow'
+  );
+}
+
+function updatePipelineStages(stages) {
+  const container = document.getElementById('pipeline-stages');
+  container.innerHTML = stages.map((stage, i) => `
+    <div class="flex items-center gap-2">
+      <div class="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold ${stage.complete ? 'bg-success text-bg' : stage.active ? 'bg-accent text-bg animate-pulse' : 'bg-outline-dim text-outline'}">
+        ${stage.complete ? '✓' : i + 1}
+      </div>
+      <span class="text-[10px] font-mono ${stage.active ? 'text-accent glow-accent' : stage.complete ? 'text-success' : 'text-outline'}">${stage.name}</span>
+    </div>
+  `).join('');
+}
+
+// ─── MESSAGE FUNCTIONS ───
+
+function appendMessage(role, content, type, meta = {}) {
+  const container = document.getElementById('chat-scroller');
+  const time = new Date().toLocaleTimeString();
+  const div = document.createElement('div');
+  div.className = `msg-enter ${type === 'user' ? 'flex flex-col items-end' : 'flex flex-col items-start'}`;
+
+  if (type === 'user') {
+    div.innerHTML = `
+      <div class="flex items-center gap-2 mb-1 px-1">
+        <span class="text-[9px] font-mono text-primary">OPERATOR</span>
+        <span class="text-[9px] font-mono text-outline/40">${time}</span>
+      </div>
+      <div class="bg-surface-high border border-primary/20 p-3 max-w-[85%] text-sm leading-relaxed text-primary">${escapeHtml(content)}</div>
+    `;
+  } else if (type === 'system') {
+    div.innerHTML = `
+      <div class="flex justify-center w-full my-2">
+        <span class="text-[10px] font-mono px-3 py-1 bg-surface-high text-secondary border border-secondary/20">${escapeHtml(content)}</span>
+      </div>
+    `;
+  } else {
+    div.innerHTML = `
+      <div class="flex items-center gap-2 mb-1 px-1">
+        <span class="text-[9px] font-mono text-tertiary">${meta.model || 'PEACOCK'}</span>
+        <span class="text-[9px] font-mono text-outline/40">${time}</span>
+        ${meta.tool_calls ? `<span class="text-[9px] font-mono text-accent bg-accent/10 px-1 border border-accent/20">${meta.tool_calls} TOOLS</span>` : ''}
+        ${meta.mode ? `<span class="text-[9px] font-mono text-secondary bg-secondary/10 px-1 border border-secondary/20">${meta.mode}</span>` : ''}
+      </div>
+      <div class="bg-surface border border-tertiary/30 p-3 max-w-[90%] text-sm leading-relaxed text-primary">${formatMessageContent(content)}</div>
+    `;
+  }
+  container.appendChild(div);
+  container.scrollTo(0, container.scrollHeight);
+  return div;
+}
+
+function appendMissionReport(meta) {
+  const container = document.getElementById('chat-scroller');
+  const div = document.createElement('div');
+  div.className = 'msg-enter flex flex-col items-start w-full';
+  
+  const stages = meta.pipeline_stages || [];
+  const stageHtml = stages.length ? `
+    <div class="mt-2 space-y-1">
+      ${stages.map(s => `
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[12px] ${s.complete ? 'text-success' : 'text-outline'}">${s.complete ? 'check_circle' : 'radio_button_unchecked'}</span>
+          <span class="text-[10px] font-mono ${s.complete ? 'text-success' : 'text-outline'}">${s.name}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+  
+  const toolCalls = meta.tool_calls_made || 0;
+  const tokens = meta.total_tokens || 0;
+  const cost = meta.cost || 0;
+  const latency = meta.latency || 0;
+  
+  div.innerHTML = `
+    <div class="w-full max-w-[90%] mt-2 p-3 bg-surface-high border border-secondary/30">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="material-symbols-outlined text-secondary">analytics</span>
+        <span class="text-[10px] font-headline font-bold text-secondary uppercase tracking-wider">Mission Report</span>
+      </div>
+      <div class="grid grid-cols-4 gap-2 mb-2">
+        <div class="bg-bg p-2 border border-outline-dim text-center">
+          <div class="text-[8px] font-mono text-outline uppercase">Tools</div>
+          <div class="text-lg font-headline font-bold text-accent">${toolCalls}</div>
+        </div>
+        <div class="bg-bg p-2 border border-outline-dim text-center">
+          <div class="text-[8px] font-mono text-outline uppercase">Tokens</div>
+          <div class="text-lg font-headline font-bold text-primary">${tokens.toLocaleString()}</div>
+        </div>
+        <div class="bg-bg p-2 border border-outline-dim text-center">
+          <div class="text-[8px] font-mono text-outline uppercase">Cost</div>
+          <div class="text-lg font-headline font-bold text-secondary">$${cost.toFixed(4)}</div>
+        </div>
+        <div class="bg-bg p-2 border border-outline-dim text-center">
+          <div class="text-[8px] font-mono text-outline uppercase">Time</div>
+          <div class="text-lg font-headline font-bold text-tertiary">${latency}s</div>
+        </div>
+      </div>
+      ${stageHtml}
+    </div>
+  `;
+  container.appendChild(div);
+  container.scrollTo(0, container.scrollHeight);
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatMessageContent(text) {
+  const heredocRegex = /cat\s+(>\s*|>>\s*)\s*([^\s\n]+)\s+<<\s*['"]?([\w_]+)['"]?\n([\s\S]*?)\n\3/g;
+  let match;
+  const heredocs = [];
+  while ((match = heredocRegex.exec(text)) !== null) {
+    heredocs.push({
+      full: match[0],
+      redirect: match[1].trim(),
+      path: match[2],
+      delimiter: match[3],
+      content: match[4],
+      index: match.index
+    });
+  }
+
+  let html = escapeHtml(text);
+
+  if (heredocs.length > 0) {
+    let lastIndex = 0;
+    let result = '';
+    const allBlocksId = `heredoc-batch-${Date.now()}`;
+
+    if (heredocs.length > 1) {
+      result += `
+        <div class="sticky top-0 z-10 flex items-center justify-between px-2 py-1 mb-2 bg-surface-high border border-secondary/40">
+          <span class="text-[10px] font-mono text-secondary">📦 ${heredocs.length} heredoc blocks</span>
+          <div class="flex gap-1">
+            <button onclick="copyAllHeredocs('${allBlocksId}')" class="px-2 py-0.5 text-[10px] font-mono bg-surface border border-outline-dim hover:border-secondary text-primary hover:text-secondary transition-colors">Copy All</button>
+            <button onclick="deployAllHeredocs('${allBlocksId}')" class="px-2 py-0.5 text-[10px] font-mono bg-secondary text-bg hover:opacity-90 transition-colors">Deploy All</button>
+          </div>
+        </div>
+        <div id="${allBlocksId}" class="space-y-2">
+      `;
+    }
+
+    heredocs.forEach((h, i) => {
+      result += escapeHtml(text.slice(lastIndex, h.index));
+      const blockId = `heredoc-${Date.now()}-${i}`;
+      const modeLabel = h.redirect.includes('>>') ? 'APPEND' : 'CREATE';
+      result += `
+        <div class="my-2 border border-secondary/30 bg-bg heredoc-block" data-path="${escapeHtml(h.path)}" data-content="${escapeHtml(h.content)}" data-mode="${modeLabel}">
+          <div class="flex items-center justify-between px-2 py-1 bg-surface-high border-b border-secondary/20">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono text-secondary">📄 ${escapeHtml(h.path)}</span>
+              <span class="text-[9px] font-mono text-outline border border-outline-dim px-1">${modeLabel}</span>
+            </div>
+            <div class="flex gap-1">
+              <button onclick="copyHeredoc('${blockId}')" class="px-2 py-0.5 text-[10px] font-mono bg-surface border border-outline-dim hover:border-secondary text-primary hover:text-secondary transition-colors">Copy</button>
+              <button onclick="copyHeredoc('${blockId}')" class="px-2 py-0.5 text-[10px] font-mono bg-secondary text-bg hover:opacity-90 transition-colors">Deploy</button>
+            </div>
+          </div>
+          <pre id="${blockId}" class="p-2 text-[11px] font-mono text-tertiary overflow-x-auto whitespace-pre-wrap">${escapeHtml(h.full)}</pre>
+        </div>
+      `;
+      lastIndex = h.index + h.full.length;
+    });
+    result += escapeHtml(text.slice(lastIndex));
+
+    if (heredocs.length > 1) {
+      result += '</div>';
+    }
+    html = result;
+  }
+
+  html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (m, lang, code) => {
+    const blockId = `code-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    return `
+      <div class="my-2 border border-outline-dim bg-bg">
+        <div class="flex items-center justify-between px-2 py-1 bg-surface-high border-b border-outline-dim/50">
+          <span class="text-[10px] font-mono text-outline">${lang || 'code'}</span>
+          <button onclick="copyCode('${blockId}')" class="px-2 py-0.5 text-[10px] font-mono bg-surface border border-outline-dim hover:border-primary text-primary transition-colors">Copy</button>
+        </div>
+        <pre id="${blockId}" class="p-2 text-[11px] font-mono text-tertiary overflow-x-auto whitespace-pre-wrap">${escapeHtml(code.trim())}</pre>
+      </div>
+    `;
+  });
+
+  html = html.replace(/\n/g, '<br>');
+
+  return html;
+}
+
+function copyHeredoc(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    showToast('Heredoc copied to clipboard');
+  });
+}
+
+function copyCode(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    showToast('Code copied to clipboard');
+  });
+}
+
+function copyAllHeredocs(batchId) {
+  const batch = document.getElementById(batchId);
+  if (!batch) return;
+  const blocks = batch.querySelectorAll('.heredoc-block');
+  let combined = '#!/bin/bash\nset -e\n\n';
+  blocks.forEach(b => {
+    const path = b.dataset.path;
+    const content = b.dataset.content;
+    const mode = b.dataset.mode;
+    const parent = path.includes('/') ? path.substring(0, path.lastIndexOf('/')) : '.';
+    if (parent !== '.') {
+      combined += `mkdir -p "${parent}"\n`;
+    }
+    if (mode === 'APPEND') {
+      combined += `cat >> "${path}" << 'PEACOCK_EOF'\n${content}\nPEACOCK_EOF\n\n`;
+    } else {
+      combined += `cat > "${path}" << 'PEACOCK_EOF'\n${content}\nPEACOCK_EOF\n\n`;
+    }
+  });
+  navigator.clipboard.writeText(combined).then(() => {
+    showToast('All heredocs + deploy script copied');
+  });
+}
+
+function deployAllHeredocs(batchId) {
+  const batch = document.getElementById(batchId);
+  if (!batch) return;
+  const blocks = batch.querySelectorAll('.heredoc-block');
+  let script = '#!/bin/bash\nset -e\n\necho "🚀 Peacock Deploy Script"\n\n';
+  const dirs = new Set();
+  blocks.forEach(b => {
+    const path = b.dataset.path;
+    const content = b.dataset.content;
+    const mode = b.dataset.mode;
+    const parent = path.includes('/') ? path.substring(0, path.lastIndexOf('/')) : '.';
+    if (parent !== '.') dirs.add(parent);
+    if (mode === 'APPEND') {
+      script += `cat >> "${path}" << 'PEACOCK_EOF'\n${content}\nPEACOCK_EOF\n\n`;
+    } else {
+      script += `cat > "${path}" << 'PEACOCK_EOF'\n${content}\nPEACOCK_EOF\n\n`;
+    }
+  });
+  if (dirs.size > 0) {
+    const dirLines = Array.from(dirs).sort().map(d => `mkdir -p "${d}"`).join('\n');
+    script = script.replace('#!/bin/bash\nset -e\n\necho', `#!/bin/bash\nset -e\n\n# Create directories\n${dirLines}\n\necho`);
+  }
+  script += 'echo "✅ Deployment complete"\n';
+  navigator.clipboard.writeText(script).then(() => {
+    showToast('Deploy script copied to clipboard');
+  });
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'fixed bottom-12 right-4 bg-secondary text-bg px-3 py-2 text-[11px] font-mono z-50 animate-in';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+const PRESETS = {
+  'memory-dive': `Search my Peacock memory for everything related to [TOPIC] across all relevant collections. Synthesize patterns, cite invariants with law_id and confidence scores, and summarize findings.`,
+  'build-invariants': `I want to build [PROJECT DESCRIPTION]. First, query my app_invariants and agent_invariants for architectural constraints and patterns. Then query tech_vault for implementation examples. Design the complete system and output ALL files as heredoc bash blocks for instant deployment.`,
+  'chat-archaeology': `Find my past conversations about [TOPIC] in the chat_conversations collection. Reconstruct the thread, identify established patterns (high confidence + high density), and build on what we already discussed.`,
+  'api-scaffold': `I need to build a frontend for [API/ENDPOINT]. Search the bindings collection for relevant API-to-UI mappings. Then generate the forms, components, and validation logic as heredoc bash blocks.`,
+  'audit-code': `Audit the following code against my app_invariants and agent_invariants. Cite specific law_ids, identify compliance gaps, and provide corrected heredoc blocks:\n\n[PASTE CODE HERE]`,
+  'full-app-memory': `I want to build [APP IDEA]. Do this step by step:\n\n1. Search chat_conversations for any past discussions about this topic or related projects.\n2. Search app_invariants and agent_invariants for architectural laws and patterns that apply.\n3. Search tech_vault for implementation patterns, configs, and working code examples.\n4. Search bindings for any API-to-UI mappings we might need.\n5. Synthesize ALL findings into a coherent architecture description.\n6. Call generate_project with a rich description AND pass your synthesized research as research_context.\n7. Output every generated file as heredoc blocks plus the deploy.sh script so I can copy-paste and run immediately.`,
+  'bucket-build': `Build [APP IDEA] using the project bucket workflow:\n\n1. Call create_project_bucket with name '[PROJECT_NAME]' and a description.\n2. Call search_and_fill_bucket to populate it from relevant collections (app_invariants, agent_invariants, tech_vault, chat_conversations, bindings). Use 2-3 parallel searches.\n3. Call list_project_bucket to review what was captured.\n4. Call add_to_project_bucket for any critical docs the searches missed.\n5. Call get_from_project_bucket to read full text of any truncated docs.\n6. Call generate_from_bucket to build the complete project from the bucket contents.\n7. Output all heredoc blocks and deploy.sh for copy-paste deployment.`,
+};
+
+function injectPreset(key) {
+  const input = document.getElementById('prompt-input');
+  const text = PRESETS[key];
+  if (!text) return;
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  const before = input.value.substring(0, start);
+  const after = input.value.substring(end);
+  input.value = before + text + after;
+  input.focus();
+  const placeholderStart = start + text.indexOf('[');
+  const placeholderEnd = start + text.indexOf(']') + 1;
+  if (placeholderStart >= start && placeholderEnd > placeholderStart) {
+    input.setSelectionRange(placeholderStart, placeholderEnd);
+  }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('prompt-input');
+  const prompt = input.value.trim();
+  if (!prompt || !currentModel) return;
+  input.value = '';
+
+  appendMessage('OPERATOR', prompt, 'user');
+
+  const aiBubbleId = `ai-${Date.now()}`;
+  const container = document.getElementById('chat-scroller');
+  const aiDiv = document.createElement('div');
+  aiDiv.id = aiBubbleId;
+  aiDiv.className = 'msg-enter flex flex-col items-start';
+  aiDiv.innerHTML = `
+    <div class="flex items-center gap-2 mb-1 px-1">
+      <span class="text-[9px] font-mono text-tertiary">${currentModel}</span>
+      <span class="text-[9px] font-mono text-outline/40">${new Date().toLocaleTimeString()}</span>
+    </div>
+    <div class="bg-surface border border-tertiary/30 p-3 max-w-[90%] text-sm leading-relaxed text-primary">
+      <div id="${aiBubbleId}-thinking" class="flex items-center gap-2 py-2">
+        <div class="flex gap-1">
+          <div class="w-2 h-2 bg-accent rounded-full typing-dot"></div>
+          <div class="w-2 h-2 bg-accent rounded-full typing-dot"></div>
+          <div class="w-2 h-2 bg-accent rounded-full typing-dot"></div>
+        </div>
+        <span class="text-[11px] font-mono text-accent">Neural processing...</span>
+      </div>
+      <p id="${aiBubbleId}-text" class="whitespace-pre-wrap hidden"></p>
+      <div id="${aiBubbleId}-meta" class="mt-2 text-[9px] text-outline font-mono"></div>
+    </div>
+  `;
+  container.appendChild(aiDiv);
+  container.scrollTo(0, container.scrollHeight);
+
+  const thinkingEl = document.getElementById(`${aiBubbleId}-thinking`);
+  const textEl = document.getElementById(`${aiBubbleId}-text`);
+  const metaEl = document.getElementById(`${aiBubbleId}-meta`);
+  let fullContent = '';
+  const startTime = performance.now();
+
+  // Start neural activity visualization
+  let activityTimers = null;
+  if (toolMode) {
+    activityTimers = startNeuralActivity('tools');
+    updatePipelineStages([
+      {name: 'Plan', complete: false, active: true},
+      {name: 'Memory Query', complete: false, active: false},
+      {name: 'Tool Execution', complete: false, active: false},
+      {name: 'Synthesize', complete: false, active: false},
+    ]);
+  }
+
+  try {
+    if (memoryActive && !toolMode) {
+      showMemoryLoading();
+      try {
+        const memRes = await fetch(`${API_BASE}/v1/neural-link/memory/query`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({query: prompt, collections: selectedCollections, n: 5})
+        });
+        const memData = await memRes.json();
+        showMemoryResults(memData);
+      } catch (e) {
+        showMemoryResults({status: 'error', error: e.message});
+      }
+    }
+
+    const payload = {
+      model: currentModel,
+      prompt: prompt,
+      memory: memoryActive && !toolMode,
+      memory_collections: (memoryActive && !toolMode) ? selectedCollections : undefined,
+      memory_n: 5,
+      tools: toolMode,
+      temp: 0.7,
+      conversation_id: currentConversationId || undefined,
+      history: messageHistory.length > 0 ? messageHistory : undefined,
+    };
+
+    // Always use streaming for real-time feedback (tool mode or not)
+    const res = await fetch(`${API_BASE}/v1/chat/stream`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    thinkingEl.classList.add('hidden');
+    textEl.classList.remove('hidden');
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let liveToolCount = 0;
+    let finalUsage = {};
+    let finalCost = 0;
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const chunk = JSON.parse(line.slice(6));
+          
+          if (chunk.type === 'content') {
+            fullContent += chunk.content;
+            textEl.textContent = fullContent;
+            container.scrollTo(0, container.scrollHeight);
+          }
+          else if (chunk.type === 'error') {
+            textEl.textContent = `ERROR: ${chunk.content || chunk.error}`;
+            textEl.classList.add('text-error');
+          }
+          else if (chunk.type === 'status') {
+            if (toolMode) {
+              const opEl = document.getElementById('current-operation');
+              if (chunk.status === 'iteration_started') {
+                opEl.textContent = `Iteration ${chunk.iteration}/${chunk.total}...`;
+                updatePipelineStages([
+                  {name: 'Plan', complete: chunk.iteration > 1, active: chunk.iteration === 1},
+                  {name: 'Memory Query', complete: chunk.iteration > 2, active: chunk.iteration === 2},
+                  {name: 'Tool Execution', complete: false, active: true},
+                  {name: 'Synthesize', complete: false, active: false},
+                ]);
+              } else if (chunk.status === 'synthesizing') {
+                opEl.textContent = 'Synthesizing final answer...';
+                updatePipelineStages([
+                  {name: 'Plan', complete: true, active: false},
+                  {name: 'Memory Query', complete: true, active: false},
+                  {name: 'Tool Execution', complete: true, active: false},
+                  {name: 'Synthesize', complete: false, active: true},
+                ]);
+              }
+            }
+          }
+          else if (chunk.type === 'tool_call') {
+            if (toolMode) {
+              document.getElementById('current-operation').textContent = `Calling ${chunk.tool}...`;
+            }
+          }
+          else if (chunk.type === 'tool_result') {
+            if (toolMode) {
+              liveToolCount++;
+              addToolCallLog(chunk.tool, {}, chunk.result || '');
+              document.getElementById('live-strikes').textContent = liveToolCount;
+            }
+          }
+          else if (chunk.type === 'metadata') {
+            finalUsage = chunk.usage || {};
+            finalCost = chunk.cost || 0;
+            
+            textEl.innerHTML = formatMessageContent(fullContent);
+            const latency = ((performance.now() - startTime) / 1000).toFixed(2);
+            metaEl.innerHTML = `
+              ${chunk.tool_calls_made ? `<span class="text-accent">TOOLS: ${chunk.tool_calls_made}</span> | ` : ''}
+              <span>GEN_TIME: ${latency}s</span> |
+              <span>TOKENS: ${finalUsage.total_tokens || 0}</span> |
+              <span>COST: $${finalCost.toFixed(4)}</span>
+            `;
+            document.getElementById('token-count').textContent = finalUsage.total_tokens || 0;
+            document.getElementById('cost-count').textContent = `$${finalCost.toFixed(4)}`;
+            document.getElementById('latency-count').textContent = `${latency}s`;
+            
+            if (toolMode) {
+              updateTokenGauge(finalUsage.total_tokens || 0);
+              document.getElementById('live-tokens').textContent = finalUsage.total_tokens || 0;
+              document.getElementById('live-cost').textContent = `$${finalCost.toFixed(4)}`;
+              document.getElementById('live-latency').textContent = `${latency}s`;
+              updatePipelineStages([
+                {name: 'Plan', complete: true, active: false},
+                {name: 'Memory Query', complete: true, active: false},
+                {name: 'Tool Execution', complete: true, active: false},
+                {name: 'Synthesize', complete: true, active: false},
+              ]);
+              appendMissionReport({
+                tool_calls_made: chunk.tool_calls_made || 0,
+                total_tokens: finalUsage.total_tokens || 0,
+                cost: finalCost,
+                latency: latency,
+                pipeline_stages: [
+                  {name: 'Plan', complete: true},
+                  {name: 'Memory Query', complete: true},
+                  {name: 'Tool Execution', complete: true},
+                  {name: 'Synthesize', complete: true},
+                ]
+              });
+            }
+            
+            if (chunk.conversation_id) {
+              currentConversationId = chunk.conversation_id;
+            }
+            messageHistory.push({role: 'user', content: prompt});
+            messageHistory.push({role: 'assistant', content: fullContent});
+          }
+        } catch (e) {}
+      }
+    }
+  } catch (err) {
+    thinkingEl.classList.add('hidden');
+    textEl.classList.remove('hidden');
+    textEl.textContent = `FAILURE: ${err.message}`;
+    textEl.classList.add('text-error');
+  } finally {
+    if (activityTimers) {
+      clearInterval(activityTimers.statusInterval);
+      clearInterval(activityTimers.progressInterval);
+      stopNeuralActivity();
+    }
+  }
+}
+
+function showMemoryLoading() {
+  const panel = document.getElementById('memory-panel');
+  panel.innerHTML = `<div class="flex items-center gap-2 text-secondary"><span class="material-symbols-outlined animate-spin">refresh</span> Querying memory...</div>`;
+}
+
+let lastMemoryQuery = '';
+let lastMemoryResults = {};
+
+function showMemoryResults(data) {
+  const panel = document.getElementById('memory-panel');
+  if (data.status === 'error') {
+    panel.innerHTML = `<span class="text-error">Memory error: ${escapeHtml(data.error || 'unknown')}</span>`;
+    return;
+  }
+  if (!data.context) {
+    panel.innerHTML = `<span class="text-outline/40">No memory results.</span>`;
+    return;
+  }
+  lastMemoryQuery = data.query || '';
+  lastMemoryResults = data.results || {};
+  
+  let html = `
+    <div class="flex items-center justify-between mb-2">
+      <div>
+        <div class="text-secondary text-[10px]">Query: "${escapeHtml(data.query || '')}"</div>
+        <div class="text-outline text-[9px]">Hits: ${data.total_hits || 0}</div>
+      </div>
+      <div class="flex gap-1">
+        <button onclick="sendMemoryFeedback(1)" class="p-1 hover:bg-success/20 text-outline hover:text-success transition-colors" title="Good retrieval">
+          <span class="material-symbols-outlined text-[14px]">thumb_up</span>
+        </button>
+        <button onclick="sendMemoryFeedback(-1)" class="p-1 hover:bg-error/20 text-outline hover:text-error transition-colors" title="Bad retrieval">
+          <span class="material-symbols-outlined text-[14px]">thumb_down</span>
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Render individual results with per-doc feedback
+  for (const [collName, items] of Object.entries(data.results || {})) {
+    if (!Array.isArray(items) || !items.length) continue;
+    html += `<div class="mb-2 border border-outline-dim/50">
+      <div class="px-2 py-1 bg-surface-high text-[9px] font-mono text-secondary uppercase tracking-wider">${escapeHtml(collName)} (${items.length})</div>`;
+    for (const item of items) {
+      const docId = item.id || '';
+      const doc = (item.document || '').substring(0, 300);
+      const dist = item.distance !== undefined ? item.distance.toFixed(4) : 'N/A';
+      html += `
+        <div class="p-2 border-t border-outline-dim/30">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[9px] font-mono text-accent">${escapeHtml(docId)}</span>
+            <span class="text-[8px] font-mono text-outline">dist=${dist}</span>
+          </div>
+          <div class="text-[10px] text-tertiary/80 mb-1">${escapeHtml(doc)}</div>
+          <div class="flex gap-1">
+            <button onclick="sendDocFeedback('${escapeHtml(docId)}', '${escapeHtml(collName)}', 1)" class="px-1.5 py-0.5 text-[8px] font-mono bg-surface-high border border-outline-dim hover:border-success hover:text-success transition-colors">👍 Relevant</button>
+            <button onclick="sendDocFeedback('${escapeHtml(docId)}', '${escapeHtml(collName)}', -1)" class="px-1.5 py-0.5 text-[8px] font-mono bg-surface-high border border-outline-dim hover:border-error hover:text-error transition-colors">👍 Noise</button>
+          </div>
+        </div>
+      `;
+    }
+    html += `</div>`;
+  }
+  
+  panel.innerHTML = html;
+}
+
+async function sendMemoryFeedback(rating) {
+  try {
+    await fetch(`${API_BASE}/v1/neural-link/memory/feedback`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query: lastMemoryQuery, doc_id: 'overall', collection: 'all', rating})
+    });
+    showToast(rating === 1 ? 'Retrieval rated helpful' : 'Retrieval rated noisy');
+  } catch (e) {}
+}
+
+async function sendDocFeedback(docId, collection, rating) {
+  try {
+    await fetch(`${API_BASE}/v1/neural-link/memory/feedback`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query: lastMemoryQuery, doc_id: docId, collection, rating})
+    });
+    showToast(rating === 1 ? 'Doc marked relevant' : 'Doc marked noise');
+  } catch (e) {}
+}
+
+// ─── STANDALONE VAULT QUERY ───
+
+async function queryVaultDirect() {
+  const input = document.getElementById('vault-query-input');
+  const query = input.value.trim();
+  if (!query) return;
+  
+  const resultsDiv = document.getElementById('vault-query-results');
+  resultsDiv.innerHTML = '<div class="text-accent text-center py-2 text-[10px] font-mono animate-pulse">Searching...</div>';
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/neural-link/memory/query`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query, collections: selectedCollections, n: 5})
+    });
+    const data = await res.json();
+    
+    if (data.status === 'error') {
+      resultsDiv.innerHTML = `<div class="text-error text-[10px] font-mono">${escapeHtml(data.error || 'Query failed')}</div>`;
+      return;
+    }
+    if (!data.total_hits) {
+      resultsDiv.innerHTML = '<div class="text-outline/40 text-[10px] font-mono">No matches.</div>';
+      return;
+    }
+    
+    let html = `<div class="text-[9px] font-mono text-secondary mb-1">${data.total_hits} hits for "${escapeHtml(query)}"</div>`;
+    for (const [collName, items] of Object.entries(data.results || {})) {
+      if (!Array.isArray(items) || !items.length) continue;
+      html += `<div class="mb-1 border border-outline-dim/50"><div class="px-1.5 py-0.5 bg-surface-high text-[9px] font-mono text-secondary uppercase">${escapeHtml(collName)} (${items.length})</div>`;
+      for (const item of items) {
+        const doc = (item.document || '').substring(0, 200);
+        const meta = item.metadata || {};
+        html += `<div class="p-1.5 border-t border-outline-dim/30 text-[10px] font-mono text-primary">${escapeHtml(doc)}${item.document && item.document.length > 200 ? '...' : ''}</div>`;
+        if (Object.keys(meta).length) {
+          html += `<div class="px-1.5 pb-1 text-[9px] font-mono text-outline">${escapeHtml(JSON.stringify(meta).substring(0, 120))}</div>`;
+        }
+      }
+      html += '</div>';
+    }
+    resultsDiv.innerHTML = html;
+  } catch (e) {
+    resultsDiv.innerHTML = `<div class="text-error text-[10px] font-mono">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+// ─── PROJECT MANAGEMENT ───
+
+let activeProjectId = null;
+
+function openSaveProjectModal() {
+  document.getElementById('save-project-modal').classList.remove('hidden');
+  // Pre-fill with current context if available
+  if (currentConversationId) {
+    document.getElementById('save-project-name').value = `Project ${currentConversationId.slice(-6)}`;
+  }
+}
+
+function closeSaveProjectModal() {
+  document.getElementById('save-project-modal').classList.add('hidden');
+  document.getElementById('save-project-name').value = '';
+  document.getElementById('save-project-desc').value = '';
+  document.getElementById('save-project-bucket').value = '';
+}
+
+async function saveProject() {
+  const name = document.getElementById('save-project-name').value.trim();
+  const desc = document.getElementById('save-project-desc').value.trim();
+  const bucket = document.getElementById('save-project-bucket').value.trim();
+  
+  if (!name) {
+    showToast('Project name required');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/projects/save`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name,
+        description: desc,
+        bucket_name: bucket || `bucket_${Date.now()}`,
+        conversation_id: currentConversationId || undefined,
+      })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      showToast(`Project saved: ${data.project_id}`);
+      closeSaveProjectModal();
+      loadProjectList();
+    } else {
+      showToast('Save failed: ' + (data.detail || 'unknown'));
+    }
+  } catch (e) {
+    showToast('Save error: ' + e.message);
+  }
+}
+
+async function loadProjectList() {
+  try {
+    const res = await fetch(`${API_BASE}/v1/projects/list?limit=50`);
+    const data = await res.json();
+    const select = document.getElementById('project-select');
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">📁 Projects...</option>';
+    for (const p of data.projects || []) {
+      const option = document.createElement('option');
+      option.value = p.id;
+      option.textContent = `${p.name} (${p.bucket_name})`;
+      option.selected = p.id === currentVal;
+      select.appendChild(option);
+    }
+    if (activeProjectId && !Array.from(select.options).some(o => o.value === activeProjectId)) {
+      activeProjectId = null;
+    }
+  } catch (e) {
+    console.error('Failed to load projects', e);
+  }
+}
+
+async function loadSelectedProject() {
+  const select = document.getElementById('project-select');
+  const projectId = select.value;
+  if (!projectId) return;
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/projects/${projectId}/load`);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      activeProjectId = projectId;
+      const project = data.project;
+      
+      // Show project loaded banner
+      const container = document.getElementById('chat-scroller');
+      const banner = document.createElement('div');
+      banner.className = 'flex justify-center msg-enter';
+      banner.innerHTML = `
+        <div class="px-3 py-1.5 bg-surface-high border border-secondary/40 text-[10px] font-mono text-secondary">
+          📁 Project Loaded: <span class="text-primary font-bold">${escapeHtml(project.name)}</span> | 
+          Bucket: <span class="text-accent">${escapeHtml(project.bucket_name)}</span> | 
+          Docs: ${data.bucket?.items ? Object.keys(data.bucket.items).length : 0}
+        </div>
+      `;
+      container.appendChild(banner);
+      container.scrollTo(0, container.scrollHeight);
+      
+      // If there's a linked conversation, offer to resume
+      if (project.conversation_id) {
+        currentConversationId = project.conversation_id;
+      }
+      
+      showToast(`Loaded project: ${project.name}`);
+    }
+  } catch (e) {
+    showToast('Load error: ' + e.message);
+  }
+}
+
+// ─── CONVERSATION BROWSER & SELECTIVE CARRYOVER ───
+
+let conversationBrowserData = [];
+let selectedConversationId = null;
+let selectedTurns = new Set();
+
+function openConversationBrowser() {
+  const modal = document.getElementById('conversation-modal');
+  modal.classList.remove('hidden');
+  loadConversationList();
+}
+
+function closeConversationBrowser() {
+  document.getElementById('conversation-modal').classList.add('hidden');
+  selectedConversationId = null;
+  selectedTurns = new Set();
+}
+
+async function loadConversationList() {
+  const listEl = document.getElementById('conversation-list');
+  listEl.innerHTML = '<div class="text-outline/40 text-center py-4 text-[10px] font-mono">Loading conversations...</div>';
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/chat/conversations?limit=50`);
+    const data = await res.json();
+    conversationBrowserData = data.conversations || [];
+    renderConversationList();
+  } catch (e) {
+    listEl.innerHTML = `<div class="text-error text-center py-4 text-[10px] font-mono">Failed to load: ${e.message}</div>`;
+  }
+}
+
+function renderConversationList() {
+  const listEl = document.getElementById('conversation-list');
+  if (!conversationBrowserData.length) {
+    listEl.innerHTML = '<div class="text-outline/40 text-center py-4 text-[10px] font-mono">No conversations yet.</div>';
+    return;
+  }
+  
+  listEl.innerHTML = conversationBrowserData.map(c => {
+    const date = c.last_active ? new Date(c.last_active).toLocaleString() : 'Unknown';
+    const isSelected = selectedConversationId === c.conversation_id;
+    return `
+      <div class="border border-outline-dim ${isSelected ? 'border-secondary' : ''} hover:border-primary/50 transition-colors cursor-pointer"
+           onclick="selectConversation('${c.conversation_id}')">
+        <div class="flex items-center justify-between px-2 py-1.5 bg-surface-high">
+          <div class="flex items-center gap-2">
+            <span class="text-[9px] font-mono text-accent">${c.conversation_id}</span>
+            <span class="text-[8px] font-mono text-outline border border-outline-dim px-1">${c.turn_count} turns</span>
+          </div>
+          <span class="text-[8px] font-mono text-outline">${date}</span>
+        </div>
+        <div class="px-2 py-1 text-[9px] font-mono text-tertiary/80">
+          <span class="text-secondary">${c.model_id || 'unknown'}</span> | ${c.modes || 'raw'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function selectConversation(convId) {
+  selectedConversationId = convId;
+  selectedTurns = new Set();
+  renderConversationList();
+  
+  const detailEl = document.getElementById('conversation-detail');
+  detailEl.innerHTML = '<div class="text-outline/40 text-center py-4 text-[10px] font-mono">Loading turns...</div>';
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/chat/conversations/${convId}`);
+    const data = await res.json();
+    renderConversationDetail(data);
+  } catch (e) {
+    detailEl.innerHTML = `<div class="text-error text-center py-4 text-[10px] font-mono">Failed: ${e.message}</div>`;
+  }
+}
+
+function renderConversationDetail(data) {
+  const detailEl = document.getElementById('conversation-detail');
+  const turns = data.turns || [];
+  
+  if (!turns.length) {
+    detailEl.innerHTML = '<div class="text-outline/40 text-center py-4">No turns found.</div>';
+    return;
+  }
+  
+  let html = `
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-[10px] font-mono text-secondary">${turns.length} turns</span>
+      <div class="flex gap-1">
+        <button onclick="toggleAllTurns(true)" class="px-2 py-0.5 text-[8px] font-mono bg-surface-high border border-outline-dim hover:border-secondary text-outline hover:text-secondary transition-colors">Select All</button>
+        <button onclick="toggleAllTurns(false)" class="px-2 py-0.5 text-[8px] font-mono bg-surface-high border border-outline-dim hover:border-error text-outline hover:text-error transition-colors">Clear</button>
+      </div>
+    </div>
+    <div class="space-y-1 max-h-64 overflow-y-auto">
+  `;
+  
+  for (const turn of turns) {
+    const tn = turn.turn_number;
+    const checked = selectedTurns.has(tn) ? 'checked' : '';
+    const prompt = (turn.user_prompt || '').substring(0, 80);
+    const response = (turn.assistant_response || '').substring(0, 80);
+    const model = turn.model_id || 'unknown';
+    const mode = turn.mode || 'raw';
+    
+    html += `
+      <label class="flex items-start gap-2 p-2 bg-bg border border-outline-dim hover:border-primary/30 cursor-pointer transition-colors">
+        <input type="checkbox" class="accent-secondary mt-0.5" ${checked} onchange="toggleTurn(${tn})" data-turn="${tn}">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1 mb-0.5">
+            <span class="text-[9px] font-mono text-secondary">Turn ${tn}</span>
+            <span class="text-[8px] font-mono text-outline">${model}</span>
+            <span class="text-[8px] font-mono text-accent">${mode}</span>
+          </div>
+          <div class="text-[9px] text-primary truncate">${escapeHtml(prompt)}</div>
+          <div class="text-[9px] text-tertiary/60 truncate">→ ${escapeHtml(response)}</div>
+        </div>
+      </label>
+    `;
+  }
+  
+  html += `</div>`;
+  
+  html += `
+    <div class="mt-3 flex gap-2">
+      <button onclick="resumeWithSelection(false)" class="flex-1 py-1.5 text-[10px] font-mono bg-surface-high border border-secondary/40 text-secondary hover:bg-secondary/10 transition-colors">
+        Resume Full
+      </button>
+      <button onclick="resumeWithSelection(true)" class="flex-1 py-1.5 text-[10px] font-mono bg-secondary text-bg hover:opacity-90 transition-colors font-bold">
+        Resume Selected (${selectedTurns.size})
+      </button>
+    </div>
+  `;
+  
+  detailEl.innerHTML = html;
+}
+
+function toggleTurn(turnNumber) {
+  if (selectedTurns.has(turnNumber)) {
+    selectedTurns.delete(turnNumber);
+  } else {
+    selectedTurns.add(turnNumber);
+  }
+  // Re-render detail to update button count
+  if (selectedConversationId) {
+    fetch(`${API_BASE}/v1/chat/conversations/${selectedConversationId}`)
+      .then(r => r.json())
+      .then(data => renderConversationDetail(data));
+  }
+}
+
+function toggleAllTurns(select) {
+  if (!selectedConversationId) return;
+  fetch(`${API_BASE}/v1/chat/conversations/${selectedConversationId}`)
+    .then(r => r.json())
+    .then(data => {
+      if (select) {
+        data.turns.forEach(t => selectedTurns.add(t.turn_number));
+      } else {
+        selectedTurns.clear();
+      }
+      renderConversationDetail(data);
+    });
+}
+
+async function resumeWithSelection(selectedOnly) {
+  if (!selectedConversationId) return;
+  
+  const turnsToInclude = selectedOnly ? Array.from(selectedTurns) : null;
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/chat/conversations/${selectedConversationId}/resume`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        selected_turns: turnsToInclude,
+        include_tool_trace: true,
+        include_memory_queries: false,
+      })
+    });
+    const data = await res.json();
+    
+    if (data.messages) {
+      // Clear current chat
+      document.getElementById('chat-scroller').innerHTML = `
+        <div class="flex justify-center">
+          <span class="text-[10px] font-mono px-3 py-1 bg-surface-high text-secondary uppercase tracking-[0.2em] border border-secondary/30">Resumed Conversation // ${selectedConversationId}</span>
+        </div>
+      `;
+      
+      // Load selected messages into chat UI and history
+      messageHistory = [];
+      for (const msg of data.messages) {
+        if (msg.role === 'user') {
+          appendMessage('OPERATOR', msg.content, 'user');
+          messageHistory.push({role: 'user', content: msg.content});
+        } else if (msg.role === 'assistant') {
+          appendMessage('PEACOCK', msg.content, 'assistant', {
+            model: msg.model || 'PEACOCK',
+            mode: msg.mode || '',
+          });
+          messageHistory.push({role: 'assistant', content: msg.content});
+        } else if (msg.role === 'system') {
+          // Skip system context messages in UI but keep in history
+          messageHistory.push({role: 'system', content: msg.content});
+        }
+      }
+      
+      // Set the conversation ID so new messages continue this conversation
+      currentConversationId = selectedConversationId;
+      
+      showToast(`Resumed ${data.selected_count} turns from conversation`);
+      closeConversationBrowser();
+    }
+  } catch (e) {
+    showToast('Failed to resume: ' + e.message);
+  }
+}
+
+let currentConversationId = null;
+
+// ── Codebase Vault ───────────────────────────────────────────────────
+
+let activeScanId = null;
+let scanPollInterval = null;
+
+function openCodebaseModal() {
+  document.getElementById('codebase-modal').classList.remove('hidden');
+  loadScanList();
+}
+
+function closeCodebaseModal() {
+  document.getElementById('codebase-modal').classList.add('hidden');
+  if (scanPollInterval) {
+    clearInterval(scanPollInterval);
+    scanPollInterval = null;
+  }
+}
+
+async function startCodebaseScan() {
+  const pathInput = document.getElementById('codebase-path-input');
+  const path = pathInput.value.trim();
+  if (!path) {
+    showToast('Enter a directory path to scan');
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/codebase/scan`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({source_path: path}),
+    });
+    const data = await res.json();
+    if (data.scan_id) {
+      activeScanId = data.scan_id;
+      showToast(`Scan started: ${data.project_name}`);
+      pathInput.value = '';
+      loadScanList();
+      beginScanPolling(data.scan_id);
+    } else {
+      showToast('Scan failed: ' + (data.detail || 'unknown'));
+    }
+  } catch (e) {
+    showToast('Scan error: ' + e.message);
+  }
+}
+
+function beginScanPolling(scanId) {
+  if (scanPollInterval) clearInterval(scanPollInterval);
+  scanPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/v1/codebase/scan/${scanId}`);
+      const data = await res.json();
+      renderScanRow(data);
+      if (data.status === 'completed' || data.status === 'error') {
+        clearInterval(scanPollInterval);
+        scanPollInterval = null;
+        if (data.status === 'completed') {
+          showToast(`Scan complete: ${data.docs_ingested} docs ingested`);
+        } else {
+          showToast(`Scan failed: ${data.error || 'unknown error'}`);
+        }
+      }
+    } catch (e) {
+      // silent poll failure
+    }
+  }, 2000);
+}
+
+async function loadScanList() {
+  try {
+    const res = await fetch(`${API_BASE}/v1/codebase/scans?limit=20`);
+    const data = await res.json();
+    const container = document.getElementById('codebase-scan-list');
+    if (!data.scans || data.scans.length === 0) {
+      container.innerHTML = '<div class="text-outline/40 text-center py-4 text-[10px] font-mono">No scans yet. Enter a path above to analyze a codebase.</div>';
+      return;
+    }
+    container.innerHTML = data.scans.map(s => renderScanRowHTML(s)).join('');
+    // Restart polling for any active scans
+    const active = data.scans.find(s => !['completed','error'].includes(s.status));
+    if (active && !scanPollInterval) {
+      beginScanPolling(active.id);
+    }
+  } catch (e) {
+    document.getElementById('codebase-scan-list').innerHTML = '<div class="text-error text-center py-4 text-[10px] font-mono">Failed to load scans</div>';
+  }
+}
+
+function renderScanRowHTML(s) {
+  const statusColor = s.status === 'completed' ? 'text-success' : s.status === 'error' ? 'text-error' : 'text-accent';
+  const progress = s.progress_pct || 0;
+  return `
+    <div class="p-2 border border-outline-dim bg-surface-low hover:bg-surface-high transition-colors mb-1" data-scan-id="${s.id}">
+      <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-[14px] ${statusColor}">${s.status === 'completed' ? 'check_circle' : s.status === 'error' ? 'error' : 'sync'}</span>
+          <span class="text-[10px] font-mono font-bold text-primary">${s.project_name || 'Unnamed'}</span>
+        </div>
+        <span class="text-[9px] font-mono ${statusColor}">${s.status.toUpperCase()}</span>
+      </div>
+      <div class="text-[9px] font-mono text-outline mb-1 truncate">${s.source_path}</div>
+      <div class="w-full h-1 bg-surface-high mb-1">
+        <div class="h-full bg-accent transition-all" style="width:${progress}%"></div>
+      </div>
+      <div class="flex gap-3 text-[9px] font-mono text-outline">
+        <span>${s.total_files || 0} files</span>
+        <span>${(s.total_lines || 0).toLocaleString()} lines</span>
+        <span>${s.docs_ingested || 0} docs</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderScanRow(data) {
+  const existing = document.querySelector(`[data-scan-id="${data.id}"]`);
+  const html = renderScanRowHTML(data);
+  if (existing) {
+    existing.outerHTML = html;
+  } else {
+    const container = document.getElementById('codebase-scan-list');
+    if (container.children.length === 1 && container.children[0].textContent.includes('No scans yet')) {
+      container.innerHTML = html;
+    } else {
+      container.insertAdjacentHTML('afterbegin', html);
+    }
+  }
+}
+
+async function queryCodebase() {
+  const input = document.getElementById('codebase-query-input');
+  const query = input.value.trim();
+  if (!query) return;
+  
+  const resultsDiv = document.getElementById('codebase-query-results');
+  resultsDiv.innerHTML = '<div class="text-accent text-center py-4 text-[10px] font-mono animate-pulse">Searching codebase vault...</div>';
+  
+  try {
+    const res = await fetch(`${API_BASE}/v1/codebase/query`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({query, n: 5}),
+    });
+    const data = await res.json();
+    
+    const items = [];
+    for (const [coll, hits] of Object.entries(data)) {
+      if (!Array.isArray(hits)) continue;
+      hits.forEach(h => items.push(h));
+    }
+    
+    if (items.length === 0) {
+      resultsDiv.innerHTML = '<div class="text-outline/40 text-center py-4 text-[10px] font-mono">No matches in codebase vault.</div>';
+      return;
+    }
+    
+    resultsDiv.innerHTML = items.map((item, i) => {
+      const meta = item.metadata || {};
+      const doc = (item.document || '').slice(0, 600);
+      const docType = meta.doc_type || 'unknown';
+      const project = meta.project_name || 'Unknown';
+      return `
+        <div class="p-2 border border-outline-dim bg-surface-low mb-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-[9px] font-mono px-1.5 py-0.5 bg-accent/20 text-accent border border-accent/30">${docType}</span>
+            <span class="text-[9px] font-mono text-outline">${project}</span>
+            ${meta.file_path ? `<span class="text-[9px] font-mono text-secondary truncate">${meta.file_path}</span>` : ''}
+          </div>
+          <div class="text-[10px] font-mono text-primary whitespace-pre-wrap">${escapeHtml(doc)}${item.document && item.document.length > 600 ? '...' : ''}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    resultsDiv.innerHTML = '<div class="text-error text-center py-4 text-[10px] font-mono">Query failed: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+init();
+</script>
+
+<!-- Save Project Modal -->
+<div id="save-project-modal" class="hidden fixed inset-0 z-50 bg-bg/80 backdrop-blur-sm flex items-center justify-center">
+  <div class="bg-surface border border-outline-dim w-96 max-w-[95vw] flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between p-3 border-b border-outline-dim bg-surface-low">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">save</span>
+        <span class="text-[10px] font-headline font-bold text-secondary uppercase tracking-wider">Save Project</span>
+      </div>
+      <button onclick="closeSaveProjectModal()" class="p-1 hover:bg-surface-high text-outline hover:text-error transition-colors">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <div class="p-4 space-y-3">
+      <div>
+        <label class="text-[9px] font-mono text-outline uppercase block mb-1">Project Name</label>
+        <input id="save-project-name" type="text" class="w-full bg-bg border border-outline-dim text-sm text-primary px-2 py-1.5 focus:border-secondary outline-none" placeholder="e.g., Peacock Dashboard v2">
+      </div>
+      <div>
+        <label class="text-[9px] font-mono text-outline uppercase block mb-1">Description</label>
+        <textarea id="save-project-desc" class="w-full bg-bg border border-outline-dim text-sm text-primary px-2 py-1.5 focus:border-secondary outline-none h-16 resize-none" placeholder="What is this project about?"></textarea>
+      </div>
+      <div>
+        <label class="text-[9px] font-mono text-outline uppercase block mb-1">Bucket Name</label>
+        <input id="save-project-bucket" type="text" class="w-full bg-bg border border-outline-dim text-sm text-primary px-2 py-1.5 focus:border-secondary outline-none" placeholder="Existing bucket to link">
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button onclick="closeSaveProjectModal()" class="flex-1 py-1.5 text-[10px] font-mono bg-surface-high border border-outline-dim text-outline hover:text-primary transition-colors">Cancel</button>
+        <button onclick="saveProject()" class="flex-1 py-1.5 text-[10px] font-mono bg-secondary text-bg hover:opacity-90 transition-colors font-bold">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Conversation Browser Modal -->
+<div id="conversation-modal" class="hidden fixed inset-0 z-50 bg-bg/80 backdrop-blur-sm flex items-center justify-center">
+  <div class="bg-surface border border-outline-dim w-[800px] max-w-[95vw] h-[600px] max-h-[90vh] flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between p-3 border-b border-outline-dim bg-surface-low">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">history</span>
+        <span class="text-[10px] font-headline font-bold text-secondary uppercase tracking-wider">Conversation History</span>
+      </div>
+      <button onclick="closeConversationBrowser()" class="p-1 hover:bg-surface-high text-outline hover:text-error transition-colors">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+    <div class="flex-1 flex min-h-0">
+      <!-- Left: Conversation list -->
+      <div class="w-64 border-r border-outline-dim flex flex-col">
+        <div class="p-2 border-b border-outline-dim">
+          <div class="text-[9px] font-mono text-outline uppercase">Recent Conversations</div>
+        </div>
+        <div id="conversation-list" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+      </div>
+      <!-- Right: Turn detail -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <div class="p-2 border-b border-outline-dim">
+          <div class="text-[9px] font-mono text-outline uppercase">Select Turns to Carry Over</div>
+        </div>
+        <div id="conversation-detail" class="flex-1 overflow-y-auto p-3">
+          <div class="text-outline/40 text-center py-8 text-[10px] font-mono">Select a conversation to preview turns</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Codebase Vault Modal -->
+<div id="codebase-modal" class="hidden fixed inset-0 z-50 bg-bg/80 backdrop-blur-sm flex items-center justify-center">
+  <div class="bg-surface border border-outline-dim w-[700px] max-w-[95vw] h-[650px] max-h-[90vh] flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between p-3 border-b border-outline-dim bg-surface-low">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-accent">folder_code</span>
+        <span class="text-[10px] font-headline font-bold text-accent uppercase tracking-wider">Codebase Vault</span>
+      </div>
+      <button onclick="closeCodebaseModal()" class="p-1 hover:bg-surface-high text-outline hover:text-error transition-colors">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+
+    <div class="flex-1 flex flex-col min-h-0 overflow-y-auto p-4 space-y-4">
+      <!-- Scan Input -->
+      <div class="border border-outline-dim bg-surface-low p-3">
+        <div class="text-[9px] font-mono text-outline uppercase mb-2">New Codebase Scan</div>
+        <div class="flex gap-2">
+          <input id="codebase-path-input" type="text" placeholder="/path/to/codebase" 
+            class="flex-1 bg-surface-high border border-outline-dim text-[11px] font-mono text-primary px-3 py-2 outline-none focus:border-accent placeholder:text-outline/30">
+          <button onclick="startCodebaseScan()" class="px-4 py-2 bg-accent text-bg text-[10px] font-mono font-bold hover:opacity-90 transition-opacity">
+            SCAN
+          </button>
+        </div>
+        <div class="text-[9px] font-mono text-outline mt-1">Enter an absolute directory path. The engine will discover, analyze, and ingest the entire codebase into vector memory.</div>
+      </div>
+
+      <!-- Recent Scans -->
+      <div class="border border-outline-dim bg-surface-low flex-1 min-h-[200px] flex flex-col">
+        <div class="p-2 border-b border-outline-dim flex items-center justify-between">
+          <div class="text-[9px] font-mono text-outline uppercase">Recent Scans</div>
+          <button onclick="loadScanList()" class="text-[9px] font-mono text-secondary hover:text-primary transition-colors">Refresh</button>
+        </div>
+        <div id="codebase-scan-list" class="flex-1 overflow-y-auto p-2">
+          <div class="text-outline/40 text-center py-4 text-[10px] font-mono">Loading scans...</div>
+        </div>
+      </div>
+
+      <!-- Query -->
+      <div class="border border-outline-dim bg-surface-low p-3">
+        <div class="text-[9px] font-mono text-outline uppercase mb-2">Query Codebase Vault</div>
+        <div class="flex gap-2 mb-2">
+          <input id="codebase-query-input" type="text" placeholder="How does the auth middleware work?" 
+            class="flex-1 bg-surface-high border border-outline-dim text-[11px] font-mono text-primary px-3 py-2 outline-none focus:border-accent placeholder:text-outline/30"
+            onkeydown="if(event.key==='Enter') queryCodebase()">
+          <button onclick="queryCodebase()" class="px-4 py-2 bg-secondary text-bg text-[10px] font-mono font-bold hover:opacity-90 transition-opacity">
+            SEARCH
+          </button>
+        </div>
+        <div id="codebase-query-results" class="max-h-48 overflow-y-auto space-y-1"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -15,7 +15,7 @@ class PeacockClient:
     Example:
         >>> from app.client.sdk import PeacockClient
         >>> client = PeacockClient("http://localhost:3099")
-        >>> response = client.chat("gemini-2.0-flash-lite", "Hello!")
+        >>> response = client.chat("llama-3.3-70b-versatile", "Hello!")
         >>> print(response.content)
     """
     
@@ -90,7 +90,7 @@ class PeacockClient:
         Send a chat request.
         
         Args:
-            model: Model ID (e.g., 'gemini-2.0-flash-lite')
+            model: Model ID (e.g., 'llama-3.3-70b-versatile')
             prompt: The prompt text
             files: Optional list of file paths to include as context
             format: Output format ('text', 'json', or 'pydantic')
@@ -126,13 +126,13 @@ class PeacockClient:
         response = self._request("POST", "/v1/chat", json=payload)
         return ChatResponse(response)
     
-    def quick_chat(self, prompt: str, model: str = "gemini-2.0-flash-lite") -> str:
+    def quick_chat(self, prompt: str, model: str = "llama-3.3-70b-versatile") -> str:
         """
         Quick chat - returns just the content string.
         
         Args:
             prompt: The prompt text
-            model: Model ID (default: gemini-2.0-flash-lite)
+            model: Model ID (default: llama-3.3-70b-versatile)
         
         Returns:
             Response content string
@@ -144,7 +144,7 @@ class PeacockClient:
         self,
         files: List[str],
         prompt: str,
-        model: str = "gemini-2.0-flash-lite"
+        model: str = "llama-3.3-70b-versatile"
     ) -> 'ChatResponse':
         """
         Analyze files with a prompt.
@@ -163,7 +163,7 @@ class PeacockClient:
         self,
         text: str,
         schema: Dict[str, Any],
-        model: str = "gemini-2.0-flash-lite"
+        model: str = "llama-3.3-70b-versatile"
     ) -> Dict[str, Any]:
         """
         Extract structured data using a schema.
@@ -250,7 +250,7 @@ class ChatResponse:
 
 # Convenience functions for quick usage
 
-def chat(prompt: str, model: str = "gemini-2.0-flash-lite", base_url: str = "http://localhost:3099") -> str:
+def chat(prompt: str, model: str = "llama-3.3-70b-versatile", base_url: str = "http://localhost:3099") -> str:
     """
     Quick one-off chat without creating a client.
     
@@ -266,7 +266,7 @@ def chat(prompt: str, model: str = "gemini-2.0-flash-lite", base_url: str = "htt
     return client.quick_chat(prompt, model)
 
 
-def analyze(file_path: str, question: str, model: str = "gemini-2.0-flash-lite") -> str:
+def analyze(file_path: str, question: str, model: str = "llama-3.3-70b-versatile") -> str:
     """
     Quick file analysis without creating a client.
     

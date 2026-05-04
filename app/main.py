@@ -15,18 +15,26 @@ import os
 # Import all route modules
 from app.routes.strike import router as strike_router
 from app.routes.models import router as models_router
+from app.routes.models_register import router as models_register_router
 from app.routes.fs import router as fs_router
 from app.routes.keys import router as keys_router
 from app.routes.striker import router as striker_router
 from app.routes.payload_strike import router as payload_strike_router
 from app.routes.proxy_control import router as proxy_control_router
 from app.routes.profile import router as profile_router
+from app.routes.openai_compat import router as openai_compat_router
 from app.routes.chat import router as chat_router
 from app.routes.docs import router as docs_router
 from app.routes.chat_ui import router as chat_ui_router
 from app.routes.audit import router as audit_router
 from app.routes.telemetry import router as telemetry_router
+from app.routes.neural_link import router as neural_link_router
 from app.routes.refinery import router as refinery_router
+from app.routes.projects import router as projects_router
+from app.routes.codebase import router as codebase_router
+from app.routes.buckets import router as buckets_router
+from app.routes.pipelines import router as pipelines_router
+from app.routes.aviary import router as aviary_router
 
 # Import key pools for health check
 from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool
@@ -62,11 +70,13 @@ from app.routes.chat_api import router as chat_api_router
 from app.routes.tokens import router as tokens_router
 
 # Include all routers
+app.include_router(openai_compat_router, prefix="/v1", tags=["OPENAI_COMPAT"])
 app.include_router(chat_router, prefix="/v1/chat", tags=["CHAT"])
 app.include_router(strike_router, prefix="/v1/strike", tags=["STRIKE (Legacy)"])
 app.include_router(onboarding_router, prefix="/v1/onboarding", tags=["ONBOARDING"])
 app.include_router(dashboard_router, prefix="/v1/dashboard", tags=["DASHBOARD"])
 app.include_router(models_router, prefix="/v1/models", tags=["MODELS"])
+app.include_router(models_register_router, prefix="/v1/models", tags=["MODELS_REGISTER"])
 app.include_router(fs_router, prefix="/v1/fs", tags=["FILESYSTEM"])
 app.include_router(keys_router, prefix="/v1/keys", tags=["KEYS"])
 app.include_router(striker_router, prefix="/v1/striker", tags=["STRIKER"])
@@ -76,7 +86,13 @@ app.include_router(profile_router, prefix="/v1/profile", tags=["PROFILE"])
 app.include_router(docs_router, prefix="/v1/docs", tags=["DOCS"])
 app.include_router(audit_router, prefix="/v1/audit", tags=["AUDIT"])
 app.include_router(telemetry_router, prefix="/v1/telemetry", tags=["TELEMETRY"])
+app.include_router(neural_link_router, prefix="/v1/neural-link", tags=["NEURAL_LINK"])
 app.include_router(refinery_router, prefix="/v1/refinery", tags=["REFINERY"])
+app.include_router(projects_router, prefix="/v1/projects", tags=["PROJECTS"])
+app.include_router(codebase_router, prefix="/v1/codebase", tags=["CODEBASE"])
+app.include_router(buckets_router, prefix="/v1/buckets", tags=["BUCKETS"])
+app.include_router(pipelines_router, prefix="/v1/pipelines", tags=["PIPELINES"])
+app.include_router(aviary_router, prefix="/v1/aviary", tags=["AVIARY"])
 
 # Include WebUI API routes
 app.include_router(models_api_router, prefix="/v1/webui/models", tags=["WEBUI_MODELS"])

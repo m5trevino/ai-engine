@@ -1,0 +1,42 @@
+# ==========================================
+# SYNDICATE ASSET: DESIGN_DNA (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 36
+# ==========================================
+# --- DATA CONTENT START ---
+Enhance table outputs with icons
+Color-coded status indicators
+Create progress bars for long operations
+Add animated spinners for async operations
+Implement "strike execution" visualization
+Add cost tracking graphs (ASCII art)
+Upgrade typography to Geist and Outfit
+Swap font to JetBrains Mono SemiBold (16px base)
+Generate DESIGN.md for Google Stitch UI/UX
+Apply Cyberpunk Minimalist / Tactical Logistics Noir aesthetic
+Use Matrix Green, Voltage Yellow, and Hazard Red palette
+Add Mechanical Snaps kinetics for panel transitions
+Implement Chasing Light Borders for Ingress Zone
+Streaming text animation
+Syntax highlighting for code files
+Mobile Optimizations: Voice input, fullscreen chat, touch-friendly buttons, bottom sheet, floating action button
+Casino Doctrine: Mechanical Click sound effect in HUD
+Casino Doctrine: Full-screen visual shockwave for HAWK phase (Jackpot)
+Cyber-Chrome Tactical Noir aesthetic with metallic gradients and 3D shadows
+Typography: Syncopate/Oswald for headers, JetBrains Mono/Share Tech Mono for data
+CRT scanline effects
+High-Density UI: Compact rows to fit 12-15 items without scrolling
+3D Hardware Render: Brutalist box-shadows and recessed "inset" screen areas
+Code Style: Type hints, Pydantic models, Async/await
+Visual Principles: Physicality & Weight, Kinetic Feedback
+Recessed Data Wells using deep internal shadows
+Chrome Panels using metallic gradients and top-lighting
+3D Pop-Out interactive elements using hard shadows
+Hardware Interaction: physical "click" feel on buttons
+Bioluminescent Overlays for data visualization
+Core Color Palette: Chrome Dark, Cyber Cyan, Cyber Magenta, Hazard Gold
+UI Components: The Bezel, The Well, The Switch
+Visual strike status dashboard with live real-time feeds
+Simulate live metrics (TPS, RPM, Latency)
+Bottom terminal feed for live telemetry
+Footer strip with secure connection status and latency
+# --- DATA CONTENT END ---

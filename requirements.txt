@@ -11,3 +11,6 @@ rich
 questionary
 pyyaml
 tiktoken
+sentencepiece
+protobuf
+google-cloud-aiplatform[tokenization]

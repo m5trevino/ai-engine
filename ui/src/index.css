@@ -1,97 +1,70 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 
 @theme {
-  --font-headline: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  --font-label: "Outfit", ui-sans-serif, system-ui, sans-serif;
-
-  --color-secondary-fixed: #ffe16b;
-  --color-primary-fixed-dim: #aac7ff;
-  --color-error: #ffb4ab;
-  --color-outline: #8e909a;
-  --color-tertiary-fixed-dim: #7ad0ff;
-  --color-on-surface-variant: #c4c6d0;
-  --color-on-secondary-container: #524400;
-  --color-surface-tint: #aac7ff;
-  --color-surface-container-high: #1c2024;
-  --color-surface-bright: #2d3135;
-  --color-outline-variant: #43474f;
-  --color-on-tertiary-fixed: #001e2c;
-  --color-primary-container: #aac7ff;
-  --color-on-secondary-fixed: #221b00;
-  --color-surface-container: #15191d;
-  --color-on-secondary: #3a3000;
-  --color-on-primary-fixed: #001b3e;
-  --color-on-tertiary: #003549;
-  --color-inverse-on-surface: #2d3135;
-  --color-on-tertiary-fixed-variant: #004c69;
-  --color-primary-fixed: #d6e3ff;
-  --color-on-error-container: #ffdad6;
-  --color-surface-container-low: #12161a;
+  --color-background: #101418;
+  --color-surface: #101418;
+  --color-surface-dim: #101418;
+  --color-surface-container: #1c2024;
+  --color-surface-container-low: #181c20;
+  --color-surface-container-high: #262a2f;
+  --color-surface-container-highest: #31353a;
+  --color-surface-bright: #363a3e;
+  --color-surface-variant: #31353a;
   --color-primary: #d6e2ff;
-  --color-on-primary-container: #355283;
-  --color-surface-container-highest: #262a2f;
-  --color-on-primary-fixed-variant: #284777;
-  --color-surface: #0a0e12;
-  --color-background: #0a0e12;
-  --color-on-surface: #f1f4f9;
-  --color-error: #ff5252;
-  --color-error-container: #93000a;
-  --color-surface-dim: #0a0e12;
-  --color-on-background: #f1f4f9;
-  --color-tertiary-fixed: #c3e8ff;
+  --color-primary-container: #aac7ff;
   --color-secondary: #f0cd2d;
-  --color-on-error: #690005;
+  --color-secondary-fixed-dim: #e7c423;
+  --color-secondary-container: #d2b100;
+  --color-tertiary: #c3e7ff;
+  --color-tertiary-container: #a7cbe2;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-outline: #8e909a;
+  --color-outline-variant: #43474f;
+  --color-on-surface: #e0e3e8;
+  --color-on-surface-variant: #c4c6d0;
+  --color-on-background: #e0e3e8;
   --color-on-primary: #0c305f;
-  --color-surface-container-lowest: #080a0d;
-  --color-on-secondary-fixed-variant: #544600;
-  --color-tertiary-container: #79d0ff;
-  --color-surface-variant: #262a2f;
+  --color-on-secondary: #3a3000;
+  --color-on-tertiary: #0a3447;
+  --color-on-error: #690005;
+  --color-cyber-gold: #f9d94a;
+  --color-cyber-gold-dim: #bb9f04;
+
+  --font-headline: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
-@layer base {
-  body {
-    @apply antialiased subpixel-antialiased tracking-tight;
-    text-rendering: optimizeLegibility;
-  }
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; width: 100%; overflow: hidden; }
+
+body {
+  background-color: #101418;
+  color: #e0e3e8;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.gold-glow {
-  box-shadow: 0 0 15px rgba(240, 205, 45, 0.4);
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
 }
 
-.primary-glow {
-  box-shadow: 0 0 15px rgba(214, 226, 255, 0.3);
-}
+.font-headline { font-family: 'Space Grotesk', sans-serif; }
+.font-body { font-family: 'Inter', sans-serif; }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
 
-.kinetic-focus:focus-within {
-  @apply ring-1 ring-primary/40 bg-surface-container/50;
-  box-shadow: inset 0 0 10px rgba(214, 226, 255, 0.05);
-}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #101418; }
+::-webkit-scrollbar-thumb { background: #363a3e; }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-outline-variant/30 rounded-full;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/40;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+@keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+.blink-dot { animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }

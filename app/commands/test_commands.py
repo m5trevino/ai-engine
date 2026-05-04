@@ -27,16 +27,24 @@ def run_test_google(args):
         
         validator = GoogleValidator()
         results = await validator.validate_all(
-            freeze_broken=not args.no_freeze,
-            specific_key=args.key,
-            specific_model=args.model
+            freeze_broken=not getattr(args, 'no_freeze', False),
+            specific_key=getattr(args, 'key', None),
+            specific_model=getattr(args, 'model', None)
         )
         
-        if args.output:
+        if getattr(args, 'output', None):
             import json
-            with open(args.output, 'w') as f:
-                json.dump(results, f, indent=2, default=str)
-            console.print(f"\n[green]💾 Report saved to {args.output}[/green]")
+            existing = {}
+            output_path = Path(args.output)
+            if output_path.exists():
+                try:
+                    existing = json.loads(output_path.read_text())
+                except: pass
+            
+            # Merge results
+            existing["google"] = results
+            output_path.write_text(json.dumps(existing, indent=2, default=str))
+            console.print(f"\n[green]💾 Google report merged into {args.output}[/green]")
     
     try:
         asyncio.run(_run())
@@ -55,16 +63,24 @@ def run_test_groq(args):
         
         validator = GroqValidator()
         results = await validator.validate_all(
-            freeze_broken=not args.no_freeze,
-            specific_key=args.key,
-            specific_model=args.model
+            freeze_broken=not getattr(args, 'no_freeze', False),
+            specific_key=getattr(args, 'key', None),
+            specific_model=getattr(args, 'model', None)
         )
         
-        if args.output:
+        if getattr(args, 'output', None):
             import json
-            with open(args.output, 'w') as f:
-                json.dump(results, f, indent=2, default=str)
-            console.print(f"\n[green]💾 Report saved to {args.output}[/green]")
+            existing = {}
+            output_path = Path(args.output)
+            if output_path.exists():
+                try:
+                    existing = json.loads(output_path.read_text())
+                except: pass
+            
+            # Merge results
+            existing["groq"] = results
+            output_path.write_text(json.dumps(existing, indent=2, default=str))
+            console.print(f"\n[green]💾 Groq report merged into {args.output}[/green]")
     
     try:
         asyncio.run(_run())

@@ -15,19 +15,17 @@ alias push-all='push-engine && push-save'
 alias cycle-repo='echo "🔄 Cycling repos..." && push-all && echo "" && pull-all'
 
 # Engine Control
-alias ai-engine-start='cd /root/peacock-engine && ./ai-engine-start.sh'
-alias ai-engine-stop='kill $(cat /tmp/engine.pid 2>/dev/null) $(cat /tmp/ngrok.pid 2>/dev/null) 2>/dev/null && echo "🛑 Engine stopped" || echo "Already stopped"'
-alias ai-engine-logs='tail -f /root/logs/engine.log'
-alias ai-engine-status='echo "Engine: $(pgrep -f "python -m app.main" > /dev/null && echo "✓ Running" || echo "✗ Stopped")" && echo "Ngrok: $(pgrep -x ngrok > /dev/null && echo "✓ Running" || echo "✗ Stopped")"'
+alias ai-engine-start='cd /root/hetzner/ai-engine && bash ai-engine-start.sh'
+alias ai-engine-stop='kill $(cat /tmp/engine.pid 2>/dev/null) 2>/dev/null && echo "🛑 Engine stopped" || echo "Already stopped"'
+alias ai-engine-status='echo "Engine: $(pgrep -f "python -m app.main" > /dev/null && echo "✓ Running" || echo "✗ Stopped")" && echo "Proxy:  (Caddy Systemd Managed)"'
+alias ai-engine-logs='tail -f /root/hetzner/logs/engine.log'
 
-# Quick links
-alias peacock-api='curl -s http://localhost:3099/health | python3 -m json.tool'
-alias peacock-url='curl -s http://localhost:4040/api/tunnels | grep -o '"'"'"public_url":"https://[^"]*"'"'"' | head -1 | cut -d'"'"'" -f4'
-
-# Ngrok
-alias ngrok-status='cd /root/peacock-engine && ./ngrok-rotator.sh status'
-alias ngrok-next='cd /root/peacock-engine && ./ngrok-rotator.sh next'
-alias ngrok-logs='tail -f /root/logs/ngrok.log'
+# Display help
+echo -e "\033[0;34m🦚 PEACOCK ENGINE ALIASES LOADED\033[0m"
+echo "  ai-engine-start   - Production ignition (engine + portal sync)"
+echo "  ai-engine-stop    - Cease engine operations"
+echo "  ai-engine-status  - Check engine health"
+echo "  ai-engine-logs    - Watch production stream"
 
 # Portal update
 alias update-portal='cd /root/peacock-engine && ./update-peacock-portal.sh && cd /root/save-aichats && git add . && git commit -m "portal update" && git push'

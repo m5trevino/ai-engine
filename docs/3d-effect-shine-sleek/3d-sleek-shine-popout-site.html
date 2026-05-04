@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Syndicate Payload Deck | The LIM Protocol</title>
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "chrome-dark": "#0a0a0c",
+                        "chrome-mid": "#1a1c1e",
+                        "chrome-light": "#8e9196",
+                        "cyber-blue": "#00f3ff",
+                        "cyber-magenta": "#ff0055",
+                        "hazard-gold": "#ffd700",
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                    },
+                    fontFamily: {
+                        "headline": ["Syncopate", "sans-serif"],
+                        "body": ["Share Tech Mono", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
+<style type="text/tailwindcss">
+        :root {
+            --chrome-grad: linear-gradient(135deg, #f0f0f0 0%, #a0a0a0 25%, #404040 50%, #808080 75%, #e0e0e0 100%);
+            --bezel-shadow: 
+                -2px -2px 5px rgba(255,255,255,0.1),
+                3px 3px 8px rgba(0,0,0,0.9),
+                inset 1px 1px 1px rgba(255,255,255,0.2);
+            --pop-out:
+                4px 4px 0px #000,
+                8px 8px 15px rgba(0,0,0,0.8),
+                inset 0 1px 0 rgba(255,255,255,0.4);
+            --neon-blue-glow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.2);
+            --neon-red-glow: 0 0 10px rgba(255, 0, 85, 0.5), 0 0 20px rgba(255, 0, 85, 0.2);
+        }
+        .chrome-surface {
+            background: linear-gradient(145deg, #2a2d30, #131416);
+            border: 1px solid #444;
+            box-shadow: var(--pop-out);
+        }
+        .chrome-panel {
+            background: linear-gradient(180deg, #1e2023 0%, #0c0d0e 100%);
+            border-top: 1px solid rgba(255,255,255,0.15);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            box-shadow: var(--bezel-shadow);
+        }
+        .chrome-text {
+            background: linear-gradient(to bottom, #ffffff 0%, #a0a0a0 50%, #ffffff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .glow-text-blue {
+            color: #00f3ff;
+            text-shadow: var(--neon-blue-glow);
+        }
+        .glow-text-red {
+            color: #ff0055;
+            text-shadow: var(--neon-red-glow);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #000;
+            height: 4px;
+            border: 1px solid #333;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 10px;
+            background: linear-gradient(180deg, #fff 0%, #777 100%);
+            border: 1px solid #000;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 243, 255, 0.02) 50%);
+            background-size: 100% 4px;
+        }
+    </style>
+</head>
+<body class="bg-chrome-dark text-chrome-light font-body overflow-hidden scanline">
+<div class="flex h-screen w-full flex-col p-1 gap-1">
+<header class="flex items-center justify-between px-6 py-4 chrome-surface relative z-50">
+<div class="flex items-center gap-6">
+<div class="size-8 text-cyber-blue drop-shadow-[0_0_8px_rgba(0,243,255,0.8)]">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<h1 class="chrome-text font-headline text-xl font-black tracking-tighter uppercase italic">
+                SYNDICATE PAYLOAD DECK <span class="text-cyber-blue opacity-50 px-2">//</span> THE LIM PROTOCOL
+            </h1>
+</div>
+<div class="flex gap-4">
+<button class="chrome-panel px-4 h-12 flex items-center justify-center hover:brightness-125 transition-all active:translate-y-0.5">
+<span class="material-symbols-outlined text-cyber-blue">settings</span>
+</button>
+<button class="chrome-panel px-4 h-12 flex items-center justify-center hover:brightness-125 transition-all active:translate-y-0.5">
+<span class="material-symbols-outlined text-cyber-blue">terminal</span>
+</button>
+<button class="chrome-panel px-4 h-12 flex items-center justify-center hover:brightness-125 transition-all active:translate-y-0.5 border-r-2 border-cyber-magenta">
+<span class="material-symbols-outlined text-cyber-magenta">monitoring</span>
+</button>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden gap-1 p-1">
+<section class="w-80 flex flex-col chrome-panel">
+<div class="p-5 border-b border-white/5 bg-black/40">
+<p class="text-[10px] font-headline font-bold text-cyber-blue tracking-[0.2em] uppercase">ZONE 01 // DIRECTOR</p>
+<h3 class="font-headline text-white font-bold mt-1 text-sm tracking-tight chrome-text">FILESYSTEM</h3>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-3">
+<div class="group flex items-center justify-between p-4 chrome-surface border-l-4 border-cyber-blue">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-white glow-text-blue">initial_breach.md</span>
+<span class="text-[9px] text-chrome-light uppercase mt-1">2m ago // 4.2kb</span>
+</div>
+<span class="material-symbols-outlined text-cyber-blue text-lg">visibility</span>
+</div>
+<div class="group flex items-center justify-between p-4 bg-black/20 hover:bg-black/40 transition-all border border-white/5 cursor-pointer">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-chrome-light">lateral_movement.md</span>
+<span class="text-[9px] text-zinc-600 uppercase mt-1">15m ago // 1.8kb</span>
+</div>
+<span class="material-symbols-outlined text-zinc-700 text-lg opacity-0 group-hover:opacity-100">visibility</span>
+</div>
+<div class="group flex items-center justify-between p-4 bg-black/20 hover:bg-black/40 transition-all border border-white/5 cursor-pointer">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-chrome-light">exfiltration_v2.md</span>
+<span class="text-[9px] text-zinc-600 uppercase mt-1">1h ago // 12.4kb</span>
+</div>
+<span class="material-symbols-outlined text-zinc-700 text-lg opacity-0 group-hover:opacity-100">visibility</span>
+</div>
+<div class="group flex items-center justify-between p-4 bg-black/20 hover:bg-black/40 transition-all border border-white/5 cursor-pointer">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-chrome-light">persistence_layer.md</span>
+<span class="text-[9px] text-zinc-600 uppercase mt-1">3h ago // 8.1kb</span>
+</div>
+<span class="material-symbols-outlined text-zinc-700 text-lg opacity-0 group-hover:opacity-100">visibility</span>
+</div>
+</div>
+<div class="p-6 bg-black/60 border-t border-white/5">
+<div class="flex justify-between items-center text-[10px] font-bold text-chrome-light tracking-widest">
+<span>STORAGE UTILIZATION</span>
+<span class="text-cyber-blue">88%</span>
+</div>
+<div class="h-2 bg-black mt-3 p-0.5 border border-white/10 shadow-inner">
+<div class="h-full bg-gradient-to-r from-cyber-blue to-blue-800 w-[88%] shadow-[0_0_10px_#00f3ff]"></div>
+</div>
+</div>
+</section>
+<section class="w-96 flex flex-col chrome-panel">
+<div class="p-5 border-b border-white/5 bg-black/40">
+<p class="text-[10px] font-headline font-bold text-cyber-blue tracking-[0.2em] uppercase">ZONE 02 // STAGING</p>
+<h3 class="font-headline text-white font-bold mt-1 text-sm tracking-tight chrome-text">PAYLOAD QUEUE</h3>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<div class="chrome-surface p-5 border-t border-white/20">
+<div class="flex justify-between text-[10px] mb-3">
+<span class="text-cyber-blue font-bold">ID: PL-8821-X</span>
+<span class="px-2 bg-cyber-blue/10 border border-cyber-blue/50 text-cyber-blue">READY</span>
+</div>
+<div class="text-[11px] text-white/90 leading-relaxed font-body tracking-wider italic">
+                        GET /api/v1/auth/provision?scope=admin&amp;nonce=992817... <span class="text-cyber-blue">[ENCRYPTED PAYLOAD ATTACHED]</span>
+</div>
+</div>
+<div class="p-5 border border-white/5 bg-white/5">
+<div class="flex justify-between text-[10px] mb-3">
+<span class="text-zinc-500 font-bold">ID: PL-8822-X</span>
+<span class="text-zinc-600">STAGING</span>
+</div>
+<div class="text-[11px] text-zinc-600 line-clamp-3 leading-relaxed">
+                        POST /api/v1/internal/config?bypass=true&amp;force=1... [PENDING SIGNATURE]
+                    </div>
+</div>
+<div class="p-5 border border-white/5 bg-white/5">
+<div class="flex justify-between text-[10px] mb-3">
+<span class="text-zinc-500 font-bold">ID: PL-8823-X</span>
+<span class="text-zinc-600">STAGING</span>
+</div>
+<div class="text-[11px] text-zinc-600 line-clamp-3 leading-relaxed">
+                        CONNECT tunnel.syndicate.internal:443... [PENDING HANDSHAKE]
+                    </div>
+</div>
+</div>
+</section>
+<section class="flex-1 flex flex-col gap-1">
+<div class="flex-1 p-8 chrome-panel">
+<p class="text-[10px] font-headline font-bold text-cyber-blue tracking-[0.2em] uppercase mb-8">ZONE 03 // LOGIC CORE</p>
+<div class="grid grid-cols-2 gap-16">
+<div class="space-y-10">
+<div class="group">
+<div class="flex justify-between text-[11px] mb-4">
+<span class="chrome-text font-bold uppercase tracking-widest">Temperature</span>
+<span class="glow-text-blue font-bold">0.85</span>
+</div>
+<input class="w-full" type="range"/>
+</div>
+<div class="group">
+<div class="flex justify-between text-[11px] mb-4">
+<span class="chrome-text font-bold uppercase tracking-widest">Top-P Sampling</span>
+<span class="glow-text-blue font-bold">0.92</span>
+</div>
+<input class="w-full" type="range"/>
+</div>
+<div class="group">
+<div class="flex justify-between text-[11px] mb-4">
+<span class="chrome-text font-bold uppercase tracking-widest">Thread Count</span>
+<span class="glow-text-blue font-bold">16</span>
+</div>
+<input class="w-full" type="range"/>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 chrome-surface group cursor-pointer hover:scale-[1.02] transition-transform">
+<span class="text-[11px] font-bold uppercase chrome-text">Batch Processing</span>
+<div class="w-12 h-6 bg-black border border-cyber-blue p-1 flex justify-end shadow-[inset_0_0_5px_#00f3ff]">
+<div class="w-4 h-full bg-cyber-blue"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 chrome-panel group cursor-pointer opacity-60">
+<span class="text-[11px] font-bold uppercase text-zinc-500">Force Overwrite</span>
+<div class="w-12 h-6 bg-black border border-zinc-700 p-1 flex justify-start">
+<div class="w-4 h-full bg-zinc-700"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 chrome-surface group cursor-pointer hover:scale-[1.02] transition-transform">
+<span class="text-[11px] font-bold uppercase chrome-text">JSON Structure Lock</span>
+<div class="w-12 h-6 bg-black border border-cyber-blue p-1 flex justify-end shadow-[inset_0_0_5px_#00f3ff]">
+<div class="w-4 h-full bg-cyber-blue"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 chrome-surface border border-cyber-blue/30 group cursor-pointer hover:scale-[1.02] transition-transform">
+<span class="text-[11px] font-bold uppercase glow-text-blue">Kernel Isolation</span>
+<div class="w-12 h-6 bg-black border border-cyber-blue p-1 flex justify-end shadow-[0_0_15px_rgba(0,243,255,0.5)]">
+<div class="w-4 h-full bg-cyber-blue shadow-[0_0_8px_#00f3ff]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-64 p-8 chrome-panel flex items-center justify-around relative overflow-hidden">
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#00f3ff 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="text-center z-10">
+<div class="relative size-36 mx-auto flex items-center justify-center rounded-full chrome-surface border-4 border-cyber-blue/20">
+<div class="absolute inset-0 border-t-4 border-cyber-blue rounded-full rotate-45 shadow-[0_0_15px_#00f3ff]"></div>
+<div class="flex flex-col">
+<span class="text-3xl font-headline font-black chrome-text">124.5</span>
+<span class="text-[9px] text-cyber-blue uppercase font-bold tracking-widest mt-1">Tokens / Sec</span>
+</div>
+</div>
+<p class="mt-4 text-[10px] font-bold text-chrome-light tracking-[0.3em]">CORE TELEMETRY</p>
+</div>
+<div class="text-center z-10">
+<div class="relative size-36 mx-auto flex items-center justify-center rounded-full chrome-surface border-4 border-cyber-magenta/20">
+<div class="absolute inset-0 border-l-4 border-cyber-magenta rounded-full -rotate-12 shadow-[0_0_15px_#ff0055]"></div>
+<div class="flex flex-col">
+<span class="text-3xl font-headline font-black glow-text-red italic">14.2k</span>
+<span class="text-[9px] text-cyber-magenta uppercase font-bold tracking-widest mt-1">RPM / LOAD</span>
+</div>
+</div>
+<p class="mt-4 text-[10px] font-bold text-chrome-light tracking-[0.3em]">SYSTEM PRESSURE</p>
+</div>
+</div>
+</section>
+<section class="w-80 flex flex-col chrome-panel border-l border-white/10">
+<div class="p-5 border-b border-white/5 bg-black/40">
+<p class="text-[10px] font-headline font-bold text-cyber-blue tracking-[0.2em] uppercase">ZONE 04 // EXECUTION</p>
+<h3 class="font-headline text-white font-bold mt-1 text-sm tracking-tight chrome-text">REAL-TIME STATS</h3>
+</div>
+<div class="p-8 space-y-10 flex-1">
+<div>
+<p class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.15em] mb-2">Total Payloads</p>
+<p class="text-5xl font-headline font-black chrome-text">1,024</p>
+</div>
+<div>
+<p class="text-[10px] text-zinc-500 uppercase font-bold tracking-[0.15em] mb-2">Remaining</p>
+<p class="text-5xl font-headline font-black chrome-text">88</p>
+</div>
+<div>
+<p class="text-[10px] text-cyber-blue uppercase font-bold tracking-[0.15em] mb-2">Avg. Latency</p>
+<p class="text-5xl font-headline font-black glow-text-blue">12<span class="text-xl">ms</span></p>
+</div>
+<div class="pt-8 border-t border-white/10 space-y-8">
+<div class="flex flex-col items-center">
+<span class="text-[9px] font-bold text-chrome-light uppercase tracking-widest mb-4">Master Arm Safety</span>
+<div class="flex w-full h-14 chrome-surface p-1.5 gap-1.5">
+<button class="flex-1 bg-cyber-magenta text-white text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(255,0,85,0.4)]">Disarm</button>
+<button class="flex-1 flex items-center justify-center text-[10px] font-bold text-zinc-600 uppercase">Safe</button>
+</div>
+</div>
+<button class="w-full h-28 chrome-surface bg-gradient-to-br from-hazard-gold to-yellow-600 flex flex-col items-center justify-center gap-2 group hover:brightness-125 transition-all active:translate-y-1 active:shadow-none shadow-[4px_4px_0_#000,0_0_30px_rgba(255,215,0,0.3)] border border-white/30">
+<span class="material-symbols-outlined text-4xl font-black text-black">bolt</span>
+<span class="font-headline font-black text-lg uppercase tracking-[0.2em] text-black">Launch Sequence</span>
+</button>
+</div>
+</div>
+<div class="p-6 bg-black/80 text-[10px] text-cyber-blue/60 font-body leading-relaxed border-t border-white/10">
+<p>LIM_PROTOCOL_V2.0.4_INITIALIZED</p>
+<p>ENCRYPTION: AES-256-GCM ACTIVE</p>
+<p class="glow-text-blue">STATUS: AWAITING COMMAND...</p>
+</div>
+</section>
+</main>
+</div>
+
+</body></html>

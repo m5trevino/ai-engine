@@ -276,7 +276,7 @@ async def chat_stream(request: ChatRequest):
     if not conv_id:
         import uuid
         conv_id = str(uuid.uuid4())[:8]
-        model = request.model or "gemini-2.0-flash-lite"
+        model = request.model or "llama-3.3-70b-versatile"
         conversations[conv_id] = {
             "id": conv_id,
             "title": request.message[:30] + "..." if len(request.message) > 30 else request.message,
@@ -318,7 +318,7 @@ async def chat_non_stream(request: ChatRequest):
     if not conv_id:
         import uuid
         conv_id = str(uuid.uuid4())[:8]
-        model = request.model or "gemini-2.0-flash-lite"
+        model = request.model or "llama-3.3-70b-versatile"
         conversations[conv_id] = {
             "id": conv_id,
             "title": request.message[:30] + "...",

@@ -71,7 +71,7 @@ class GeminiTokenCounter:
         This is the MOST accurate method.
         
         Args:
-            model: Model ID (e.g., "gemini-2.0-flash-lite")
+            model: Model ID (e.g., "models/gemini-2.0-flash-lite-001")
             contents: Text, file, or multimodal content
             
         Returns:
@@ -244,7 +244,7 @@ class GeminiTokenCounter:
 
 
 # Convenience functions for quick use
-def count_tokens_gemini(text: str, model: str = "gemini-2.0-flash-lite", api_key: Optional[str] = None) -> int:
+def count_tokens_gemini(text: str, model: str = "models/gemini-2.0-flash-lite-001", api_key: Optional[str] = None) -> int:
     """Quick function to count tokens using API."""
     counter = GeminiTokenCounter(api_key=api_key)
     return counter.count_tokens_api(model, text)

@@ -8,7 +8,7 @@ import { ui } from './ui_shared';
 
 export const chat = {
     messages: [],
-    currentModel: 'gemini-2.0-flash-lite',
+    currentModel: 'models/gemini-2.0-flash-lite-001',
     
     init() {
         this.setupEventListeners();

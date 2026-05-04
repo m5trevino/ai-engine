@@ -17,7 +17,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         "description": "Unified endpoint for chatting with any model from any gateway. Supports file payloads and multiple output formats.",
         "for_apps": ["CLI tools", "Generic integrations", "New applications"],
         "payload_example": {
-            "model": "gemini-2.0-flash-lite",
+            "model": "models/gemini-2.0-flash-lite-001",
             "prompt": "Your prompt here",
             "files": ["/path/to/file.py"],
             "format": "text",
@@ -25,7 +25,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         },
         "response_example": {
             "content": "Response text",
-            "model": "gemini-2.0-flash-lite",
+            "model": "models/gemini-2.0-flash-lite-001",
             "gateway": "google",
             "key_used": "PEACOCK_MAIN",
             "format": "text",
@@ -41,7 +41,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         "for_apps": ["CLI tools", "Model selectors"],
         "payload_example": None,
         "response_example": {
-            "google": [{"id": "gemini-2.0-flash-lite", "tier": "free", "note": "..."}],
+            "google": [{"id": "models/gemini-2.0-flash-lite-001", "tier": "free", "note": "..."}],
             "groq": [{"id": "llama-3.1-8b-instant", "tier": "free", "note": "..."}]
         }
     },
@@ -52,7 +52,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         "description": "Original strike endpoint. Supports structured output (EagleScaffold). Maintained for backward compatibility.",
         "for_apps": ["Peacock HUD V21", "Legacy clients"],
         "payload_example": {
-            "modelId": "gemini-2.0-flash-lite",
+            "modelId": "models/gemini-2.0-flash-lite-001",
             "prompt": "Your prompt here",
             "temp": 0.7,
             "format_mode": None
@@ -70,7 +70,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         "description": "Multi-file context strikes. Recursively includes files from directories.",
         "for_apps": ["Code review tools", "Batch processors", "Document analyzers"],
         "payload_example": {
-            "modelId": "gemini-2.0-flash-lite",
+            "modelId": "models/gemini-2.0-flash-lite-001",
             "prompt": "Review this code",
             "files": ["/path/to/project"],
             "temp": 0.7
@@ -97,7 +97,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         "payload_example": {
             "files": ["/path/to/file1.md", "/path/to/file2.md"],
             "prompt": "Extract metadata",
-            "modelId": "gemini-2.0-flash-lite",
+            "modelId": "models/gemini-2.0-flash-lite-001",
             "delay": 5,
             "throttle": 1.0
         }
@@ -130,7 +130,7 @@ ENDPOINTS: List[Dict[str, Any]] = [
         "description": "Target a specific API key account for testing or specialized routing.",
         "for_apps": ["Syndicate testing", "Key validation", "Account-specific routing"],
         "payload_example": {
-            "modelId": "gemini-2.0-flash-lite",
+            "modelId": "models/gemini-2.0-flash-lite-001",
             "prompt": "Test prompt",
             "target_account": "PEACOCK_MAIN",
             "temp": 0.7
@@ -270,7 +270,7 @@ async def get_integration_guide():
                 "action": "POST /v1/chat",
                 "description": "Send prompt to any model",
                 "example": {
-                    "model": "gemini-2.0-flash-lite",
+                    "model": "models/gemini-2.0-flash-lite-001",
                     "prompt": "Hello, world!",
                     "format": "text"
                 }
