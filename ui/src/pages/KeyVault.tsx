@@ -53,7 +53,7 @@ const KeyVault: React.FC = () => {
   const gateways = ['google','groq','deepseek','mistral'];
 
   return (
-    <main className="pt-16 pb-8 min-h-screen overflow-y-auto">
+    <main className="pt-4 pb-8 min-h-[calc(100vh-32px)] overflow-y-auto">
       <div className="px-6 py-8 max-w-[1440px] mx-auto">
         <section className="mb-10">
           <div className="flex items-end justify-between mb-6">

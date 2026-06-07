@@ -6,11 +6,16 @@ Multi-gateway AI orchestration engine.
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from contextlib import asynccontextmanager
 import os
+import uuid
+import traceback
+import logging
+import asyncio
 
 # Import all route modules
 from app.routes.strike import router as strike_router
@@ -35,6 +40,12 @@ from app.routes.codebase import router as codebase_router
 from app.routes.buckets import router as buckets_router
 from app.routes.pipelines import router as pipelines_router
 from app.routes.aviary import router as aviary_router
+from app.routes.plans import router as plans_router
+from app.routes.history import router as history_router
+from app.routes.config import router as config_router
+from app.routes.stress import router as stress_router
+from app.routes.admin import router as admin_router
+from app.routes.payloads import router as payloads_router
 
 # Import key pools for health check
 from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool
@@ -44,12 +55,74 @@ from app.utils.formatter import CLIFormatter
 from app.db.database import init_db
 init_db()
 
+
+# Lifespan: startup / shutdown hooks for TB-002 persistence + TB-023a cleanup
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from app.core.rate_limit_tracker import GroqRateTracker
+    from app.core.cleanup import CleanupManager
+
+    GroqRateTracker.load()
+    await GroqRateTracker.start_auto_save(interval=30.0)
+
+    # TB-023a: startup cleanup + background scheduler
+    cleanup_mgr = CleanupManager()
+    cleanup_mgr.run_on_startup()
+    cleanup_task = asyncio.create_task(cleanup_mgr.start_scheduler())
+
+    yield
+
+    await GroqRateTracker.stop_auto_save()
+    await GroqRateTracker.save()
+    cleanup_mgr.stop_scheduler()
+    try:
+        await cleanup_task
+    except asyncio.CancelledError:
+        pass
+
+
 # Create FastAPI app
 app = FastAPI(
     title="PEACOCK ENGINE V3",
     description="Multi-gateway AI orchestration engine with unified API",
-    version="3.0.0"
+    version="3.0.0",
+    lifespan=lifespan
 )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REQUEST ID MIDDLEWARE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.middleware("http")
+async def request_id_middleware(request: Request, call_next):
+    """Attach a unique request ID to every incoming request."""
+    request.state.request_id = str(uuid.uuid4())[:12]
+    response = await call_next(request)
+    response.headers["X-Request-Id"] = request.state.request_id
+    return response
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# GLOBAL EXCEPTION HANDLER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catch all unhandled exceptions and return a clean JSON response."""
+    request_id = getattr(request.state, "request_id", "unknown")
+    logger = logging.getLogger("peacock.errors")
+    logger.error(f"Unhandled exception [req={request_id}]: {exc}")
+    logger.debug(traceback.format_exc())
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "detail": str(exc) if os.getenv("DEBUG") == "1" else "An unexpected error occurred",
+            "request_id": request_id,
+        },
+    )
+
 
 # CORS middleware
 app.add_middleware(
@@ -93,6 +166,12 @@ app.include_router(codebase_router, prefix="/v1/codebase", tags=["CODEBASE"])
 app.include_router(buckets_router, prefix="/v1/buckets", tags=["BUCKETS"])
 app.include_router(pipelines_router, prefix="/v1/pipelines", tags=["PIPELINES"])
 app.include_router(aviary_router, prefix="/v1/aviary", tags=["AVIARY"])
+app.include_router(plans_router, prefix="/v1/plans", tags=["PLANS"])
+app.include_router(history_router, prefix="/v1/history", tags=["HISTORY"])
+app.include_router(config_router, prefix="/v1/config", tags=["CONFIG"])
+app.include_router(stress_router, prefix="/v1/stress", tags=["STRESS"])
+app.include_router(admin_router, prefix="/v1/admin", tags=["ADMIN"])
+app.include_router(payloads_router, prefix="/v1/payloads", tags=["PAYLOADS"])
 
 # Include WebUI API routes
 app.include_router(models_api_router, prefix="/v1/webui/models", tags=["WEBUI_MODELS"])
@@ -102,6 +181,11 @@ app.include_router(tokens_router, prefix="/v1/tokens", tags=["TOKENS"])
 
 # Unified Chat UI Router
 app.include_router(chat_ui_router, prefix="/chat/api", tags=["CHAT_UI"])
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HEALTH + SYSTEM STATUS
+# ═══════════════════════════════════════════════════════════════════════════════
 
 @app.get("/health")
 async def health():
@@ -122,6 +206,49 @@ async def health():
             "generic_endpoint": True
         }
     }
+
+
+@app.get("/v1/admin/system")
+async def system_status():
+    """
+    Comprehensive system health snapshot.
+    Returns queue depth, recent failure rate, and storage health.
+    """
+    from app.core.plan_queue import PlanQueueSingleton, PlanRunnerSingleton
+    from app.core.history import HistoryStore
+    from app.core.cleanup import CleanupManager
+
+    queue_snap = await PlanRunnerSingleton.snapshot()
+    history_stats = HistoryStore.get_stats(days=1)
+    storage = CleanupManager.storage_stats()
+
+    total_storage = storage["total_bytes"]
+    storage_mb = round(total_storage / (1024 * 1024), 2)
+
+    return {
+        "status": "healthy",
+        "queue": {
+            "state": queue_snap.state,
+            "depth": queue_snap.length,
+            "current_plan_id": queue_snap.current_plan_id,
+            "completed_today": history_stats["completed_runs"],
+            "failed_today": history_stats["failed_runs"],
+        },
+        "failure_rate_24h": history_stats["failure_rate"],
+        "storage": {
+            "plans": storage["plans"]["count"],
+            "history": storage["history"]["count"],
+            "stress": storage["stress"]["count"],
+            "total_mb": storage_mb,
+        },
+        "keys": {
+            "groq": len(GroqPool.deck),
+            "google": len(GooglePool.deck),
+            "deepseek": len(DeepSeekPool.deck),
+            "mistral": len(MistralPool.deck),
+        },
+    }
+
 
 # Startup event
 @app.on_event("startup")

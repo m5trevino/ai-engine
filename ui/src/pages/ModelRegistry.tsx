@@ -56,7 +56,7 @@ const ModelRegistry: React.FC = () => {
   }, [data, filter]);
 
   return (
-    <main className="pt-16 pb-8 min-h-screen overflow-y-auto">
+    <main className="pt-4 pb-8 min-h-[calc(100vh-32px)] overflow-y-auto">
       <div className="p-8 max-w-[1600px] mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
           <div className="space-y-2">

@@ -57,48 +57,18 @@ class GeminiTokenCounter(BaseTokenCounter):
         return len(text) // 4
 
 class GroqTokenCounter(BaseTokenCounter):
-    """Groq/OpenAI compatible token counter."""
+    """Groq/OpenAI compatible token counter.
     
-    CONVERSATION_OVERHEAD = 3
-    MESSAGE_OVERHEAD = 3
-
-    def __init__(self):
-        try:
-            import tiktoken
-            self.tiktoken_available = True
-        except ImportError:
-            self.tiktoken_available = False
-            logger.warning("tiktoken not found, using character-based fallback for Groq.")
-
-    @lru_cache(maxsize=128)
-    def _get_encoding(self, model: str):
-        import tiktoken
-        try:
-            return tiktoken.encoding_for_model(model)
-        except KeyError:
-            return tiktoken.get_encoding("cl100k_base")
+    Delegates to app.utils.tiktoken_counter (TB-003) for accurate counting.
+    """
 
     def count_text(self, text: str, model: str = "llama-3.3-70b-versatile") -> int:
-        if not self.tiktoken_available:
-            return len(text) // 4
-        encoding = self._get_encoding(model)
-        return len(encoding.encode(text))
+        from app.core.tiktoken_counter import count_text as _count_text
+        return _count_text(text, model)
 
     def count_messages(self, messages: List[Dict], model: str = "llama-3.3-70b-versatile") -> int:
-        if not messages:
-            return 0
-        
-        if not self.tiktoken_available:
-            return sum(len(str(m)) // 4 for m in messages) + self.CONVERSATION_OVERHEAD
-
-        encoding = self._get_encoding(model)
-        total = 0
-        for msg in messages:
-            total += self.MESSAGE_OVERHEAD
-            for key, value in msg.items():
-                total += len(encoding.encode(str(value)))
-        
-        return total + self.CONVERSATION_OVERHEAD
+        from app.core.tiktoken_counter import count_messages as _count_messages
+        return _count_messages(messages, model)
 
 # ====================== UNIFIED COORDINATOR ======================
 

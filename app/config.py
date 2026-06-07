@@ -161,69 +161,87 @@ MODEL_REGISTRY: List[ModelConfig] = [
         note="Multimodal Contextual Embedding", context_window=8192
     ),
 
-    # GROQ - FRONT-LINE OSS FLEET
+    # GROQ — RATE LIMITS FROM OFFICIAL DOCS (Developer Plan Base Limits)
+    # Source: console.groq.com/docs/rate-limits | Audited 2026-06-04
     ModelConfig(
         id="meta-llama/llama-4-scout-17b-16e-instruct", gateway="groq", tier="free",
-        note="Llama 4 Frontier Scout (MoE 16e)", rpm=2000, rpd=10000, tpm=1000000,
+        note="Llama 4 Frontier Scout (MoE 16e)", rpm=30, rpd=1000, tpm=30000, tpd=500000,
         context_window=131072
     ),
     ModelConfig(
         id="openai/gpt-oss-120b", gateway="groq", tier="expensive",
-        note="GPT-OSS flagship reasoning", rpm=300, rpd=5000, tpm=500000,
+        note="GPT-OSS flagship reasoning", rpm=30, rpd=1000, tpm=8000, tpd=200000,
         context_window=131072
     ),
     ModelConfig(
         id="openai/gpt-oss-20b", gateway="groq", tier="cheap",
-        note="GPT-OSS high-speed variant", rpm=1000, rpd=10000, tpm=1000000,
+        note="GPT-OSS high-speed variant", rpm=30, rpd=1000, tpm=8000, tpd=200000,
         context_window=131072
     ),
     ModelConfig(
         id="llama-3.3-70b-versatile", gateway="groq", tier="expensive",
-        note="Llama 3.3 70B Versatile", rpm=1000, rpd=10000, tpm=1000000,
+        note="Llama 3.3 70B Versatile", rpm=30, rpd=1000, tpm=12000, tpd=100000,
         context_window=131072
     ),
     ModelConfig(
         id="llama-3.1-8b-instant", gateway="groq", tier="free",
-        note="Llama 3.1 8B Instant", rpm=5000, rpd=100000, tpm=1000000,
+        note="Llama 3.1 8B Instant", rpm=30, rpd=14400, tpm=6000, tpd=500000,
         context_window=131072
     ),
-    # NOTE: Removed legacy/discontinued Groq models: llama3-70b-8192, llama3-8b-8192, mixtral-8x7b-32768, gemma2-9b-it
     ModelConfig(
         id="qwen/qwen3-32b", gateway="groq", tier="cheap",
-        note="Qwen 3 32B High-Logic", rpm=500, rpd=5000, tpm=500000,
+        note="Qwen 3 32B High-Logic", rpm=60, rpd=1000, tpm=6000, tpd=500000,
         context_window=131072
     ),
     ModelConfig(
         id="groq/compound", gateway="groq", tier="expensive", note="Groq Compound Reasoner",
-        context_window=131072
+        rpm=30, rpd=250, tpm=70000, context_window=131072
     ),
     ModelConfig(
         id="groq/compound-mini", gateway="groq", tier="expensive", note="Groq Compound Mini Reasoner",
-        context_window=131072
+        rpm=30, rpd=250, tpm=70000, context_window=131072
     ),
     ModelConfig(
         id="openai/gpt-oss-safeguard-20b", gateway="groq", tier="cheap", note="GPT-OSS Safeguard 20B",
-        context_window=131072
-    ),
-    ModelConfig(
-        id="moonshotai/kimi-k2-instruct", gateway="groq", tier="expensive", note="Moonshot Kimi K2 Instruct",
-        status="deprecated"
-    ),
-    ModelConfig(
-        id="moonshotai/kimi-k2-instruct-0905", gateway="groq", tier="expensive", note="Moonshot Kimi K2 Instruct 0905",
-        status="deprecated"
+        rpm=30, rpd=1000, tpm=8000, tpd=200000, context_window=131072
     ),
     ModelConfig(
         id="meta-llama/llama-prompt-guard-2-86m", gateway="groq", tier="free", note="Llama Prompt Guard 2 86M",
-        context_window=512
+        rpm=30, rpd=14400, tpm=15000, tpd=500000, context_window=512
     ),
     ModelConfig(
         id="meta-llama/llama-prompt-guard-2-22m", gateway="groq", tier="free", note="Llama Prompt Guard 2 22M",
-        context_window=512
+        rpm=30, rpd=14400, tpm=15000, tpd=500000, context_window=512
     ),
     ModelConfig(
         id="allam-2-7b", gateway="groq", tier="free", note="Allam 2 7B",
-        context_window=4096
+        rpm=30, rpd=7000, tpm=6000, tpd=500000, context_window=4096
+    ),
+    ModelConfig(
+        id="canopylabs/orpheus-arabic-saudi", gateway="groq", tier="free", note="Orpheus Arabic Saudi",
+        rpm=10, rpd=100, tpm=1200, tpd=3600, context_window=4000
+    ),
+    ModelConfig(
+        id="canopylabs/orpheus-v1-english", gateway="groq", tier="free", note="Orpheus v1 English",
+        rpm=10, rpd=100, tpm=1200, tpd=3600, context_window=4000
+    ),
+    # Whisper audio models — TPM/TPD not applicable; ASH/ASD limits apply
+    ModelConfig(
+        id="whisper-large-v3", gateway="groq", tier="cheap", note="Whisper Large v3",
+        rpm=20, rpd=2000, context_window=448
+    ),
+    ModelConfig(
+        id="whisper-large-v3-turbo", gateway="groq", tier="cheap", note="Whisper Large v3 Turbo",
+        rpm=20, rpd=2000, context_window=448
+    ),
+    # Dead / Deprecated (404 or 400 from live audit 2026-06-04)
+    ModelConfig(
+        id="moonshotai/kimi-k2-instruct", gateway="groq", tier="expensive", note="Moonshot Kimi K2 Instruct",
+        status="deprecated", context_window=131072
+    ),
+    ModelConfig(
+        id="moonshotai/kimi-k2-instruct-0905", gateway="groq", tier="expensive", note="Moonshot Kimi K2 Instruct 0905",
+        status="deprecated", context_window=131072
     ),
 
     # DEEPSEEK & MISTRAL

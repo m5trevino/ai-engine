@@ -19,6 +19,7 @@ from pydantic_ai.providers.groq import GroqProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.providers.google import GoogleProvider
 from app.core.key_manager import KeyAsset, KeyPool, GroqPool, GooglePool, DeepSeekPool, MistralPool
+from app.core.rate_limit_tracker import GroqRateTracker
 from app.utils.formatter import CLIFormatter, Colors
 from app.utils.logger import HighSignalLogger
 from app.config import MODEL_REGISTRY
@@ -268,8 +269,9 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
     if model_config and model_config.status == "frozen":
         raise Exception(f"Model {model_id} is currently FROZEN.")
 
-    # 1. Proactive Throttle
-    was_throttled = await ThrottleController.wait_if_needed(gateway, model_id)
+    # 1. Proactive Throttle (Groq uses TB-001 tracker per-key instead)
+    if gateway != "groq":
+        was_throttled = await ThrottleController.wait_if_needed(gateway, model_id)
 
     # 2. Execution Loop (Retry on 429)
     max_retries = 3
@@ -306,6 +308,22 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
                 pool = GroqPool
                 if not key_override:
                     asset = pool.get_next()
+                # --- TB-004 PRE-FLIGHT GUARD ---
+                from app.core.pre_flight_guard import check_request_safety
+                candidate_keys = [a.account for a in pool.deck]
+                preflight = await check_request_safety(
+                    request_data={"messages": [{"role": "user", "content": prompt}], "max_tokens": gen_params.get("max_tokens")},
+                    model_id=model_id,
+                    key_label=asset.account,
+                    candidate_keys=candidate_keys,
+                )
+                if not preflight.allowed:
+                    pool.mark_cooldown(asset.account, duration=60)
+                    if os.getenv("PEACOCK_VERBOSE") == "true":
+                        print(f"[!] Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
+                    continue
+                await GroqRateTracker.begin_request(asset.account, model_id)
+                # --------------------------------
                 provider = GroqProvider(api_key=asset.key, http_client=active_client)
                 model = GroqModel(model_id, provider=provider)
             elif gateway == "deepseek":
@@ -362,13 +380,22 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
             
             cost = _calculate_cost(model_id, usage)
             KeyPool.record_usage(gateway, asset.account, usage)
-            RateLimitMeter.update(gateway, usage['total_tokens'])
+            
+            # --- TB-001 TELEMETRY ---
+            if gateway == "groq":
+                await GroqRateTracker.consume(asset.account, model_id, usage['total_tokens'])
+                await GroqRateTracker.end_request(asset.account, model_id)
+                t = GroqRateTracker.get_telemetry(asset.account, model_id)
+                meter = f"Tracker: [RPM:{t.rpm_pct}% | TPM:{t.tpm_pct}% | TPS:{t.tps} | Active:{t.active_requests}]"
+            else:
+                RateLimitMeter.update(gateway, usage['total_tokens'])
+                meter = RateLimitMeter.get_meter(gateway, model_id)
+            # ------------------------
             
             # Use requested temperature for logging
             active_temp = model_settings.get("temperature", 0.7)
             tag = HighSignalLogger.log_strike(gateway, model_id, prompt, str(content), usage, active_temp, cost, is_success=True, is_manual=is_manual)
             duration = time.time() - start_time
-            meter = RateLimitMeter.get_meter(gateway, model_id)
             CLIFormatter.strike_success(gateway, asset.account, model_id, usage['prompt_tokens'], usage['completion_tokens'], duration, format_mode, temp=active_temp, tag=tag, cost=cost, meter=meter)
             
             return {
@@ -385,6 +412,9 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
             
             # Check for 429 (Rate Limit)
             if "429" in error_str or "rate limit" in error_str:
+                if gateway == "groq" and asset:
+                    await GroqRateTracker.record_429(asset.account, model_id)
+                    await GroqRateTracker.end_request(asset.account, model_id)
                 if pool and asset:
                     pool.mark_cooldown(asset.account, duration=60)
                     if os.getenv("PEACOCK_VERBOSE") == "true":
@@ -419,8 +449,9 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
     if model_config and model_config.status == "frozen":
         raise Exception(f"Model {model_id} is currently FROZEN.")
 
-    # Throttling
-    await ThrottleController.wait_if_needed(gateway, model_id)
+    # Throttling (Groq uses TB-001 tracker)
+    if gateway != "groq":
+        await ThrottleController.wait_if_needed(gateway, model_id)
 
     model_settings = {
         "temperature": gen_params.get("temperature", 0.7),
@@ -434,7 +465,7 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
     }
     model_settings = {k: v for k, v in model_settings.items() if v is not None}
 
-    # odluce which HTTP client to use
+    # Decide which HTTP client to use
     active_client = http_client
     temp_client = None
     if timeout is not None:
@@ -453,6 +484,20 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
         model = None
         if gateway == "groq":
             asset = GroqPool.get_next()
+            # --- TB-004 PRE-FLIGHT GUARD (streaming) ---
+            from app.core.pre_flight_guard import check_request_safety
+            streaming_candidates = [a.account for a in GroqPool.deck]
+            preflight = await check_request_safety(
+                request_data={"messages": [{"role": "user", "content": prompt}]},
+                model_id=model_id,
+                key_label=asset.account,
+                candidate_keys=streaming_candidates,
+            )
+            if not preflight.allowed:
+                GroqPool.mark_cooldown(asset.account, duration=60)
+                raise Exception(f"Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
+            await GroqRateTracker.begin_request(asset.account, model_id)
+            # -------------------------------------------
             provider = GroqProvider(api_key=asset.key, http_client=active_client)
             model = GroqModel(model_id, provider=provider)
         elif gateway == "google":
@@ -483,13 +528,18 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
             }
             # Gemini fix
             if gateway == "google" and usage["total_tokens"] == 0:
-                # Note: For stream, usage might be available at the end of the stream
-                # We'll try to extract from the last message or metadata if possible
                 pass
             
             cost = _calculate_cost(model_id, usage)
             KeyPool.record_usage(gateway, asset.account, usage)
-            RateLimitMeter.update(gateway, usage['total_tokens'])
+            
+            # --- TB-001 TELEMETRY (streaming) ---
+            if gateway == "groq":
+                await GroqRateTracker.consume(asset.account, model_id, usage['total_tokens'])
+                await GroqRateTracker.end_request(asset.account, model_id)
+            else:
+                RateLimitMeter.update(gateway, usage['total_tokens'])
+            # ------------------------------------
             
             active_temp = model_settings.get("temperature", 0.7)
             tag = HighSignalLogger.log_strike(gateway, model_id, prompt, "STREAMS_COMPLETE", usage, active_temp, cost, is_success=True, is_manual=is_manual)
@@ -507,6 +557,11 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
             }
 
     except Exception as e:
+        if gateway == "groq" and asset:
+            error_str = str(e).lower()
+            if "429" in error_str or "rate limit" in error_str:
+                await GroqRateTracker.record_429(asset.account, model_id)
+            await GroqRateTracker.end_request(asset.account, model_id)
         yield {"type": "error", "content": str(e)}
         raise e
     finally:
@@ -575,6 +630,21 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
     }
     model_settings = {k: v for k, v in model_settings.items() if v is not None}
 
+    # --- TB-004 PRECISION PRE-FLIGHT ---
+    if gateway == "groq":
+        from app.core.pre_flight_guard import check_request_safety
+        precision_candidates = [a.account for a in pool.deck]
+        preflight = await check_request_safety(
+            request_data={"messages": [{"role": "user", "content": prompt}]},
+            model_id=model_id,
+            key_label=asset.account,
+            candidate_keys=precision_candidates,
+        )
+        if not preflight.allowed:
+            raise Exception(f"Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
+        await GroqRateTracker.begin_request(asset.account, model_id)
+    # -------------------------------------
+
     agent = Agent(model, output_type=str)
     try:
         result = await agent.run(prompt, model_settings=model_settings)
@@ -595,6 +665,12 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
         cost = _calculate_cost(model_id, usage)
         KeyPool.record_usage(gateway, asset.account, usage)
         
+        # --- TB-001 TELEMETRY ---
+        if gateway == "groq":
+            await GroqRateTracker.consume(asset.account, model_id, usage['total_tokens'])
+            await GroqRateTracker.end_request(asset.account, model_id)
+        # ------------------------
+        
         active_temp = model_settings.get("temperature", 0.7)
         tag = HighSignalLogger.log_strike(gateway, model_id, prompt, result.output, usage, active_temp, cost, is_success=True, is_manual=is_manual)
         duration = time.time() - start_time
@@ -608,6 +684,11 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
             "cost": cost
         }
     except Exception as e:
+        if gateway == "groq":
+            error_str = str(e).lower()
+            if "429" in error_str or "rate limit" in error_str:
+                await GroqRateTracker.record_429(asset.account, model_id)
+            await GroqRateTracker.end_request(asset.account, model_id)
         active_err_temp = model_settings.get("temperature", 0.7)
         tag = HighSignalLogger.log_strike(gateway, model_id, prompt, "", {"prompt_tokens":0, "completion_tokens":0, "total_tokens":0}, active_err_temp, 0.0, is_success=False, is_manual=is_manual, error=str(e))
         CLIFormatter.strike_error(gateway, asset.account, str(e), model_id, temp=active_err_temp, tag=tag)

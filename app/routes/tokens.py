@@ -27,6 +27,23 @@ class TokenCountResponse(BaseModel):
     cost_est: float
     limit_tpm: Optional[int]
 
+class VertexTokenRequest(BaseModel):
+    text: str
+
+class VertexTokenResponse(BaseModel):
+    tokens: int
+    model: str
+    method: str
+
+class VertexBatchRequest(BaseModel):
+    texts: List[str]
+
+class VertexBatchResponse(BaseModel):
+    tokens: List[int]
+    total: int
+    model: str
+    method: str
+
 @router.post("/count")
 async def count_tokens(request: TokenCountRequest):
     """
@@ -78,3 +95,39 @@ async def list_models_with_token_info():
             for m in MODEL_REGISTRY if m.status != "frozen"
         ]
     }
+
+@router.post("/count-vertex")
+async def count_tokens_vertex(request: VertexTokenRequest):
+    """Accurate token count using Vertex AI tokenizer (gemini-1.5-pro-002)."""
+    try:
+        from vertexai.preview import tokenization
+        tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-pro-002")
+        result = tokenizer.count_tokens(request.text)
+        return VertexTokenResponse(
+            tokens=result.total_tokens,
+            model="gemini-1.5-pro-002",
+            method="vertex"
+        )
+    except Exception as e:
+        CLIFormatter.error(f"Vertex token count failure: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/count-vertex-batch")
+async def count_tokens_vertex_batch(request: VertexBatchRequest):
+    """Batch accurate token count using Vertex AI tokenizer."""
+    try:
+        from vertexai.preview import tokenization
+        tokenizer = tokenization.get_tokenizer_for_model("gemini-1.5-pro-002")
+        results = []
+        for text in request.texts:
+            r = tokenizer.count_tokens(text)
+            results.append(r.total_tokens)
+        return VertexBatchResponse(
+            tokens=results,
+            total=sum(results),
+            model="gemini-1.5-pro-002",
+            method="vertex"
+        )
+    except Exception as e:
+        CLIFormatter.error(f"Vertex batch token count failure: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

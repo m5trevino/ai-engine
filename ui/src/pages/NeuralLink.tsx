@@ -84,7 +84,7 @@ const NeuralLink: React.FC = () => {
   };
 
   return (
-    <main className="pt-16 pb-8 h-[calc(100vh-64px-32px)] flex overflow-hidden">
+    <main className="pt-4 pb-8 h-[calc(100vh-32px)] flex overflow-hidden">
       {/* Left */}
       <aside className="w-64 bg-surface-container-low border-r border-outline-variant/10 flex flex-col shrink-0">
         <div className="p-4">

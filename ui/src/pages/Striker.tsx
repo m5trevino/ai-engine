@@ -44,7 +44,7 @@ const Striker: React.FC = () => {
   const missionRunning = status?.isRunning;
 
   return (
-    <main className="pt-16 pb-8 h-[calc(100vh-64px-32px)] flex flex-col p-4 gap-4 overflow-hidden">
+    <main className="pt-4 pb-8 h-[calc(100vh-32px)] flex flex-col p-4 gap-4 overflow-hidden">
       {/* Radar */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-fit">
         <div className="lg:col-span-8 bg-surface-container-low p-4 flex flex-col gap-4">

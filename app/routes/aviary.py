@@ -26,8 +26,9 @@ UNIFIED_API = "http://localhost:8000"
 
 router = APIRouter()
 
-# In-memory store for aviary runs
-_AVIARY_JOBS: Dict[str, AviaryResult] = {}
+# In-memory store for aviary runs — shared with core module
+from app.core.aviary import _AVIARY_JOBS as _CORE_JOBS
+_AVIARY_JOBS: Dict[str, AviaryResult] = _CORE_JOBS
 
 
 class AviaryRequest(BaseModel):
@@ -39,6 +40,7 @@ class AviaryRequest(BaseModel):
     model_id: Optional[str] = Field(default=None, description="Model ID for SPARK phase (e.g., 'models/gemini-2.5-pro' or 'llama-3.3-70b-versatile')")
     gateway: Optional[str] = Field(default=None, description="Gateway for SPARK phase ('google' or 'groq')")
     bucket_metadata: Optional[List[Dict[str, Any]]] = Field(default=None, description="Structured bucket metadata for SPARK (doc_id, collection, metadata)")
+    halt_after_falcon: bool = Field(default=False, description="Halt pipeline after Falcon for testing Spark→Falcon handoff")
 
 
 @router.post("/compile")
@@ -56,6 +58,7 @@ async def start_compile(req: AviaryRequest, background_tasks: BackgroundTasks):
             model_id=req.model_id,
             gateway=req.gateway,
             bucket_metadata=req.bucket_metadata,
+            halt_after_falcon=req.halt_after_falcon,
         )
         _AVIARY_JOBS[run_id] = result
     
@@ -81,6 +84,7 @@ async def stream_compile(req: AviaryRequest):
             model_id=req.model_id,
             gateway=req.gateway,
             bucket_metadata=req.bucket_metadata,
+            halt_after_falcon=req.halt_after_falcon,
         ):
             yield event
     

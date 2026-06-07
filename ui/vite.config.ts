@@ -24,6 +24,13 @@ export default defineConfig(({mode}) => {
     build: {
       outDir: '../app/static',
       emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+          },
+        },
+      },
     },
   };
 });

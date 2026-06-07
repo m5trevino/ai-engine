@@ -89,3 +89,17 @@ skillz.save-aichats.com {
         }
     }
 }
+
+# 6. RIKER (Peacock Engine Control Deck)
+riker.save-aichats.com {
+    import security
+    encode gzip zstd
+    reverse_proxy localhost:3099
+    
+    log {
+        output file /var/log/caddy/riker-access.log {
+            roll_size 10MB
+            roll_keep 5
+        }
+    }
+}

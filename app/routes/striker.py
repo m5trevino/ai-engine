@@ -12,6 +12,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from collections import defaultdict
 from app.core.striker import execute_strike
+from app.core.rate_limit_tracker import GroqRateTracker, GovernorSnapshot
 from app.config import MODEL_REGISTRY
 
 router = APIRouter()
@@ -176,6 +177,28 @@ async def list_striker_files(base_dir: Optional[str] = "/home/flintx/chat_logs")
 @router.get("/status")
 async def get_striker_status():
     return state.telemetry
+
+@router.get("/governor", response_model=GovernorSnapshot)
+async def get_governor():
+    """
+    Rev Limiter / Governor panel data.
+    Real-time TPS, RPM, TPM, active requests, pool health for all Groq keys.
+    """
+    # Collect all Groq key labels from the pool
+    from app.core.key_manager import GroqPool
+    key_labels = [a.account for a in GroqPool.deck]
+    return GroqRateTracker.get_snapshot(key_labels=key_labels)
+
+@router.get("/governor/{key_label}")
+async def get_key_governor(key_label: str, model_id: Optional[str] = None):
+    """
+    Telemetry for a single key. If model_id omitted, returns first known model.
+    """
+    models = [model_id] if model_id else None
+    snap = GroqRateTracker.get_snapshot(key_labels=[key_label], model_ids=models)
+    if not snap.keys:
+        raise HTTPException(status_code=404, detail="Key telemetry not found")
+    return snap.keys[0]
 
 @router.post("/execute")
 async def execute_striker(req: StrikerRequest, background_tasks: BackgroundTasks):

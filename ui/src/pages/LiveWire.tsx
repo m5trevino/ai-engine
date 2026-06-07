@@ -50,7 +50,7 @@ const LiveWire: React.FC = () => {
   }, [batchId]);
 
   return (
-    <main className="pt-16 pb-8 h-[calc(100vh-64px-32px)] flex flex-col md:flex-row overflow-hidden">
+    <main className="pt-4 pb-8 h-[calc(100vh-32px)] flex flex-col md:flex-row overflow-hidden">
       {/* Launcher */}
       <section className="w-full md:w-[420px] bg-surface-container-low border-r border-outline-variant/10 p-6 overflow-y-auto">
         <div className="flex items-center gap-3 mb-8">

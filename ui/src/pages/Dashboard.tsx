@@ -1,40 +1,124 @@
 import React from 'react';
-import { DashboardAPI, HealthResponse, TelemetryPayload, DashboardSettings, HistoryEntry } from '../lib/api';
+import { DashboardAPI, AdminAPI, HealthResponse, TelemetryPayload, DashboardSettings, HistoryEntry, StorageStats, SystemStatus } from '../lib/api';
 
 const Dashboard: React.FC = () => {
   const [health, setHealth] = React.useState<HealthResponse | null>(null);
   const [telemetry, setTelemetry] = React.useState<TelemetryPayload | null>(null);
   const [settings, setSettings] = React.useState<DashboardSettings | null>(null);
   const [history, setHistory] = React.useState<HistoryEntry[]>([]);
+  const [storage, setStorage] = React.useState<StorageStats | null>(null);
+  const [systemStatus, setSystemStatus] = React.useState<SystemStatus | null>(null);
   const [perfMode, setPerfMode] = React.useState<'stealth' | 'balanced' | 'apex'>('balanced');
+  const [settingsLoading, setSettingsLoading] = React.useState<string | null>(null);
+  const [perfLoading, setPerfLoading] = React.useState(false);
 
   React.useEffect(() => {
     DashboardAPI.getHealth().then(setHealth);
     DashboardAPI.getSettings().then(setSettings);
     DashboardAPI.getHistory(20).then(setHistory);
+    AdminAPI.getStorage().then(setStorage);
+    AdminAPI.getSystemStatus().then(setSystemStatus);
     const es = DashboardAPI.streamTelemetry((d) => setTelemetry(d));
     const iv = setInterval(() => {
       DashboardAPI.getHealth().then(setHealth);
       DashboardAPI.getHistory(20).then(setHistory);
+      AdminAPI.getStorage().then(setStorage);
+      AdminAPI.getSystemStatus().then(setSystemStatus);
     }, 5000);
     return () => { es.close(); clearInterval(iv); };
   }, []);
 
   const toggle = async (key: 'tunnel' | 'stealth' | 'success_logs' | 'fail_logs') => {
-    const res = await DashboardAPI.toggleSetting(key);
-    setSettings((s) => s ? { ...s, [key === 'tunnel' ? 'tunnel_mode' : key === 'stealth' ? 'quiet_mode' : key === 'success_logs' ? 'success_logging' : 'failed_logging']: res.new_state } : s);
+    setSettingsLoading(key);
+    try {
+      const res = await DashboardAPI.toggleSetting(key);
+      setSettings((s) => s ? { ...s, [key === 'tunnel' ? 'tunnel_mode' : key === 'stealth' ? 'quiet_mode' : key === 'success_logs' ? 'success_logging' : 'failed_logging']: res.new_state } : s);
+    } finally {
+      setSettingsLoading(null);
+    }
   };
 
   const setPerf = async (mode: 'stealth' | 'balanced' | 'apex') => {
-    await DashboardAPI.setPerformanceMode(mode);
-    setPerfMode(mode);
+    setPerfLoading(true);
+    try {
+      await DashboardAPI.setPerformanceMode(mode);
+      setPerfMode(mode);
+    } finally {
+      setPerfLoading(false);
+    }
   };
 
   const integrity = health?.integrity || { groq: 0, google: 0, deepseek: 0, mistral: 0 };
 
+  const fmtBytes = (b: number) => {
+    if (b > 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+    if (b > 1024) return `${(b / 1024).toFixed(1)} KB`;
+    return `${b} B`;
+  };
+
+  const fmtAge = (mtime: number | null) => {
+    if (!mtime) return '—';
+    const days = (Date.now() / 1000 - mtime) / 86400;
+    return `${days.toFixed(0)}d`;
+  };
+
+  const healthColor = (rate: number) => {
+    if (rate > 20) return 'text-error';
+    if (rate > 10) return 'text-amber-400';
+    return 'text-emerald-400';
+  };
+
   return (
-    <main className="pt-16 pb-8 min-h-screen overflow-y-auto">
-      <div className="p-6 pb-12 max-w-[1600px] mx-auto">
+    <main className="pt-4 pb-8 min-h-[calc(100vh-32px)] overflow-y-auto">
+      <div className="p-6 pb-12 max-w-[1600px] mx-auto space-y-1">
+        {/* System Health Card */}
+        {systemStatus && (
+          <section className="bg-surface-container-low p-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+            <div className="flex flex-col justify-between aspect-square bg-surface-container p-3">
+              <span className="font-headline text-[10px] text-outline uppercase">QUEUE</span>
+              <div className="font-mono text-xl font-bold text-on-surface">{systemStatus.queue.depth}</div>
+              <span className="font-mono text-[8px] text-outline uppercase">{systemStatus.queue.state}</span>
+            </div>
+            <div className="flex flex-col justify-between aspect-square bg-surface-container p-3">
+              <span className="font-headline text-[10px] text-outline uppercase">FAIL RATE 24H</span>
+              <div className={`font-mono text-xl font-bold ${healthColor(systemStatus.failure_rate_24h)}`}>{systemStatus.failure_rate_24h}%</div>
+              <span className="font-mono text-[8px] text-outline">{systemStatus.queue.failed_today} FAILED</span>
+            </div>
+            <div className="flex flex-col justify-between aspect-square bg-surface-container p-3">
+              <span className="font-headline text-[10px] text-outline uppercase">COMPLETED 24H</span>
+              <div className="font-mono text-xl font-bold text-emerald-400">{systemStatus.queue.completed_today}</div>
+              <span className="font-mono text-[8px] text-outline">RUNS</span>
+            </div>
+            <div className={`flex flex-col justify-between aspect-square p-3 ${systemStatus.storage_status==='critical'?'bg-error/10 border border-error/30':systemStatus.storage_status==='warning'?'bg-amber-400/10 border border-amber-400/30':'bg-surface-container'}`}>
+              <span className={`font-headline text-[10px] uppercase ${systemStatus.storage_status==='critical'?'text-error':systemStatus.storage_status==='warning'?'text-amber-400':'text-outline'}`}>STORAGE</span>
+              <div className={`font-mono text-xl font-bold ${systemStatus.storage_status==='critical'?'text-error':systemStatus.storage_status==='warning'?'text-amber-400':'text-on-surface'}`}>{systemStatus.storage.total_mb}</div>
+              <span className={`font-mono text-[8px] ${systemStatus.storage_status==='critical'?'text-error':systemStatus.storage_status==='warning'?'text-amber-400':'text-outline'}`}>MB TOTAL</span>
+            </div>
+            <div className="flex flex-col justify-between aspect-square bg-surface-container p-3">
+              <span className="font-headline text-[10px] text-outline uppercase">PLANS</span>
+              <div className="font-mono text-xl font-bold text-on-surface">{systemStatus.storage.plans}</div>
+              <span className="font-mono text-[8px] text-outline">STORED</span>
+            </div>
+            <div className="flex flex-col justify-between aspect-square bg-surface-container p-3">
+              <span className="font-headline text-[10px] text-outline uppercase">HISTORY</span>
+              <div className="font-mono text-xl font-bold text-on-surface">{systemStatus.storage.history}</div>
+              <span className="font-mono text-[8px] text-outline">RUNS</span>
+            </div>
+            <div className="flex flex-col justify-between aspect-square bg-surface-container p-3">
+              <span className="font-headline text-[10px] text-outline uppercase">STRESS</span>
+              <div className="font-mono text-xl font-bold text-on-surface">{systemStatus.storage.stress}</div>
+              <span className="font-mono text-[8px] text-outline">REPORTS</span>
+            </div>
+            <div className="flex flex-col justify-between aspect-square bg-surface-container p-3">
+              <span className="font-headline text-[10px] text-outline uppercase">KEYS</span>
+              <div className="font-mono text-xl font-bold text-on-surface">
+                {systemStatus.keys.groq + systemStatus.keys.google + systemStatus.keys.deepseek + systemStatus.keys.mistral}
+              </div>
+              <span className="font-mono text-[8px] text-outline">TOTAL</span>
+            </div>
+          </section>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-1">
           <section className="bg-surface-container-low p-6 flex flex-col gap-6">
             <div className="flex items-center justify-between">
@@ -111,6 +195,50 @@ const Dashboard: React.FC = () => {
                 <span className="font-mono text-[8px] text-outline">PER_1K_TOKENS</span>
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-1">
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">PROXY_TOKENS</span>
+                <div className="font-mono text-2xl text-tertiary font-bold">{Math.round(telemetry?.proxy_tokens || 0).toLocaleString()}</div>
+                <span className="font-mono text-[8px] text-outline">{(telemetry?.tokens || 0) > 0 ? Math.round(((telemetry?.proxy_tokens || 0) / telemetry!.tokens) * 100) : 0}% OF TOTAL</span>
+              </div>
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">DIRECT_TOKENS</span>
+                <div className="font-mono text-2xl text-secondary font-bold">{Math.round(telemetry?.direct_tokens || 0).toLocaleString()}</div>
+                <span className="font-mono text-[8px] text-outline">{(telemetry?.tokens || 0) > 0 ? Math.round(((telemetry?.direct_tokens || 0) / telemetry!.tokens) * 100) : 0}% OF TOTAL</span>
+              </div>
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">PROXY_COST</span>
+                <div className="font-mono text-2xl text-tertiary font-bold">${(telemetry?.proxy_cost || 0).toFixed(2)}</div>
+                <span className="font-mono text-[8px] text-outline">{(telemetry?.cost || 0) > 0 ? Math.round(((telemetry?.proxy_cost || 0) / telemetry!.cost) * 100) : 0}% OF TOTAL</span>
+              </div>
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">DIRECT_COST</span>
+                <div className="font-mono text-2xl text-secondary font-bold">${(telemetry?.direct_cost || 0).toFixed(2)}</div>
+                <span className="font-mono text-[8px] text-outline">{(telemetry?.cost || 0) > 0 ? Math.round(((telemetry?.direct_cost || 0) / telemetry!.cost) * 100) : 0}% OF TOTAL</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-1">
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">PROXY_STRIKES</span>
+                <div className="font-mono text-2xl text-tertiary font-bold">{Math.round(telemetry?.proxy_strikes || 0).toLocaleString()}</div>
+                <span className="font-mono text-[8px] text-outline">{(telemetry?.proxy_strikes || 0) + (telemetry?.direct_strikes || 0) > 0 ? Math.round(((telemetry?.proxy_strikes || 0) / ((telemetry?.proxy_strikes || 0) + (telemetry?.direct_strikes || 0))) * 100) : 0}% OF TOTAL</span>
+              </div>
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">DIRECT_STRIKES</span>
+                <div className="font-mono text-2xl text-secondary font-bold">{Math.round(telemetry?.direct_strikes || 0).toLocaleString()}</div>
+                <span className="font-mono text-[8px] text-outline">{(telemetry?.proxy_strikes || 0) + (telemetry?.direct_strikes || 0) > 0 ? Math.round(((telemetry?.direct_strikes || 0) / ((telemetry?.proxy_strikes || 0) + (telemetry?.direct_strikes || 0))) * 100) : 0}% OF TOTAL</span>
+              </div>
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">QUEUE_DEPTH</span>
+                <div className="font-mono text-2xl text-secondary font-bold">{Math.round(telemetry?.queue_depth || 0).toLocaleString()}</div>
+                <span className="font-mono text-[8px] text-outline">PLANS WAITING</span>
+              </div>
+              <div className="bg-surface-container-high p-4 flex flex-col justify-between aspect-square">
+                <span className="font-headline text-[10px] text-outline uppercase">QUEUE_STATE</span>
+                <div className="font-mono text-2xl text-secondary font-bold">{(telemetry?.queue_state || 'IDLE').toUpperCase()}</div>
+                <span className="font-mono text-[8px] text-outline">RUNNER STATUS</span>
+              </div>
+            </div>
             <div className="flex-grow bg-surface-container-low p-4 flex flex-col">
               <div className="flex justify-between mb-4">
                 <span className="font-headline text-[10px] text-outline uppercase">THROUGHPUT_HISTORY (24H)</span>
@@ -136,7 +264,11 @@ const Dashboard: React.FC = () => {
                 { key: 'success_logs', label: 'SUCCESS_LOGS', val: settings?.success_logging },
                 { key: 'fail_logs', label: 'FAIL_LOGS', val: settings?.failed_logging },
               ].map((t) => (
-                <div key={t.key} className="flex justify-between items-center p-3 bg-surface-container cursor-pointer" onClick={() => toggle(t.key as any)}>
+                <div
+                  key={t.key}
+                  className={`flex justify-between items-center p-3 bg-surface-container cursor-pointer transition-opacity ${settingsLoading === t.key ? 'opacity-50 pointer-events-none' : ''}`}
+                  onClick={() => toggle(t.key as any)}
+                >
                   <span className="font-mono text-xs text-on-surface">{t.label}</span>
                   <div className={`w-10 h-5 flex items-center px-1 ${t.val ? 'bg-secondary' : 'bg-outline-variant'}`}>
                     <div className={`w-3 h-3 bg-background ${t.val ? '' : 'ml-auto'}`} />
@@ -146,7 +278,12 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="grid grid-cols-3 gap-1">
               {(['stealth','balanced','apex'] as const).map((m) => (
-                <button key={m} onClick={() => setPerf(m)} className={`p-3 flex flex-col items-center gap-1 transition-all active:opacity-80 ${perfMode===m ? 'bg-secondary text-on-secondary' : 'bg-surface-container hover:bg-surface-container-highest text-outline'}`}>
+                <button
+                  key={m}
+                  onClick={() => setPerf(m)}
+                  disabled={perfLoading}
+                  className={`p-3 flex flex-col items-center gap-1 transition-all active:opacity-80 disabled:opacity-50 ${perfMode===m ? 'bg-secondary text-on-secondary' : 'bg-surface-container hover:bg-surface-container-highest text-outline'}`}
+                >
                   <span className={`font-headline text-[9px] uppercase ${perfMode===m?'font-bold':''}`}>{m}</span>
                   <span className="material-symbols-outlined text-lg">{m==='stealth'?'visibility_off':m==='balanced'?'balance':'bolt'}</span>
                 </button>
@@ -178,6 +315,47 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </section>
+        </div>
+
+        {/* Storage Alert Banner */}
+        {systemStatus && systemStatus.storage_status !== 'ok' && (
+          <div className={`p-3 flex items-center gap-3 ${systemStatus.storage_status==='critical'?'bg-error/10 border border-error/30':'bg-amber-400/10 border border-amber-400/30'}`}>
+            <span className={`material-symbols-outlined text-lg ${systemStatus.storage_status==='critical'?'text-error':'text-amber-400'}`}>{systemStatus.storage_status==='critical'?'error':'warning'}</span>
+            <div className="flex-1">
+              <div className={`font-headline text-xs font-bold uppercase ${systemStatus.storage_status==='critical'?'text-error':'text-amber-400'}`}>
+                Storage {systemStatus.storage_status}
+              </div>
+              <div className="font-mono text-[10px] text-on-surface-variant">
+                {systemStatus.storage.total_mb} MB used. Consider running cleanup or lowering retention thresholds.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Storage Stats Row */}
+        <div className="mt-1 grid grid-cols-1 lg:grid-cols-3 gap-1">
+          {[
+            { key: 'plans', label: 'PLANS STORAGE', icon: 'description', color: 'text-secondary' },
+            { key: 'history', label: 'HISTORY STORAGE', icon: 'history', color: 'text-tertiary' },
+            { key: 'stress', label: 'STRESS STORAGE', icon: 'speed', color: 'text-secondary' },
+          ].map((tile) => {
+            const data = storage ? (storage as any)[tile.key] : { count: 0, bytes: 0, oldest_mtime: null };
+            return (
+              <div key={tile.key} className="bg-surface-container-low p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className={`material-symbols-outlined text-sm ${tile.color}`}>{tile.icon}</span>
+                  <div>
+                    <div className="font-headline text-[10px] text-outline uppercase">{tile.label}</div>
+                    <div className="font-mono text-lg text-on-surface font-bold">{data.count.toLocaleString()} <span className="text-xs text-outline font-normal">files</span></div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono text-sm text-secondary font-bold">{fmtBytes(data.bytes)}</div>
+                  <div className="font-mono text-[9px] text-outline">OLDEST: {fmtAge(data.oldest_mtime)}</div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </main>
