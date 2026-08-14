@@ -46,9 +46,15 @@ from app.routes.config import router as config_router
 from app.routes.stress import router as stress_router
 from app.routes.admin import router as admin_router
 from app.routes.payloads import router as payloads_router
+from app.routes.skill_scanner import router as skill_scanner_router
+from app.routes.ollama_cloud_health import router as ollama_cloud_health_router
+from app.routes.groq_health import router as groq_health_router
+from app.routes.opencode_health import router as opencode_health_router
 
 # Import key pools for health check
-from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool
+from app.core.key_manager import GroqPool, OllamaPool, OpencodeGoPool, OpencodeZenPool, OpenrouterPool, HetznerPool, ZaiPool, ZaiCodingPool
+from app.core.rate_limit_tracker import GroqRateTracker
+from app.core.global_pacer import GroqPacer
 from app.utils.formatter import CLIFormatter
 
 # Initialize database
@@ -142,14 +148,19 @@ from app.routes.keys_api import router as keys_api_router
 from app.routes.chat_api import router as chat_api_router
 from app.routes.tokens import router as tokens_router
 
+from app.routes.groq_proxy import router as groq_proxy_router
+from app.routes.gateway_proxy import router as gateway_proxy_router
+from app.routes.unified_routes import router as unified_router
 # Include all routers
+# NOTE: models_router must be registered BEFORE openai_compat_router
+# because both have /models endpoint, and we want our native endpoint to take precedence
+app.include_router(models_router, prefix="/v1/models", tags=["MODELS"])
+app.include_router(models_register_router, prefix="/v1/models", tags=["MODELS_REGISTER"])
 app.include_router(openai_compat_router, prefix="/v1", tags=["OPENAI_COMPAT"])
 app.include_router(chat_router, prefix="/v1/chat", tags=["CHAT"])
 app.include_router(strike_router, prefix="/v1/strike", tags=["STRIKE (Legacy)"])
 app.include_router(onboarding_router, prefix="/v1/onboarding", tags=["ONBOARDING"])
 app.include_router(dashboard_router, prefix="/v1/dashboard", tags=["DASHBOARD"])
-app.include_router(models_router, prefix="/v1/models", tags=["MODELS"])
-app.include_router(models_register_router, prefix="/v1/models", tags=["MODELS_REGISTER"])
 app.include_router(fs_router, prefix="/v1/fs", tags=["FILESYSTEM"])
 app.include_router(keys_router, prefix="/v1/keys", tags=["KEYS"])
 app.include_router(striker_router, prefix="/v1/striker", tags=["STRIKER"])
@@ -171,7 +182,11 @@ app.include_router(history_router, prefix="/v1/history", tags=["HISTORY"])
 app.include_router(config_router, prefix="/v1/config", tags=["CONFIG"])
 app.include_router(stress_router, prefix="/v1/stress", tags=["STRESS"])
 app.include_router(admin_router, prefix="/v1/admin", tags=["ADMIN"])
+app.include_router(skill_scanner_router, prefix="/v1/skill-scanner", tags=["SKILL_SCANNER"])
 app.include_router(payloads_router, prefix="/v1/payloads", tags=["PAYLOADS"])
+app.include_router(ollama_cloud_health_router, prefix="/health", tags=["OLLAMA_CLOUD_HEALTH"])
+app.include_router(opencode_health_router, prefix="/health", tags=["OPENCODE_HEALTH"])
+app.include_router(groq_health_router, prefix="/health", tags=["GROQ_HEALTH"])
 
 # Include WebUI API routes
 app.include_router(models_api_router, prefix="/v1/webui/models", tags=["WEBUI_MODELS"])
@@ -179,6 +194,9 @@ app.include_router(keys_api_router, prefix="/v1/webui/keys", tags=["WEBUI_KEYS"]
 app.include_router(chat_api_router, prefix="/v1/webui/chat", tags=["WEBUI_CHAT"])
 app.include_router(tokens_router, prefix="/v1/tokens", tags=["TOKENS"])
 
+app.include_router(groq_proxy_router, prefix="/v1/groq", tags=["GROQ_PROXY"])
+app.include_router(gateway_proxy_router, prefix="/v1", tags=["GATEWAY_PROXY"])
+app.include_router(unified_router, prefix="/v1", tags=["UNIFIED"])
 # Unified Chat UI Router
 app.include_router(chat_ui_router, prefix="/chat/api", tags=["CHAT_UI"])
 
@@ -189,22 +207,79 @@ app.include_router(chat_ui_router, prefix="/chat/api", tags=["CHAT_UI"])
 
 @app.get("/health")
 async def health():
-    """Health check endpoint with key pool status."""
+    """Health check endpoint with key pool status and Groq rate limit snapshot."""
+    from app.config import MODEL_REGISTRY
+    from app.core.config_store import config_store
+    from app.config import PERFORMANCE_MODES
+    
+    key_labels = [a.account for a in GroqPool.deck]
+    governor = GroqRateTracker.get_snapshot(key_labels=key_labels)
+    pacer = GroqPacer.get_pacer_snapshot()
+    
+    # Model registry health
+    total_models = len(MODEL_REGISTRY)
+    frozen_count = sum(1 for m in MODEL_REGISTRY if m.status == "frozen")
+    deprecated_count = sum(1 for m in MODEL_REGISTRY if m.status == "deprecated")
+    active_count = total_models - frozen_count - deprecated_count
+    
+    # Count by gateway
+    by_gateway = {}
+    for m in MODEL_REGISTRY:
+        if m.gateway not in by_gateway:
+            by_gateway[m.gateway] = {"total": 0, "active": 0, "frozen": 0, "deprecated": 0}
+        by_gateway[m.gateway]["total"] += 1
+        by_gateway[m.gateway][m.status] += 1
+    
+    # Get current performance mode
+    perf_mode = config_store.performance_mode
+    perf_cfg = PERFORMANCE_MODES.get(perf_mode, PERFORMANCE_MODES["balanced"])
+    
     return {
         "status": "ONLINE",
         "system": "PEACOCK_ENGINE_V3",
         "version": "3.0.0",
         "integrity": {
             "groq": len(GroqPool.deck),
-            "google": len(GooglePool.deck),
-            "deepseek": len(DeepSeekPool.deck),
-            "mistral": len(MistralPool.deck)
+            "opencode-go": len(OpencodeGoPool.deck),
+            "opencode-zen": len(OpencodeZenPool.deck),
+            "openrouter": len(OpenrouterPool.deck),
+            "ollama": len(OllamaPool.deck),
+            "hetzner": len(HetznerPool.deck),
+            "zai": len(ZaiPool.deck),
+            "zai-coding": len(ZaiCodingPool.deck),
+        },
+        "providers": config_store.providers,
+        "models": {
+            "total": total_models,
+            "active": active_count,
+            "frozen": frozen_count,
+            "deprecated": deprecated_count,
+            "by_gateway": by_gateway
         },
         "features": {
             "chat_ui": True,
             "key_tracking": True,
             "generic_endpoint": True
-        }
+        },
+        "performance_mode": {
+            "active": perf_mode,
+            "name": perf_cfg["name"],
+            "multiplier": perf_cfg["multiplier"],
+        },
+        "effective_settings": {
+            "guard_warn_threshold": config_store.guard["warn_threshold"],
+            "guard_block_threshold": config_store.guard["block_threshold"],
+            "proxy_tpm_threshold_pct": config_store.proxy_rules["tpm_threshold_pct"],
+            "proxy_rpm_threshold_pct": config_store.proxy_rules["rpm_threshold_pct"],
+            "pacer_burn_mode": config_store.burn_mode,
+            "pacer_tpm_backpressure_pct": config_store.pacer["tpm_backpressure_pct"],
+        },
+        "governor": {
+            "pool_health": governor.pool_health,
+            "key_count": len(governor.keys),
+            "timestamp": governor.timestamp,
+        },
+        "pacer": pacer,
     }
 
 
@@ -212,11 +287,13 @@ async def health():
 async def system_status():
     """
     Comprehensive system health snapshot.
-    Returns queue depth, recent failure rate, and storage health.
+    Returns queue depth, recent failure rate, storage health, and Groq rate limits.
     """
     from app.core.plan_queue import PlanQueueSingleton, PlanRunnerSingleton
     from app.core.history import HistoryStore
     from app.core.cleanup import CleanupManager
+    from app.core.config_store import config_store
+    from app.config import PERFORMANCE_MODES
 
     queue_snap = await PlanRunnerSingleton.snapshot()
     history_stats = HistoryStore.get_stats(days=1)
@@ -224,6 +301,14 @@ async def system_status():
 
     total_storage = storage["total_bytes"]
     storage_mb = round(total_storage / (1024 * 1024), 2)
+
+    key_labels = [a.account for a in GroqPool.deck]
+    governor = GroqRateTracker.get_snapshot(key_labels=key_labels)
+    pacer = GroqPacer.get_pacer_snapshot()
+    
+    # Get current performance mode
+    perf_mode = config_store.performance_mode
+    perf_cfg = PERFORMANCE_MODES.get(perf_mode, PERFORMANCE_MODES["balanced"])
 
     return {
         "status": "healthy",
@@ -243,10 +328,34 @@ async def system_status():
         },
         "keys": {
             "groq": len(GroqPool.deck),
-            "google": len(GooglePool.deck),
-            "deepseek": len(DeepSeekPool.deck),
-            "mistral": len(MistralPool.deck),
+            "opencode-go": len(OpencodeGoPool.deck),
+            "opencode-zen": len(OpencodeZenPool.deck),
+            "openrouter": len(OpenrouterPool.deck),
+            "ollama": len(OllamaPool.deck),
+            "hetzner": len(HetznerPool.deck),
+            "zai": len(ZaiPool.deck),
+            "zai-coding": len(ZaiCodingPool.deck),
         },
+        "providers": config_store.providers,
+        "performance_mode": {
+            "active": perf_mode,
+            "name": perf_cfg["name"],
+            "multiplier": perf_cfg["multiplier"],
+        },
+        "effective_settings": {
+            "guard_warn_threshold": config_store.guard["warn_threshold"],
+            "guard_block_threshold": config_store.guard["block_threshold"],
+            "proxy_tpm_threshold_pct": config_store.proxy_rules["tpm_threshold_pct"],
+            "proxy_rpm_threshold_pct": config_store.proxy_rules["rpm_threshold_pct"],
+            "pacer_burn_mode": config_store.burn_mode,
+            "pacer_tpm_backpressure_pct": config_store.pacer["tpm_backpressure_pct"],
+        },
+        "governor": {
+            "pool_health": governor.pool_health,
+            "key_count": len(governor.keys),
+            "timestamp": governor.timestamp,
+        },
+        "pacer": pacer,
     }
 
 
@@ -256,9 +365,13 @@ async def startup_event():
     """Run on application startup."""
     CLIFormatter.section_header("PEACOCK ENGINE V3 BOOT SEQUENCE")
     CLIFormatter.success(f"Groq Pool: {len(GroqPool.deck)} keys")
-    CLIFormatter.success(f"Google Pool: {len(GooglePool.deck)} keys")
-    CLIFormatter.success(f"DeepSeek Pool: {len(DeepSeekPool.deck)} keys")
-    CLIFormatter.success(f"Mistral Pool: {len(MistralPool.deck)} keys")
+    CLIFormatter.success(f"OpenCode Go Pool: {len(OpencodeGoPool.deck)} keys")
+    CLIFormatter.success(f"OpenCode Zen Pool: {len(OpencodeZenPool.deck)} keys")
+    CLIFormatter.success(f"OpenRouter Pool: {len(OpenrouterPool.deck)} keys")
+    CLIFormatter.success(f"Ollama Cloud Pool: {len(OllamaPool.deck)} keys")
+    CLIFormatter.success(f"Hetzner Pool: {len(HetznerPool.deck)} keys")
+    CLIFormatter.success(f"ZAI Pool: {len(ZaiPool.deck)} keys")
+    CLIFormatter.success(f"ZAI Coding Plan Pool: {len(ZaiCodingPool.deck)} keys")
     CLIFormatter.info("CHAT UI: Unified Root Stream Enabled")
     print()
 

@@ -6,13 +6,22 @@ Supports: registry view, freeze/unfreeze, test, set default
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict
+from pathlib import Path
 import time
 import asyncio
 
 from app.config import MODEL_REGISTRY, FROZEN_IDS, FROZEN_FILE
+from app.core.config_store import config_store
 import json
 
 router = APIRouter()
+
+
+def _model_sort_key(m):
+    """Sort by explicit index first, then by context window desc, then by name."""
+    idx = m.index if m.index is not None else 9999
+    ctx = -(m.context_window or 0)
+    return (idx, ctx, m.id)
 
 
 class ModelDetail(BaseModel):
@@ -28,6 +37,10 @@ class ModelDetail(BaseModel):
     context_window: Optional[int] = None
     input_price_1m: float = 0.0
     output_price_1m: float = 0.0
+    tools_supported: bool = False
+    index: Optional[int] = None
+    base_url: Optional[str] = None
+    display_name: Optional[str] = None
 
 
 class ModelListResponse(BaseModel):
@@ -36,6 +49,7 @@ class ModelListResponse(BaseModel):
     by_gateway: Dict[str, List[ModelDetail]]
     frozen_count: int
     active_count: int
+    providers: Dict[str, Dict[str, Any]]
 
 
 class ModelTestResult(BaseModel):
@@ -52,40 +66,51 @@ class FreezeRequest(BaseModel):
     reason: Optional[str] = "manual"
 
 
+def _build_model_detail(m) -> ModelDetail:
+    return ModelDetail(
+        id=m.id,
+        gateway=m.gateway,
+        tier=m.tier,
+        status=m.status,
+        note=m.note,
+        rpm=m.rpm,
+        tpm=m.tpm,
+        rpd=m.rpd,
+        context_window=m.context_window,
+        input_price_1m=m.input_price_1m,
+        output_price_1m=m.output_price_1m,
+        tools_supported=m.tools_supported,
+        index=m.index,
+        base_url=m.base_url,
+        display_name=m.display_name,
+    )
+
+
 @router.get("/registry", response_model=ModelListResponse)
-async def get_model_registry():
+async def get_model_registry(include_hidden: bool = False):
     """
     Get all models for the Model Registry screen.
-    Includes full details grouped by gateway.
+    Includes full details grouped by gateway, sorted by priority index.
     """
     models = []
     by_gateway = {}
-    
-    for m in MODEL_REGISTRY:
-        detail = ModelDetail(
-            id=m.id,
-            gateway=m.gateway,
-            tier=m.tier,
-            status=m.status,
-            note=m.note,
-            rpm=m.rpm,
-            tpm=m.tpm,
-            rpd=m.rpd,
-            context_window=m.context_window,
-            input_price_1m=m.input_price_1m,
-            output_price_1m=m.output_price_1m
-        )
+
+    for m in sorted(MODEL_REGISTRY, key=_model_sort_key):
+        if not include_hidden and not config_store.is_provider_visible(m.gateway):
+            continue
+        detail = _build_model_detail(m)
         models.append(detail)
-        
+
         if m.gateway not in by_gateway:
             by_gateway[m.gateway] = []
         by_gateway[m.gateway].append(detail)
-    
+
     return ModelListResponse(
         models=models,
         by_gateway=by_gateway,
         frozen_count=len([m for m in models if m.status == "frozen"]),
-        active_count=len([m for m in models if m.status == "active"])
+        active_count=len([m for m in models if m.status == "active"]),
+        providers=config_store.providers,
     )
 
 
@@ -95,20 +120,8 @@ async def get_model_details(model_id: str):
     model = next((m for m in MODEL_REGISTRY if m.id == model_id), None)
     if not model:
         raise HTTPException(status_code=404, detail=f"Model {model_id} not found")
-    
-    return ModelDetail(
-        id=model.id,
-        gateway=model.gateway,
-        tier=model.tier,
-        status=model.status,
-        note=model.note,
-        rpm=model.rpm,
-        tpm=model.tpm,
-        rpd=model.rpd,
-        context_window=model.context_window,
-        input_price_1m=model.input_price_1m,
-        output_price_1m=model.output_price_1m
-    )
+
+    return _build_model_detail(model)
 
 
 @router.post("/{model_id}/test", response_model=ModelTestResult)
@@ -126,18 +139,13 @@ async def test_model(model_id: str):
     
     if model.status == "frozen":
         raise HTTPException(status_code=400, detail=f"Model {model_id} is frozen")
-    
-    # Get appropriate key pool
-    pool = None
-    if model.gateway == "groq":
-        pool = GroqPool
-    elif model.gateway == "google":
-        pool = GooglePool
-    elif model.gateway == "deepseek":
-        pool = DeepSeekPool
-    elif model.gateway == "mistral":
-        pool = MistralPool
-    
+
+    if not config_store.is_provider_enabled(model.gateway):
+        raise HTTPException(status_code=503, detail=f"Provider {model.gateway} is disabled")
+
+    from app.core.key_manager import get_pool
+    pool = get_pool(model.gateway)
+
     if not pool or not pool.deck:
         raise HTTPException(status_code=503, detail=f"No keys available for {model.gateway}")
     

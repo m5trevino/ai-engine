@@ -10,7 +10,8 @@ from datetime import datetime
 import time
 import json
 
-from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool, KeyPool
+from app.core.key_manager import KeyPool, get_pool, list_pools
+from app.core.config_store import config_store
 from app.config import MODEL_REGISTRY
 
 router = APIRouter()
@@ -53,7 +54,7 @@ class KeyTelemetry(BaseModel):
 
 class AddKeyRequest(BaseModel):
     """Request to add a new key."""
-    gateway: str = Field(..., description="Gateway: groq, google, deepseek, mistral")
+    gateway: str = Field(..., description="Gateway: groq, opencode-go, opencode-zen, openrouter, ollama, hetzner")
     label: str = Field(..., description="Label for the key")
     key: str = Field(..., description="The API key")
 
@@ -75,27 +76,26 @@ async def get_all_keys():
     For the Key Management screen.
     """
     result = []
-    
-    pools = [
-        ("google", GooglePool),
-        ("groq", GroqPool),
-        ("deepseek", DeepSeekPool),
-        ("mistral", MistralPool)
-    ]
-    
-    for gateway, pool in pools:
+    provider_cfg = config_store.providers
+
+    for gateway, pool in list_pools().items():
         if not pool.deck:
             continue
-        
+        if not provider_cfg.get(gateway, {}).get("visible", False):
+            continue
+
         keys = []
         healthy = 0
-        
+
         for asset in pool.deck:
             # Determine status
-            status = "healthy"
-            if asset.on_cooldown:
+            if not asset.enabled:
+                status = "disabled"
+            elif asset.on_cooldown:
                 status = "exhausted"
-            
+            else:
+                status = "healthy"
+
             # Get usage from DB
             usage_today = 0
             tokens_today = 0
@@ -106,7 +106,7 @@ async def get_all_keys():
                 tokens_today = stats.get("tokens_today", 0)
             except:
                 pass
-            
+
             key_detail = KeyDetail(
                 label=asset.account,
                 gateway=gateway,
@@ -118,17 +118,19 @@ async def get_all_keys():
                 cooldown_until=asset.cooldown_until if asset.on_cooldown else None
             )
             keys.append(key_detail)
-            
+
             if status == "healthy":
                 healthy += 1
-        
+
         # Gateway status
         gateway_status = "active"
-        if healthy == 0:
+        if not config_store.is_provider_enabled(gateway):
+            gateway_status = "disabled"
+        elif healthy == 0:
             gateway_status = "exhausted"
         elif healthy < len(keys):
             gateway_status = "degraded"
-        
+
         result.append(GatewayKeys(
             gateway=gateway,
             status=gateway_status,
@@ -136,7 +138,7 @@ async def get_all_keys():
             key_count=len(keys),
             healthy_count=healthy
         ))
-    
+
     return result
 
 
@@ -150,80 +152,61 @@ async def get_key_telemetry():
     healthy = 0
     exhausted = 0
     dead = 0
-    
+
     gateway_counts = {}
-    
-    pools = [
-        ("google", GooglePool),
-        ("groq", GroqPool),
-        ("deepseek", DeepSeekPool),
-        ("mistral", MistralPool)
-    ]
-    
-    for gateway, pool in pools:
+
+    for gateway, pool in list_pools().items():
         if not pool.deck:
             gateway_counts[gateway] = 0
             continue
-        
+
         count = len(pool.deck)
-        healthy_count = sum(1 for a in pool.deck if not a.on_cooldown)
-        
+        healthy_count = sum(1 for a in pool.deck if a.is_available)
+
         total += count
         healthy += healthy_count
-        exhausted += count - healthy_count
+        exhausted += sum(1 for a in pool.deck if a.enabled and a.on_cooldown)
+        dead += sum(1 for a in pool.deck if not a.enabled)
         gateway_counts[gateway] = healthy_count
-    
+
     # Estimate daily cost from usage
     est_cost = 0.0
     try:
         from app.db.database import KeyUsageDB
-        # Get today's usage across all keys
         total_tokens = 0
-        for gateway, pool in pools:
+        for gateway, pool in list_pools().items():
             for asset in pool.deck:
                 stats = KeyUsageDB.get_key_stats(gateway, asset.account)
                 total_tokens += stats.get("tokens_today", 0)
-        # Rough estimate: $0.50 per 1M tokens
         est_cost = (total_tokens / 1_000_000) * 0.50
     except:
         pass
-    
+
     return KeyTelemetry(
         total_keys=total,
         healthy_keys=healthy,
         exhausted_keys=exhausted,
         dead_keys=dead,
-        global_token_quota={"used": 842400, "total": 1_000_000},  # Example
+        global_token_quota={"used": 0, "total": 1_000_000},
         gateway_redundancy=gateway_counts,
         estimated_daily_cost=est_cost,
-        error_rate=0.02  # Example: 2%
+        error_rate=0.0
     )
 
 
 @router.post("/{gateway}/{label}/test", response_model=KeyTestResult)
 async def test_key(gateway: str, label: str):
     """Test a specific key."""
-    # Find the key
-    pool = None
-    if gateway == "google":
-        pool = GooglePool
-    elif gateway == "groq":
-        pool = GroqPool
-    elif gateway == "deepseek":
-        pool = DeepSeekPool
-    elif gateway == "mistral":
-        pool = MistralPool
-    
+    pool = get_pool(gateway)
     if not pool:
         raise HTTPException(status_code=400, detail=f"Unknown gateway: {gateway}")
-    
+
     asset = next((a for a in pool.deck if a.account == label), None)
     if not asset:
         raise HTTPException(status_code=404, detail=f"Key {label} not found in {gateway}")
-    
-    # Test based on gateway
+
     start = time.time()
-    
+
     if gateway == "groq":
         import httpx
         try:
@@ -262,28 +245,7 @@ async def test_key(gateway: str, label: str):
                 error=str(e)
             )
     
-    elif gateway == "google":
-        try:
-            from google import genai
-            client = genai.Client(api_key=asset.key)
-            models = client.models.list()
-            
-            return KeyTestResult(
-                label=label,
-                gateway=gateway,
-                valid=True,
-                latency_ms=(time.time() - start) * 1000
-            )
-        except Exception as e:
-            return KeyTestResult(
-                label=label,
-                gateway=gateway,
-                valid=False,
-                latency_ms=(time.time() - start) * 1000,
-                error=str(e)
-            )
-    
-    # Default
+    # Default: assume valid unless we add a provider-specific test.
     return KeyTestResult(
         label=label,
         gateway=gateway,
@@ -296,56 +258,33 @@ async def test_key(gateway: str, label: str):
 async def delete_key(gateway: str, label: str):
     """Delete a key from the pool."""
     # Note: This removes from runtime only, not from .env
-    pool = None
-    if gateway == "google":
-        pool = GooglePool
-    elif gateway == "groq":
-        pool = GroqPool
-    elif gateway == "deepseek":
-        pool = DeepSeekPool
-    elif gateway == "mistral":
-        pool = MistralPool
-    
+    pool = get_pool(gateway)
     if not pool:
         raise HTTPException(status_code=400, detail=f"Unknown gateway: {gateway}")
-    
+
     asset = next((a for a in pool.deck if a.account == label), None)
     if not asset:
         raise HTTPException(status_code=404, detail=f"Key {label} not found")
-    
+
     pool.deck.remove(asset)
-    
+
     return {"message": f"Key {label} removed from {gateway} pool"}
 
 
 @router.post("/{gateway}/{label}/toggle")
 async def toggle_key(gateway: str, label: str):
-    """Toggle key enable/disable (via cooldown)."""
-    pool = None
-    if gateway == "google":
-        pool = GooglePool
-    elif gateway == "groq":
-        pool = GroqPool
-    elif gateway == "deepseek":
-        pool = DeepSeekPool
-    elif gateway == "mistral":
-        pool = MistralPool
-    
+    """Toggle key enable/disable."""
+    pool = get_pool(gateway)
     if not pool:
         raise HTTPException(status_code=400, detail=f"Unknown gateway: {gateway}")
-    
+
     asset = next((a for a in pool.deck if a.account == label), None)
     if not asset:
         raise HTTPException(status_code=404, detail=f"Key {label} not found")
-    
-    if asset.on_cooldown:
-        # Enable: clear cooldown
-        asset.cooldown_until = 0
-        return {"message": f"Key {label} enabled"}
-    else:
-        # Disable: set long cooldown
-        asset.cooldown_until = time.time() + 86400  # 24 hours
-        return {"message": f"Key {label} disabled"}
+
+    new_state = not asset.enabled
+    pool.set_key_enabled(label, new_state)
+    return {"message": f"Key {label} {'enabled' if new_state else 'disabled'}", "enabled": new_state}
 
 
 @router.post("/add")
@@ -355,24 +294,15 @@ async def add_key(request: AddKeyRequest):
     Note: This adds to runtime only, not to .env file.
     """
     from app.core.key_manager import KeyAsset
-    
-    pool = None
-    if request.gateway == "google":
-        pool = GooglePool
-    elif request.gateway == "groq":
-        pool = GroqPool
-    elif request.gateway == "deepseek":
-        pool = DeepSeekPool
-    elif request.gateway == "mistral":
-        pool = MistralPool
-    
+
+    pool = get_pool(request.gateway)
     if not pool:
         raise HTTPException(status_code=400, detail=f"Unknown gateway: {request.gateway}")
-    
+
     # Check if label already exists
     if any(a.account == request.label for a in pool.deck):
         raise HTTPException(status_code=400, detail=f"Key with label {request.label} already exists")
-    
+
     # Add key
     new_asset = KeyAsset(
         label=request.label,
@@ -380,7 +310,7 @@ async def add_key(request: AddKeyRequest):
         key=request.key
     )
     pool.deck.append(new_asset)
-    
+
     return {
         "message": f"Key {request.label} added to {request.gateway}",
         "label": request.label,

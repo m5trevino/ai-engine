@@ -14,33 +14,46 @@ from pydantic import BaseModel, create_model
 from pydantic_ai import Agent
 from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.models.openai import OpenAIModel
-from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.models.gemini import GeminiModel as GoogleModel
 from pydantic_ai.providers.groq import GroqProvider
 from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.providers.google import GoogleProvider
-from app.core.key_manager import KeyAsset, KeyPool, GroqPool, GooglePool, DeepSeekPool, MistralPool
+from pydantic_ai.providers.google_gla import GoogleGLAProvider as GoogleProvider
+try:
+    from pydantic_ai.providers.anthropic import AnthropicProvider
+    from pydantic_ai.models.anthropic import AnthropicModel
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+from app.core.key_manager import KeyAsset, KeyPool, GroqPool, OllamaPool, OpencodeGoPool, OpencodeZenPool, OpenrouterPool, HetznerPool, get_pool, GooglePool, DeepSeekPool, MistralPool, ZaiPool, ZaiCodingPool
 from app.core.rate_limit_tracker import GroqRateTracker
+from app.core.provider_error_handler import handle_provider_exception
 from app.utils.formatter import CLIFormatter, Colors
 from app.utils.logger import HighSignalLogger
 from app.config import MODEL_REGISTRY
+from app.core.config_store import config_store
 
 # Import unified token counter
 from app.utils.token_counter import count_tokens
+
+# Import global pacer for concurrency control
+from app.core.global_pacer import GroqPacer
 
 # Proxy / Tunnel Setup
 tunnel_enabled = os.getenv("PEACOCK_TUNNEL", "false").lower() == "true"
 proxy_url = os.getenv("PROXY_URL")
 proxy_enabled = os.getenv("PROXY_ENABLED", "false").lower() == "true"
 
+TUNNEL_SOCKS = "socks5://127.0.0.1:1081"
+direct_client = httpx.AsyncClient(timeout=60.0, trust_env=False)
+tunnel_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=100.0, trust_env=False) if tunnel_enabled else None
+proxy_client = httpx.AsyncClient(proxy=proxy_url, timeout=60.0, trust_env=False) if proxy_enabled and proxy_url else None
+
 if tunnel_enabled:
-    # User's dedicated MetroPCS Tunnel
-    TUNNEL_SOCKS = "socks5://127.0.0.1:1081"
-    http_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=100.0, trust_env=False)
-    # Note: Using 100s timeout to match your pip command preference
+    http_client = tunnel_client
 elif proxy_enabled and proxy_url:
-    http_client = httpx.AsyncClient(proxy=proxy_url, timeout=60.0, trust_env=False)
+    http_client = proxy_client
 else:
-    http_client = httpx.AsyncClient(timeout=60.0, trust_env=False)
+    http_client = direct_client
 
 # --- STRUCTURED OUTPUT MODELS ---
 class EagleFile(BaseModel):
@@ -226,6 +239,55 @@ def _inject_file_context(prompt: str, files: List[str]) -> str:
     return context + prompt
 
 
+
+# === OPENCODE MODEL RESOLUTION HELPERS ===
+
+_opencode_config_cache = None
+
+def _load_opencode_config():
+    import json
+    global _opencode_config_cache
+    if _opencode_config_cache is None:
+        # app/core/striker.py -> repo root is two levels up (parents[2])
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "config", "opencode_models.json")
+        try:
+            with open(config_path) as f:
+                _opencode_config_cache = json.load(f)
+        except Exception:
+            _opencode_config_cache = {}
+    return _opencode_config_cache
+
+def _resolve_opencode_model(model_id, section):
+    config = _load_opencode_config()
+    for entry in config.get(section, []):
+        if entry.get("model_id") == model_id:
+            result = dict(entry)
+            # Apply env var override for base_url if set
+            env_var = "OPENCODE_" + section.upper() + "_BASE_URL"
+            override = os.getenv(env_var)
+            if override:
+                result["base_url"] = override
+                result["endpoint"] = override + "/chat/completions"
+            return result
+    return None
+
+def _build_opencode_provider(base_url, api_key, package, model_id, http_client):
+    if package == "@ai-sdk/anthropic":
+        if not ANTHROPIC_AVAILABLE:
+            raise ImportError("anthropic package not installed. Run: pip install anthropic")
+        # Anthropic models use custom proxy path
+        anthropic_url = os.getenv("ANTHROPIC_BASE_URL", "https://api.anthropic.com")
+        provider = AnthropicProvider(base_url=anthropic_url, api_key=api_key, http_client=http_client)
+        model = AnthropicModel(model_id, provider=provider)
+    elif package == "@ai-sdk/openai":
+        provider = OpenAIProvider(base_url=base_url, api_key=api_key, http_client=http_client)
+        model = OpenAIModel(model_id, provider=provider)
+    else:  # @ai-sdk/openai-compatible (default)
+        provider = OpenAIProvider(base_url=base_url, api_key=api_key, http_client=http_client)
+        model = OpenAIModel(model_id, provider=provider)
+    return provider, model
+
+# === END OPENCODE HELPERS ===
 async def execute_strike(gateway: str, model_id: str, prompt: str, 
                          format_mode: Optional[str] = None, response_format: Optional[dict] = None,
                          dynamic_schema: Optional[dict] = None, is_manual: bool = False,
@@ -269,6 +331,10 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
     if model_config and model_config.status == "frozen":
         raise Exception(f"Model {model_id} is currently FROZEN.")
 
+    # Provider enable gate
+    if not config_store.is_provider_enabled(gateway):
+        raise Exception(f"Provider {gateway} is currently disabled.")
+
     # 1. Proactive Throttle (Groq uses TB-001 tracker per-key instead)
     if gateway != "groq":
         was_throttled = await ThrottleController.wait_if_needed(gateway, model_id)
@@ -286,19 +352,6 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
         active_client = http_client
         temp_client = None
         
-        if timeout is not None:
-            # Create a one-off client with requested timeout
-            # If timeout <= 0, treat as "off" (1 hour limit)
-            actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
-            
-            if tunnel_enabled:
-                temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
-            elif proxy_enabled and proxy_url:
-                temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
-            else:
-                temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
-            active_client = temp_client
-
         try:
             # Resolve Provider & Key
             if key_override:
@@ -307,7 +360,7 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
             if gateway == "groq":
                 pool = GroqPool
                 if not key_override:
-                    asset = pool.get_next()
+                    asset = await pool.get_next_intelligent(model_id, estimated_tokens)
                 # --- TB-004 PRE-FLIGHT GUARD ---
                 from app.core.pre_flight_guard import check_request_safety
                 candidate_keys = [a.account for a in pool.deck]
@@ -322,8 +375,28 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
                     if os.getenv("PEACOCK_VERBOSE") == "true":
                         print(f"[!] Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
                     continue
+                # --- TB-012 PROXY RULES ---
+                from app.core.proxy_rules import evaluate_rules
+                proxy_decision = evaluate_rules(asset.account, model_id, estimated_tokens)
+                if proxy_decision["route"] == "proxy" and (tunnel_client or proxy_client):
+                    active_client = tunnel_client or proxy_client
+                    if os.getenv("PEACOCK_VERBOSE") == "true":
+                        print(f"[!] Proxy routing triggered for {asset.account}: {proxy_decision['rationale']}")
+                # --------------------------
+                # --- TB-009 PACER ---
+                await GroqPacer.acquire(asset.account, model_id, estimated_tokens)
+                # --------------------
                 await GroqRateTracker.begin_request(asset.account, model_id)
                 # --------------------------------
+                if timeout is not None:
+                    actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
+                    if active_client is tunnel_client:
+                        temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
+                    elif active_client is proxy_client:
+                        temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
+                    else:
+                        temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
+                    active_client = temp_client
                 provider = GroqProvider(api_key=asset.key, http_client=active_client)
                 model = GroqModel(model_id, provider=provider)
             elif gateway == "deepseek":
@@ -345,19 +418,96 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
                 clean_model_id = model_id.replace("models/", "")
                 provider = GoogleProvider(api_key=asset.key, http_client=active_client)
                 model = GoogleModel(clean_model_id, provider=provider)
+            elif gateway == "zai":
+                pool = ZaiPool
+                if not key_override:
+                    asset = pool.get_next()
+                provider = OpenAIProvider(base_url="https://api.z.ai/api/paas/v4", api_key=asset.key, http_client=active_client)
+                model = OpenAIModel(model_id, provider=provider)
+            elif gateway == "zai-coding":
+                pool = ZaiCodingPool
+                if not key_override:
+                    asset = pool.get_next()
+                provider = OpenAIProvider(base_url="https://api.z.ai/api/coding/paas/v4", api_key=asset.key, http_client=active_client)
+                model = OpenAIModel(model_id, provider=provider)
+            elif gateway == "ollama":
+                pool = OllamaPool
+                if not key_override:
+                    asset = pool.get_next()
+                provider = OpenAIProvider(base_url="https://ollama.com/v1", api_key=asset.key, http_client=active_client)
+                model = OpenAIModel(model_id, provider=provider)
+            elif gateway == "opencode-go":
+                pool = OpencodeGoPool
+                if not key_override:
+                    asset = pool.get_next()
+                # Registry exposes -go suffixed ids (e.g. glm-5.2-go) but the upstream
+                # OpenCode Go gateway and config/opencode_models.json use bare ids
+                # (e.g. glm-5.2). Strip the -go suffix once here so every downstream
+                # use (config lookup, provider build, fallback model construct) sends
+                # the unsuffixed id upstream. Registry-facing model_id is unchanged.
+                upstream_id = model_id[:-3] if model_id.endswith("-go") else model_id
+                # Resolve per-model endpoint and SDK package from opencode config
+                opencode_cfg = _resolve_opencode_model(upstream_id, "go")
+                if opencode_cfg:
+                    base_url = opencode_cfg.get("base_url")
+                    if not base_url:
+                        # Use proxy URL with provider in path
+                        base_url = "https://opencode.ai/zen/go/v1"
+                    package = opencode_cfg.get("ai_sdk_package", "@ai-sdk/openai-compatible")
+                    provider, model = _build_opencode_provider(base_url, asset.key, package, upstream_id, active_client)
+                else:
+                    # Fallback to proxy URL
+                    base_url = "https://opencode.ai/zen/go/v1"
+                    provider = OpenAIProvider(base_url=base_url, api_key=asset.key, http_client=active_client)
+                    model = OpenAIModel(upstream_id, provider=provider)
+            elif gateway == "opencode-zen":
+                pool = OpencodeZenPool
+                if not key_override:
+                    asset = pool.get_next()
+                # Resolve per-model endpoint and SDK package from opencode config
+                opencode_cfg = _resolve_opencode_model(model_id, "zen")
+                if opencode_cfg:
+                    base_url = opencode_cfg.get("base_url")
+                    if not base_url:
+                        # Use proxy URL with provider in path
+                        base_url = "https://opencode.ai/zen/v1"
+                    package = opencode_cfg.get("ai_sdk_package", "@ai-sdk/openai-compatible")
+                    provider, model = _build_opencode_provider(base_url, asset.key, package, model_id, active_client)
+                else:
+                    # Fallback to proxy URL
+                    base_url = "https://opencode.ai/zen/v1"
+                    provider = OpenAIProvider(base_url=base_url, api_key=asset.key, http_client=active_client)
+                    model = OpenAIModel(model_id, provider=provider)
+            elif gateway == "openrouter":
+                pool = OpenrouterPool
+                if not key_override:
+                    asset = pool.get_next()
+                provider = OpenAIProvider(base_url="https://openrouter.ai/api/v1", api_key=asset.key, http_client=active_client)
+                model = OpenAIModel(model_id, provider=provider)
             else:
                 raise Exception(f"Gateway {gateway} not supported")
+            
+            # Non-groq timeout client (groq handles this inside its pacer block)
+            if gateway != "groq" and timeout is not None:
+                actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
+                if tunnel_enabled:
+                    temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
+                elif proxy_enabled and proxy_url:
+                    temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
+                else:
+                    temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
+                active_client = temp_client
 
             # Execute
-            agent = Agent(model, output_type=result_type)
+            agent = Agent(model, result_type=result_type)
             result = await agent.run(prompt, model_settings=model_settings)
-            content = result.output.model_dump() if hasattr(result.output, "model_dump") else result.output
+            content = result.data.model_dump() if hasattr(result.data, "model_dump") else result.data
             
             # Resolve Usage
             usage_obj = result.usage()
             usage = {
-                "prompt_tokens": usage_obj.input_tokens or 0,
-                "completion_tokens": usage_obj.output_tokens or 0,
+                "prompt_tokens": usage_obj.request_tokens or 0,
+                "completion_tokens": usage_obj.response_tokens or 0,
                 "total_tokens": usage_obj.total_tokens or 0
             }
             
@@ -384,9 +534,8 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
             # --- TB-001 TELEMETRY ---
             if gateway == "groq":
                 await GroqRateTracker.consume(asset.account, model_id, usage['total_tokens'])
-                await GroqRateTracker.end_request(asset.account, model_id)
                 t = GroqRateTracker.get_telemetry(asset.account, model_id)
-                meter = f"Tracker: [RPM:{t.rpm_pct}% | TPM:{t.tpm_pct}% | TPS:{t.tps} | Active:{t.active_requests}]"
+                meter = f"Tracker: [RPM:{t.rpm_pct}% | TPM:{t.tpm_pct}% | Status:{t.status} | Active:{t.active_requests}]"
             else:
                 RateLimitMeter.update(gateway, usage['total_tokens'])
                 meter = RateLimitMeter.get_meter(gateway, model_id)
@@ -409,21 +558,42 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
         except Exception as e:
             last_error = e
             error_str = str(e).lower()
-            
-            # Check for 429 (Rate Limit)
+
+            # --- TB-004: Non-Groq failure policy (classify → log → cooldown) ---
+            # Route non-Groq failures through the shared handler so they are
+            # classified and logged to the JSONL sink. The handler applies a
+            # cooldown ONLY for rate_limit / auth classes (via apply_failure_policy).
+            # Groq keeps its own error handling (separate slice).
+            if gateway != "groq" and pool and asset:
+                _ng_result = handle_provider_exception(
+                    pool, asset,
+                    gateway=gateway, model=model_id, error=e,
+                )
+                # Retry only when a cooldown class was applied (rate_limit/auth).
+                if _ng_result.get("cooldown_applied"):
+                    if os.getenv("PEACOCK_VERBOSE") == "true":
+                        print(f"[!] {gateway} failure ({_ng_result['classification']}) on "
+                              f"{asset.account}. Cycling key (Attempt {attempt+1}/{max_retries})...")
+                    continue
+                # Non-cooldown failure: log already written; stop retrying.
+                break
+
+            # --- Groq 429 handling (unchanged — separate slice owns Groq) ---
             if "429" in error_str or "rate limit" in error_str:
                 if gateway == "groq" and asset:
                     await GroqRateTracker.record_429(asset.account, model_id)
-                    await GroqRateTracker.end_request(asset.account, model_id)
                 if pool and asset:
                     pool.mark_cooldown(asset.account, duration=60)
                     if os.getenv("PEACOCK_VERBOSE") == "true":
                         print(f"[!] 429 Detected on {asset.account}. Cycling key and retrying (Attempt {attempt+1}/{max_retries})...")
                     continue # Try again with next key
-            
+
             # Handle non-429 errors or max retries reached
             break
         finally:
+            if gateway == "groq" and asset:
+                await GroqRateTracker.end_request(asset.account, model_id)
+                GroqPacer.release(asset.account, model_id)
             if temp_client:
                 await temp_client.aclose()
 
@@ -437,7 +607,8 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
 
 async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
                                    is_manual: bool = True, timeout: Optional[int] = None, 
-                                   files: Optional[List[str]] = None, **gen_params):
+                                   files: Optional[List[str]] = None,
+                                   key_override: Optional[str] = None, **gen_params):
     """
     Execute a streaming strike using Server-Sent Events (SSE).
     """
@@ -448,6 +619,11 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
     model_config = next((m for m in MODEL_REGISTRY if m.id == model_id), None)
     if model_config and model_config.status == "frozen":
         raise Exception(f"Model {model_id} is currently FROZEN.")
+
+    # Pre-count tokens for validation, guard, and pacing
+    estimated_tokens = count_tokens_for_strike(gateway, model_id, prompt)
+    if os.getenv("PEACOCK_VERBOSE") == "true":
+        print(f"[Tokens] Pre-count estimate: {estimated_tokens}")
 
     # Throttling (Groq uses TB-001 tracker)
     if gateway != "groq":
@@ -465,25 +641,17 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
     }
     model_settings = {k: v for k, v in model_settings.items() if v is not None}
 
-    # Decide which HTTP client to use
-    active_client = http_client
-    temp_client = None
-    if timeout is not None:
-        actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
-        if tunnel_enabled:
-            temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
-        elif proxy_enabled and proxy_url:
-            temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
-        else:
-            temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
-        active_client = temp_client
-
     try:
         # Resolve Provider & Key
         asset = None
         model = None
+        active_client = http_client
+        temp_client = None
         if gateway == "groq":
-            asset = GroqPool.get_next()
+            if key_override:
+                asset = KeyAsset(label="AUDIT_OVERRIDE", account="AUDIT_OVERRIDE", key=key_override)
+            else:
+                asset = await GroqPool.get_next_intelligent(model_id, estimated_tokens)
             # --- TB-004 PRE-FLIGHT GUARD (streaming) ---
             from app.core.pre_flight_guard import check_request_safety
             streaming_candidates = [a.account for a in GroqPool.deck]
@@ -496,8 +664,28 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
             if not preflight.allowed:
                 GroqPool.mark_cooldown(asset.account, duration=60)
                 raise Exception(f"Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
+            # --- TB-012 PROXY RULES ---
+            from app.core.proxy_rules import evaluate_rules
+            proxy_decision = evaluate_rules(asset.account, model_id, estimated_tokens)
+            if proxy_decision["route"] == "proxy" and (tunnel_client or proxy_client):
+                active_client = tunnel_client or proxy_client
+                if os.getenv("PEACOCK_VERBOSE") == "true":
+                    print(f"[!] Proxy routing triggered for {asset.account}: {proxy_decision['rationale']}")
+            # --------------------------
+            # --- TB-009 PACER ---
+            await GroqPacer.acquire(asset.account, model_id, estimated_tokens)
+            # --------------------
             await GroqRateTracker.begin_request(asset.account, model_id)
             # -------------------------------------------
+            if timeout is not None:
+                actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
+                if active_client is tunnel_client:
+                    temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
+                elif active_client is proxy_client:
+                    temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
+                else:
+                    temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
+                active_client = temp_client
             provider = GroqProvider(api_key=asset.key, http_client=active_client)
             model = GroqModel(model_id, provider=provider)
         elif gateway == "google":
@@ -513,6 +701,27 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
             asset = MistralPool.get_next()
             provider = OpenAIProvider(base_url="https://api.mistral.ai/v1", api_key=asset.key, http_client=active_client)
             model = OpenAIModel(model_id, provider=provider)
+        
+        # Non-groq timeout client
+        if gateway != "groq" and timeout is not None:
+            actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
+            if tunnel_enabled:
+                temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
+            elif proxy_enabled and proxy_url:
+                temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
+            else:
+                temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
+            active_client = temp_client
+            # Re-create provider with new client if needed
+            if gateway == "google":
+                provider = GoogleProvider(api_key=asset.key, http_client=active_client)
+                model = GoogleModel(clean_model_id, provider=provider)
+            elif gateway == "deepseek":
+                provider = OpenAIProvider(base_url="https://api.deepseek.com", api_key=asset.key, http_client=active_client)
+                model = OpenAIModel(model_id, provider=provider)
+            elif gateway == "mistral":
+                provider = OpenAIProvider(base_url="https://api.mistral.ai/v1", api_key=asset.key, http_client=active_client)
+                model = OpenAIModel(model_id, provider=provider)
 
         agent = Agent(model)
         async with agent.run_stream(prompt, model_settings=model_settings) as result:
@@ -536,7 +745,6 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
             # --- TB-001 TELEMETRY (streaming) ---
             if gateway == "groq":
                 await GroqRateTracker.consume(asset.account, model_id, usage['total_tokens'])
-                await GroqRateTracker.end_request(asset.account, model_id)
             else:
                 RateLimitMeter.update(gateway, usage['total_tokens'])
             # ------------------------------------
@@ -549,7 +757,7 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
                 "type": "metadata",
                 "model": model_id,
                 "gateway": gateway,
-                "key_used": asset.account,
+                "keyUsed": asset.account,
                 "usage": usage,
                 "cost": cost,
                 "duration_ms": int(duration * 1000),
@@ -561,10 +769,12 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
             error_str = str(e).lower()
             if "429" in error_str or "rate limit" in error_str:
                 await GroqRateTracker.record_429(asset.account, model_id)
-            await GroqRateTracker.end_request(asset.account, model_id)
         yield {"type": "error", "content": str(e)}
         raise e
     finally:
+        if gateway == "groq" and asset:
+            await GroqRateTracker.end_request(asset.account, model_id)
+            GroqPacer.release(asset.account, model_id)
         if temp_client:
             await temp_client.aclose()
 
@@ -588,36 +798,6 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
     if model_config and model_config.status == "frozen":
         raise Exception(f"Model {model_id} is currently FROZEN.")
 
-    # Decide which HTTP client to use
-    active_client = http_client
-    temp_client = None
-    
-    if timeout is not None:
-        actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
-        if tunnel_enabled:
-            temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
-        elif proxy_enabled and proxy_url:
-            temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
-        else:
-            temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
-        active_client = temp_client
-
-    # Initialize Model
-    model = None
-    if gateway == "groq":
-        provider = GroqProvider(api_key=asset.key, http_client=active_client)
-        model = GroqModel(model_id, provider=provider)
-    elif gateway == "google":
-        clean_model_id = model_id.replace("models/", "")
-        provider = GoogleProvider(api_key=asset.key, http_client=active_client)
-        model = GoogleModel(clean_model_id, provider=provider)
-    elif gateway == "deepseek":
-        provider = OpenAIProvider(base_url="https://api.deepseek.com", api_key=asset.key, http_client=active_client)
-        model = OpenAIModel(model_id, provider=provider)
-    elif gateway == "mistral":
-        provider = OpenAIProvider(base_url="https://api.mistral.ai/v1", api_key=asset.key, http_client=active_client)
-        model = OpenAIModel(model_id, provider=provider)
-
     model_settings = {
         "temperature": gen_params.get("temperature", 0.7),
         "top_p": gen_params.get("top_p"),
@@ -630,8 +810,14 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
     }
     model_settings = {k: v for k, v in model_settings.items() if v is not None}
 
-    # --- TB-004 PRECISION PRE-FLIGHT ---
+    # Decide which HTTP client to use
+    active_client = http_client
+    temp_client = None
+
+    # Initialize Model
+    model = None
     if gateway == "groq":
+        # --- TB-004 PRECISION PRE-FLIGHT ---
         from app.core.pre_flight_guard import check_request_safety
         precision_candidates = [a.account for a in pool.deck]
         preflight = await check_request_safety(
@@ -642,10 +828,63 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
         )
         if not preflight.allowed:
             raise Exception(f"Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
+        # --- TB-012 PROXY RULES ---
+        from app.core.proxy_rules import evaluate_rules
+        estimated_tokens = count_tokens_for_strike(gateway, model_id, prompt)
+        proxy_decision = evaluate_rules(asset.account, model_id, estimated_tokens)
+        if proxy_decision["route"] == "proxy" and (tunnel_client or proxy_client):
+            active_client = tunnel_client or proxy_client
+            if os.getenv("PEACOCK_VERBOSE") == "true":
+                print(f"[!] Proxy routing triggered for {asset.account}: {proxy_decision['rationale']}")
+        # --------------------------
+        # --- TB-009 PACER ---
+        await GroqPacer.acquire(asset.account, model_id, estimated_tokens)
+        # --------------------
         await GroqRateTracker.begin_request(asset.account, model_id)
-    # -------------------------------------
+        # -------------------------------------
+        if timeout is not None:
+            actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
+            if active_client is tunnel_client:
+                temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
+            elif active_client is proxy_client:
+                temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
+            else:
+                temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
+            active_client = temp_client
+        provider = GroqProvider(api_key=asset.key, http_client=active_client)
+        model = GroqModel(model_id, provider=provider)
+    elif gateway == "google":
+        clean_model_id = model_id.replace("models/", "")
+        provider = GoogleProvider(api_key=asset.key, http_client=active_client)
+        model = GoogleModel(clean_model_id, provider=provider)
+    elif gateway == "deepseek":
+        provider = OpenAIProvider(base_url="https://api.deepseek.com", api_key=asset.key, http_client=active_client)
+        model = OpenAIModel(model_id, provider=provider)
+    elif gateway == "mistral":
+        provider = OpenAIProvider(base_url="https://api.mistral.ai/v1", api_key=asset.key, http_client=active_client)
+        model = OpenAIModel(model_id, provider=provider)
+    
+    # Non-groq timeout client
+    if gateway != "groq" and timeout is not None:
+        actual_timeout = 3600.0 if timeout <= 0 else float(timeout)
+        if tunnel_enabled:
+            temp_client = httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=actual_timeout, trust_env=False)
+        elif proxy_enabled and proxy_url:
+            temp_client = httpx.AsyncClient(proxy=proxy_url, timeout=actual_timeout, trust_env=False)
+        else:
+            temp_client = httpx.AsyncClient(timeout=actual_timeout, trust_env=False)
+        active_client = temp_client
+        if gateway == "google":
+            provider = GoogleProvider(api_key=asset.key, http_client=active_client)
+            model = GoogleModel(clean_model_id, provider=provider)
+        elif gateway == "deepseek":
+            provider = OpenAIProvider(base_url="https://api.deepseek.com", api_key=asset.key, http_client=active_client)
+            model = OpenAIModel(model_id, provider=provider)
+        elif gateway == "mistral":
+            provider = OpenAIProvider(base_url="https://api.mistral.ai/v1", api_key=asset.key, http_client=active_client)
+            model = OpenAIModel(model_id, provider=provider)
 
-    agent = Agent(model, output_type=str)
+    agent = Agent(model, result_type=str)
     try:
         result = await agent.run(prompt, model_settings=model_settings)
         usage_obj = result.usage()
@@ -668,16 +907,15 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
         # --- TB-001 TELEMETRY ---
         if gateway == "groq":
             await GroqRateTracker.consume(asset.account, model_id, usage['total_tokens'])
-            await GroqRateTracker.end_request(asset.account, model_id)
         # ------------------------
         
         active_temp = model_settings.get("temperature", 0.7)
-        tag = HighSignalLogger.log_strike(gateway, model_id, prompt, result.output, usage, active_temp, cost, is_success=True, is_manual=is_manual)
+        tag = HighSignalLogger.log_strike(gateway, model_id, prompt, result.data, usage, active_temp, cost, is_success=True, is_manual=is_manual)
         duration = time.time() - start_time
         CLIFormatter.strike_success(gateway, asset.account, model_id, usage['prompt_tokens'], usage['completion_tokens'], duration, temp=active_temp, tag=tag, cost=cost)
 
         return {
-            "content": result.output,
+            "content": result.data,
             "keyUsed": asset.account,
             "usage": usage,
             "tag": tag,
@@ -688,11 +926,13 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
             error_str = str(e).lower()
             if "429" in error_str or "rate limit" in error_str:
                 await GroqRateTracker.record_429(asset.account, model_id)
-            await GroqRateTracker.end_request(asset.account, model_id)
         active_err_temp = model_settings.get("temperature", 0.7)
         tag = HighSignalLogger.log_strike(gateway, model_id, prompt, "", {"prompt_tokens":0, "completion_tokens":0, "total_tokens":0}, active_err_temp, 0.0, is_success=False, is_manual=is_manual, error=str(e))
         CLIFormatter.strike_error(gateway, asset.account, str(e), model_id, temp=active_err_temp, tag=tag)
         raise e
     finally:
+        if gateway == "groq" and asset:
+            await GroqRateTracker.end_request(asset.account, model_id)
+            GroqPacer.release(asset.account, model_id)
         if temp_client:
             await temp_client.aclose()

@@ -17,8 +17,8 @@ DYNAMIC_MODELS_PATH = os.path.join(os.path.dirname(__file__), "..", "dynamic_mod
 
 class RegisterModelRequest(BaseModel):
     id: str
-    gateway: Literal['groq', 'google', 'deepseek', 'mistral']
-    tier: Literal['free', 'cheap', 'expensive']
+    gateway: Literal['groq', 'opencode-go', 'opencode-zen', 'openrouter', 'ollama', 'hetzner', 'zai', 'zai-coding']
+    tier: Literal['free', 'cheap', 'expensive', 'custom', 'deprecated']
     note: Optional[str] = ""
     rpm: Optional[int] = None
     rpd: Optional[int] = None
@@ -27,6 +27,10 @@ class RegisterModelRequest(BaseModel):
     input_price_1m: Optional[float] = None
     output_price_1m: Optional[float] = None
     status: Optional[Literal['active', 'frozen', 'deprecated']] = 'active'
+    tools_supported: Optional[bool] = False
+    index: Optional[int] = None
+    base_url: Optional[str] = None
+    display_name: Optional[str] = None
 
 @router.post("/register")
 async def register_model(req: RegisterModelRequest):
@@ -45,7 +49,11 @@ async def register_model(req: RegisterModelRequest):
         context_window=req.context_window,
         input_price_1m=req.input_price_1m,
         output_price_1m=req.output_price_1m,
-        status=req.status or 'active'
+        status=req.status or 'active',
+        tools_supported=req.tools_supported or False,
+        index=req.index,
+        base_url=req.base_url,
+        display_name=req.display_name,
     )
 
     # Append to in-memory registry
@@ -68,7 +76,11 @@ async def register_model(req: RegisterModelRequest):
         "context_window": req.context_window,
         "input_price_1m": req.input_price_1m,
         "output_price_1m": req.output_price_1m,
-        "status": req.status or 'active'
+        "status": req.status or 'active',
+        "tools_supported": req.tools_supported or False,
+        "index": req.index,
+        "base_url": req.base_url,
+        "display_name": req.display_name,
     })
 
     with open(DYNAMIC_MODELS_PATH, 'w') as f:

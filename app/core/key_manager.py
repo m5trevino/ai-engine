@@ -5,14 +5,19 @@ Handles API key rotation, shuffling, and usage tracking.
 
 import os
 import random
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
 # Ensure environment is loaded
 load_dotenv()
 
-from app.utils.formatter import CLIFormatter, Colors
+from app.utils.formatter import CLIFormatter, Colors, ARSENAL_BLOCKS
+from rich.console import Console
+from rich.text import Text
+
+# Rich Console for arsenal banner rendering
+console = Console()
 from app.db.database import KeyUsageDB
 
 
@@ -23,10 +28,15 @@ class KeyAsset(BaseModel):
     account: str
     key: str
     cooldown_until: float = 0.0
+    enabled: bool = True
 
     @property
     def on_cooldown(self) -> bool:
         return time.time() < self.cooldown_until
+
+    @property
+    def is_available(self) -> bool:
+        return self.enabled and not self.on_cooldown
 
 
 from abc import ABC, abstractmethod
@@ -63,6 +73,9 @@ class KeyPool:
 
         entries = env_string.split(',')
         for idx, entry in enumerate(entries):
+            entry = entry.strip()
+            if not entry:
+                continue
             label = ""
             key = ""
             
@@ -105,23 +118,34 @@ class KeyPool:
                 CLIFormatter.warning(f"KEY [{account}] marked on COOLDOWN for {duration}s")
                 return
 
+    def set_key_enabled(self, account: str, enabled: bool) -> bool:
+        """Enable or disable a specific key. Returns True if the key was found."""
+        for asset in self.deck:
+            if asset.account == account:
+                asset.enabled = enabled
+                CLIFormatter.info(
+                    f"KEY [{account}] {'ENABLED' if enabled else 'DISABLED'} in {self.pool_type}"
+                )
+                return True
+        return False
+
     def get_next(self) -> KeyAsset:
         if not self.deck:
             raise Exception(f"NO AMMUNITION FOR {self.pool_type}")
-        
-        # Try to find a key not on cooldown (up to a full deck rotation)
+
+        # Try to find an enabled key not on cooldown (up to a full deck rotation)
         for _ in range(len(self.deck)):
             asset, self.pointer = self.strategy.get_next(self.deck, self.pointer)
-            
+
             # If we hit the end of a shuffle deck, reshuffle
             if isinstance(self.strategy, ShuffleStrategy) and self.pointer >= len(self.deck):
                 self.shuffle()
-            
-            if not asset.on_cooldown:
+
+            if asset.is_available:
                 return asset
-                
-        # All keys are on cooldown!
-        raise Exception(f"ALL KEYS ON COOLDOWN FOR {self.pool_type.upper()}")
+
+        # All keys are disabled or on cooldown!
+        raise Exception(f"ALL KEYS DISABLED OR ON COOLDOWN FOR {self.pool_type.upper()}")
 
     async def get_next_intelligent(self, model_id: str, estimated_tokens: int = 1) -> KeyAsset:
         """
@@ -151,7 +175,7 @@ class KeyPool:
         best_score = -1.0
 
         for asset in self.deck:
-            if asset.on_cooldown:
+            if not asset.is_available:
                 continue
 
             # Ask the tracker if this key can handle the request
@@ -190,10 +214,37 @@ class KeyPool:
 
     def dump(self):
         style = CLIFormatter.get_gateway_style(self.pool_type)
-        print(f"\n{style['color']}--- [ {self.pool_type} ARSENAL LOADED ] ---{Colors.RESET}")
-        for i, a in enumerate(self.deck):
-            masked = f"{a.key[:8]}..." if len(a.key) > 8 else "INVALID"
-            print(f"{style['color']}[{str(i+1).zfill(2)}]{Colors.RESET} {Colors.YELLOW}{a.account.ljust(20)}{Colors.RESET} | ID: {masked}")
+        gw_color = style["color"].replace("\033[", "").replace("m", "")
+        color_map = {"96": "cyan", "94": "blue", "92": "green", "95": "magenta", "97": "white", "93": "yellow"}
+        base_color = color_map.get(gw_color, "white")
+
+        console.print()
+        console.print(Text(f".:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::.", style=f"dim {base_color}"))
+        console.print(Text(f":: [ {self.pool_type.upper()} ARSENAL LOADED ] ::::::::::::::::::::::::::::::::::::::::::::::::::::", style=f"bold {base_color}"))
+        console.print(Text(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::", style=f"dim {base_color}"))
+
+        # ASCII Art Banner — resolve sub-gateways to shared parent block
+        gw_key = self.pool_type.lower()
+        if gw_key not in ARSENAL_BLOCKS:
+            gw_key = gw_key.split("-")[0]
+        block = ARSENAL_BLOCKS.get(gw_key, [])
+        if block:
+            banner_colors = ["green3", "spring_green3", "spring_green2", "spring_green1"]
+            for i, line in enumerate(block):
+                console.print(Text(line, style=banner_colors[i % len(banner_colors)]))
+
+        console.print(Text(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::", style=f"dim {base_color}"))
+
+        if not self.deck:
+            console.print(Text(f"  ::  [!] NO {self.pool_type.upper()} KEYS ENROLLED.", style="bold red"))
+        else:
+            for i, a in enumerate(self.deck):
+                masked = f"{a.key[:8]}..." if len(a.key) > 8 else "INVALID"
+                row = f"  ::  [{str(i+1).zfill(2)}]  {a.account.ljust(20)}  | ID: {masked}"
+                console.print(Text(row, style=f"bold {base_color}"))
+
+        console.print(Text("':::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::'", style=f"dim {base_color}"))
+        console.print()
 
     @staticmethod
     def record_usage(gateway: str, account: str, usage: dict):
@@ -204,15 +255,51 @@ class KeyPool:
             CLIFormatter.warning(f"Failed to record key usage: {e}")
 
 
-# Load pools from Environment Variables
-GroqPool = KeyPool(os.getenv("GROQ_KEYS"), "groq")
-GooglePool = KeyPool(os.getenv("GOOGLE_KEYS"), "google")
-DeepSeekPool = KeyPool(os.getenv("DEEPSEEK_KEYS"), "deepseek")
-MistralPool = KeyPool(os.getenv("MISTRAL_KEYS"), "mistral")
+# Desired providers (plus hidden zai/zai-coding for future use)
+_POOL_SPECS: List[Tuple[str, str]] = [
+    ("GROQ_KEYS", "groq"),
+    ("OPENCODE_GO_KEYS", "opencode-go"),
+    ("OPENCODE_ZEN_KEYS", "opencode-zen"),
+    ("OPENROUTER_KEYS", "openrouter"),
+    ("OLLAMA_KEYS", "ollama"),
+    ("HETZNER_KEYS", "hetzner"),
+    ("ZAI_KEYS", "zai"),
+    ("ZAI_CODING_KEYS", "zai-coding"),
+]
+
+# Build pools dynamically; hidden providers are created empty if no env var
+# so they can be enabled later without code changes.
+_pools: Dict[str, KeyPool] = {}
+for _env_key, _pool_type in _POOL_SPECS:
+    _pools[_pool_type] = KeyPool(os.getenv(_env_key), _pool_type)
+
+GroqPool = _pools["groq"]
+OpencodeGoPool = _pools["opencode-go"]
+OpencodeZenPool = _pools["opencode-zen"]
+OpenrouterPool = _pools["openrouter"]
+OllamaPool = _pools["ollama"]
+HetznerPool = _pools["hetzner"]
+ZaiPool = _pools["zai"]
+ZaiCodingPool = _pools["zai-coding"]
+
+# Deprecated standalone providers: exposed as empty pools so existing imports
+# in striker.py don't break while their branches are removed in a follow-up slice.
+GooglePool = KeyPool(None, "google")
+DeepSeekPool = KeyPool(None, "deepseek")
+MistralPool = KeyPool(None, "mistral")
+
+
+def get_pool(gateway: str) -> Optional[KeyPool]:
+    """Look up a key pool by gateway name."""
+    return _pools.get(gateway.lower())
+
+
+def list_pools() -> Dict[str, KeyPool]:
+    """Return a shallow copy of the pool registry."""
+    return _pools.copy()
+
 
 if os.getenv("PEACOCK_DEBUG") == "true":
-    GroqPool.dump()
-    GooglePool.dump()
-    DeepSeekPool.dump()
-    MistralPool.dump()
+    for _pool in _pools.values():
+        _pool.dump()
 

@@ -49,6 +49,16 @@ class RuntimeConfigResponse(BaseModel):
     cleanup: CleanupConfig
 
 
+class ProviderConfig(BaseModel):
+    enabled: bool
+    visible: bool
+    label: str
+
+
+class ProvidersConfig(BaseModel):
+    providers: Dict[str, ProviderConfig]
+
+
 class ConfigPatchRequest(BaseModel):
     proxy_rules: Optional[Dict[str, Any]] = None
     guard: Optional[Dict[str, Any]] = None
@@ -59,6 +69,17 @@ class ConfigPatchRequest(BaseModel):
 class ConfigUpdateResponse(BaseModel):
     status: str
     applied: Dict[str, Any]
+
+
+class PerformanceModeResponse(BaseModel):
+    mode: str
+    name: str
+    multiplier: float
+    description: str
+
+
+class PerformanceModeRequest(BaseModel):
+    mode: str = Field(..., pattern="^(stealth|balanced|apex)$")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -142,4 +163,94 @@ async def reset_config():
         "guard": data["guard"],
         "pacer": data["pacer"],
         "cleanup": data["cleanup"],
+    }
+
+
+@router.get("/performance-mode", response_model=PerformanceModeResponse)
+async def get_performance_mode():
+    """
+    Get the current Hellcat Protocol performance mode.
+    
+    Modes:
+      - stealth: 3.0x multiplier (maximum safety)
+      - balanced: 1.15x multiplier (standard operation)
+      - apex: 1.02x multiplier (maximum throughput)
+    """
+    return config_store.get_performance_mode_info()
+
+
+@router.post("/performance-mode", response_model=PerformanceModeResponse)
+async def set_performance_mode(request: PerformanceModeRequest):
+    """
+    Set the Hellcat Protocol performance mode.
+    
+    Changes take effect immediately for all subsequent requests.
+    """
+    try:
+        config_store.set_performance_mode(request.mode)
+        # Also update environment variable for backward compatibility
+        import os
+        os.environ["PEACOCK_PERF_MODE"] = request.mode
+        return config_store.get_performance_mode_info()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/providers")
+async def get_providers():
+    """Get the current provider enable/visible state."""
+    return config_store.providers
+
+
+@router.patch("/providers/{gateway}")
+async def patch_provider(gateway: str, request: ProviderConfig):
+    """Update enable/visible/label for a single provider."""
+    config_store.set_provider_state(
+        gateway,
+        enabled=request.enabled,
+        visible=request.visible,
+        label=request.label,
+    )
+    return config_store.providers.get(gateway)
+
+
+@router.post("/providers/{gateway}/toggle")
+async def toggle_provider(gateway: str):
+    """Toggle a provider's enabled state."""
+    current = config_store.providers.get(gateway, {})
+    config_store.set_provider_state(gateway, enabled=not current.get("enabled", False))
+    return config_store.providers.get(gateway)
+
+
+@router.get("/effective-settings")
+async def get_effective_settings():
+    """
+    Get all effective runtime settings including performance mode,
+    guard thresholds, proxy rules, and pacer configuration.
+    
+    This endpoint shows the actual values being used by the system.
+    """
+    from app.config import PERFORMANCE_MODES
+    
+    perf_mode = config_store.performance_mode
+    perf_cfg = PERFORMANCE_MODES.get(perf_mode, PERFORMANCE_MODES["balanced"])
+    
+    return {
+        "performance_mode": {
+            "active": perf_mode,
+            "name": perf_cfg["name"],
+            "multiplier": perf_cfg["multiplier"],
+        },
+        "guard": {
+            "warn_threshold": config_store.guard["warn_threshold"],
+            "block_threshold": config_store.guard["block_threshold"],
+        },
+        "proxy_rules": config_store.proxy_rules,
+        "pacer": {
+            "burn_mode": config_store.burn_mode,
+            "tpm_backpressure_pct": config_store.pacer["tpm_backpressure_pct"],
+            "default_concurrency": config_store.pacer["default_concurrency"],
+        },
+        "cleanup": config_store.cleanup,
+        "providers": config_store.providers,
     }

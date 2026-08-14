@@ -54,6 +54,17 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "storage_warning_mb": 50,
         "storage_critical_mb": 200,
     },
+    "performance_mode": "balanced",
+    "providers": {
+        "groq": {"enabled": True, "visible": True, "label": "Groq"},
+        "opencode-go": {"enabled": True, "visible": True, "label": "OpenCode Go"},
+        "opencode-zen": {"enabled": True, "visible": True, "label": "OpenCode Zen"},
+        "openrouter": {"enabled": True, "visible": True, "label": "OpenRouter"},
+        "ollama": {"enabled": True, "visible": True, "label": "Ollama Cloud"},
+        "hetzner": {"enabled": True, "visible": True, "label": "Hetzner"},
+        "zai": {"enabled": False, "visible": False, "label": "Z.ai"},
+        "zai-coding": {"enabled": False, "visible": False, "label": "Z.ai Coding"},
+    },
 }
 
 
@@ -172,6 +183,76 @@ class RuntimeConfigStore:
     @property
     def cleanup(self) -> Dict[str, Any]:
         return self._data.get("cleanup", DEFAULT_CONFIG["cleanup"]).copy()
+
+    @property
+    def performance_mode(self) -> Literal["stealth", "balanced", "apex"]:
+        """Get the current Hellcat Protocol performance mode."""
+        mode = self._data.get("performance_mode", "balanced")
+        if mode not in ("stealth", "balanced", "apex"):
+            return "balanced"
+        return mode
+
+    def set_performance_mode(self, mode: Literal["stealth", "balanced", "apex"]) -> None:
+        """Set the Hellcat Protocol performance mode."""
+        if mode not in ("stealth", "balanced", "apex"):
+            raise ValueError(f"Invalid performance mode: {mode}. Must be one of: stealth, balanced, apex")
+        self._data["performance_mode"] = mode
+        self.save()
+
+    def get_performance_mode_info(self) -> Dict[str, Any]:
+        """Get full information about the current performance mode."""
+        from app.config import PERFORMANCE_MODES
+        mode = self.performance_mode
+        mode_cfg = PERFORMANCE_MODES.get(mode, PERFORMANCE_MODES["balanced"])
+        return {
+            "mode": mode,
+            "name": mode_cfg["name"],
+            "multiplier": mode_cfg["multiplier"],
+            "description": self._get_mode_description(mode)
+        }
+
+    def _get_mode_description(self, mode: str) -> str:
+        descriptions = {
+            "stealth": "Maximum safety - 3.0x slower, conservative rate limiting",
+            "balanced": "Standard operation - 1.15x buffer for normal workloads",
+            "apex": "Maximum throughput - 1.02x at the edge (risk of 429s)"
+        }
+        return descriptions.get(mode, "Unknown mode")
+
+    @property
+    def providers(self) -> Dict[str, Any]:
+        """Return the provider state map (enabled + visible flags)."""
+        return self._data.get("providers", DEFAULT_CONFIG["providers"]).copy()
+
+    def is_provider_enabled(self, gateway: str) -> bool:
+        """Check if a provider is enabled for use."""
+        cfg = self._data.get("providers", DEFAULT_CONFIG["providers"]).get(gateway, {})
+        return bool(cfg.get("enabled", False)) and bool(cfg.get("visible", False))
+
+    def is_provider_visible(self, gateway: str) -> bool:
+        """Check if a provider should be shown in the UI."""
+        cfg = self._data.get("providers", DEFAULT_CONFIG["providers"]).get(gateway, {})
+        return bool(cfg.get("visible", False))
+
+    def set_provider_state(
+        self,
+        gateway: str,
+        *,
+        enabled: Optional[bool] = None,
+        visible: Optional[bool] = None,
+        label: Optional[str] = None,
+    ) -> None:
+        """Update the state of a single provider and persist."""
+        providers = self._data.setdefault("providers", DEFAULT_CONFIG["providers"].copy())
+        if gateway not in providers:
+            providers[gateway] = {"enabled": False, "visible": False, "label": gateway}
+        if enabled is not None:
+            providers[gateway]["enabled"] = enabled
+        if visible is not None:
+            providers[gateway]["visible"] = visible
+        if label is not None:
+            providers[gateway]["label"] = label
+        self.save()
 
 
 # Global singleton

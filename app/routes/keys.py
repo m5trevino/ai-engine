@@ -4,7 +4,8 @@ API key management and usage tracking.
 """
 
 from fastapi import APIRouter
-from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool
+from app.core.key_manager import list_pools
+from app.core.config_store import config_store
 from app.db.database import KeyUsageDB
 from app.utils.formatter import CLIFormatter
 
@@ -14,24 +15,15 @@ router = APIRouter()
 @router.get("")
 async def get_keys():
     """Get all available keys (without the actual key values)."""
-    return {
-        "groq": {
-            "pointer": GroqPool.pointer,
-            "keys": [a.account for a in GroqPool.deck]
-        },
-        "google": {
-            "pointer": GooglePool.pointer,
-            "keys": [a.account for a in GooglePool.deck]
-        },
-        "deepseek": {
-            "pointer": DeepSeekPool.pointer,
-            "keys": [a.account for a in DeepSeekPool.deck]
-        },
-        "mistral": {
-            "pointer": MistralPool.pointer,
-            "keys": [a.account for a in MistralPool.deck]
+    result = {}
+    for gateway, pool in list_pools().items():
+        if not config_store.is_provider_visible(gateway):
+            continue
+        result[gateway] = {
+            "pointer": pool.pointer,
+            "keys": [a.account for a in pool.deck]
         }
-    }
+    return result
 
 
 @router.get("/usage")
@@ -41,32 +33,20 @@ async def get_keys_usage():
     Includes last used timestamp, usage count, and token totals.
     """
     usage_data = KeyUsageDB.get_all_usage()
-    
-    # Also include current pool status
+
+    pools = {}
+    for gateway, pool in list_pools().items():
+        if not config_store.is_provider_visible(gateway):
+            continue
+        pools[gateway] = {
+            "total_keys": len(pool.deck),
+            "current_pointer": pool.pointer,
+            "accounts": [a.account for a in pool.deck]
+        }
+
     return {
         "usage": usage_data,
-        "pools": {
-            "groq": {
-                "total_keys": len(GroqPool.deck),
-                "current_pointer": GroqPool.pointer,
-                "accounts": [a.account for a in GroqPool.deck]
-            },
-            "google": {
-                "total_keys": len(GooglePool.deck),
-                "current_pointer": GooglePool.pointer,
-                "accounts": [a.account for a in GooglePool.deck]
-            },
-            "deepseek": {
-                "total_keys": len(DeepSeekPool.deck),
-                "current_pointer": DeepSeekPool.pointer,
-                "accounts": [a.account for a in DeepSeekPool.deck]
-            },
-            "mistral": {
-                "total_keys": len(MistralPool.deck),
-                "current_pointer": MistralPool.pointer,
-                "accounts": [a.account for a in MistralPool.deck]
-            }
-        }
+        "pools": pools,
     }
 
 
@@ -74,22 +54,16 @@ async def get_keys_usage():
 async def get_gateway_usage(gateway: str):
     """Get usage statistics for a specific gateway."""
     gateway_lower = gateway.lower()
-    
-    valid_gateways = ["groq", "google", "deepseek", "mistral"]
-    if gateway_lower not in valid_gateways:
-        return {"error": f"Invalid gateway. Must be one of: {valid_gateways}"}
-    
+
+    pool = list_pools().get(gateway_lower)
+    if not pool:
+        return {"error": f"Invalid gateway: {gateway_lower}"}
+
+    if not config_store.is_provider_visible(gateway_lower):
+        return {"error": f"Provider {gateway_lower} is not visible"}
+
     usage = KeyUsageDB.get_gateway_usage(gateway_lower)
-    
-    # Get pool info
-    pool_map = {
-        "groq": GroqPool,
-        "google": GooglePool,
-        "deepseek": DeepSeekPool,
-        "mistral": MistralPool
-    }
-    pool = pool_map[gateway_lower]
-    
+
     return {
         "gateway": gateway_lower,
         "usage": usage,
