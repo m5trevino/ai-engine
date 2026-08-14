@@ -147,21 +147,29 @@ class KeyPool:
         # All keys are disabled or on cooldown!
         raise Exception(f"ALL KEYS DISABLED OR ON COOLDOWN FOR {self.pool_type.upper()}")
 
-    async def get_next_intelligent(self, model_id: str, estimated_tokens: int = 1) -> KeyAsset:
+    async def get_next_intelligent(
+        self,
+        model_id: str,
+        estimated_tokens: int = 1,
+        tracker: Optional[Any] = None,
+    ) -> KeyAsset:
         """
         TB-007: Intelligent Key Selector.
+
         Scores every key by real-time rate-limit headroom and picks the best.
-        
+        Pass a provider-specific RateLimitTracker; falls back to the Groq singleton.
+
         Scoring weights:
           • TPM headroom : 50% (most common bottleneck)
           • RPM headroom : 30% (request velocity)
           • RPD headroom : 10% (daily budget)
           • TPD headroom : 10% (daily token budget)
-        
+
         Args:
-            model_id: Groq model ID to evaluate against
+            model_id: Model ID to evaluate against
             estimated_tokens: Expected token burn for the upcoming request
-        
+            tracker: Optional rate-limit tracker (defaults to GroqRateTracker)
+
         Returns:
             KeyAsset with the highest composite score
         """
@@ -169,7 +177,13 @@ class KeyPool:
             raise Exception(f"NO AMMUNITION FOR {self.pool_type}")
 
         # Lazy import to avoid circular dependency at module load time
-        from app.core.rate_limit_tracker import GroqRateTracker
+        from app.core.rate_limit_tracker import GroqRateTracker, RateLimitTracker
+
+        active_tracker = tracker
+        if active_tracker is None:
+            active_tracker = GroqRateTracker
+        elif not isinstance(active_tracker, RateLimitTracker):
+            raise TypeError("tracker must be a RateLimitTracker instance")
 
         best_asset: Optional[KeyAsset] = None
         best_score = -1.0
@@ -178,12 +192,10 @@ class KeyPool:
             if not asset.is_available:
                 continue
 
-            # Ask the tracker if this key can handle the request
-            result = await GroqRateTracker.can_consume(asset.account, model_id, estimated_tokens)
+            result = await active_tracker.can_consume(asset.account, model_id, estimated_tokens)
             if not result.allowed:
                 continue
 
-            # Composite score: weighted headroom
             score = 0.0
             if result.remaining_tpm > 0:
                 score += result.remaining_tpm * 0.50

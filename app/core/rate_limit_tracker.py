@@ -1,6 +1,6 @@
 """
 PEACOCK ENGINE — Rate Limit Tracker Core (TB-001)
-Single source of truth for per-key, per-model rate limit tracking.
+Provider-agnostic single source of truth for per-key, per-model rate limit tracking.
 
 Scope:
   • In-memory state management
@@ -8,6 +8,7 @@ Scope:
   • Minute and daily rolling windows
   • Record consumption, 429s, and resets
   • Governor snapshot for dashboard + other modules
+  • Per-provider limit profiles (RPM, RPD, TPM, TPD, context window)
 
 Design:
   • Fixed time windows (60s minute, 86400s daily)
@@ -23,9 +24,13 @@ from pydantic import BaseModel
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# GROQ RATE LIMITS — SOURCE OF TRUTH FROM OFFICIAL DOCS
+# LIMIT PROFILES
+# Each provider registers its own model limits: (rpm, rpd, tpm, tpd, context_window).
+# None means "unknown / unlimited".
 # ═══════════════════════════════════════════════════════════════════════════════
-GROQ_RATE_LIMITS: Dict[str, Tuple[Optional[int], Optional[int], Optional[int], Optional[int], int]] = {
+LimitProfile = Dict[str, Tuple[Optional[int], Optional[int], Optional[int], Optional[int], int]]
+
+_GROQ_LIMITS: LimitProfile = {
     # Meta
     "llama-3.3-70b-versatile": (30, 1000, 12000, 100000, 131072),
     "llama-3.1-8b-instant": (30, 14400, 6000, 500000, 131072),
@@ -49,9 +54,13 @@ GROQ_RATE_LIMITS: Dict[str, Tuple[Optional[int], Optional[int], Optional[int], O
     # Whisper
     "whisper-large-v3": (20, 2000, None, None, 448),
     "whisper-large-v3-turbo": (20, 2000, None, None, 448),
-    # Deprecated
-    "moonshotai/kimi-k2-instruct": (0, 0, 0, 0, 131072),
-    "moonshotai/kimi-k2-instruct-0905": (0, 0, 0, 0, 131072),
+    # Moonshot / Kimi
+    "moonshotai/kimi-k2-instruct": (60, 1000, 10000, 300000, 131072),
+    "moonshotai/kimi-k2-instruct-0905": (60, 1000, 10000, 300000, 262144),
+}
+
+_PROVIDER_LIMITS: Dict[str, LimitProfile] = {
+    "groq": _GROQ_LIMITS,
 }
 
 MINUTE = 60.0
@@ -146,10 +155,11 @@ class _KeyModelState:
 
 class RateLimitTracker:
     """
-    Central rate-limit tracker for Groq.
+    Provider-agnostic rate-limit tracker.
 
     Usage:
-        tracker = RateLimitTracker()
+        tracker = RateLimitTracker()                 # uses default provider profiles
+        tracker = RateLimitTracker(provider="groq")  # explicit profile lookup
 
         # Pre-flight check (dry-run)
         result = await tracker.can_consume("G_I7AT", "llama-3.3-70b-versatile", tokens=1500)
@@ -169,7 +179,8 @@ class RateLimitTracker:
 
     # ─────────────────────────── INIT ───────────────────────────
 
-    def __init__(self):
+    def __init__(self, provider: Optional[str] = None):
+        self.provider = provider
         # state[key_label][model_id] = _KeyModelState
         self._state: Dict[str, Dict[str, _KeyModelState]] = {}
         self._locks: Dict[str, asyncio.Lock] = {}
@@ -189,13 +200,38 @@ class RateLimitTracker:
         return self._state[key_label][model_id]
 
     @staticmethod
-    def get_model_limits(model_id: str) -> Dict[str, Any]:
-        rpm, rpd, tpm, tpd, ctx = GROQ_RATE_LIMITS.get(model_id, (None, None, None, None, 131072))
-        return {"rpm": rpm, "rpd": rpd, "tpm": tpm, "tpd": tpd, "context_window": ctx}
+    def register_provider_limits(provider: str, limits: LimitProfile) -> None:
+        """Register or overwrite a provider's limit profile at runtime."""
+        _PROVIDER_LIMITS[provider] = limits
 
     @staticmethod
-    def get_context_window(model_id: str) -> int:
-        return RateLimitTracker.get_model_limits(model_id)["context_window"]
+    def get_provider_limits(provider: str) -> LimitProfile:
+        return _PROVIDER_LIMITS.get(provider, {})
+
+    def _resolve_limits(self, model_id: str) -> Tuple[str, Dict[str, Any]]:
+        """Return the provider key and limit dict for a model_id."""
+        provider = self.provider
+        if provider:
+            profile = _PROVIDER_LIMITS.get(provider, {})
+            if model_id in profile:
+                rpm, rpd, tpm, tpd, ctx = profile[model_id]
+                return provider, {"rpm": rpm, "rpd": rpd, "tpm": tpm, "tpd": tpd, "context_window": ctx}
+
+        # Fall back to scanning all providers for the model.
+        for prov, profile in _PROVIDER_LIMITS.items():
+            if model_id in profile:
+                rpm, rpd, tpm, tpd, ctx = profile[model_id]
+                return prov, {"rpm": rpm, "rpd": rpd, "tpm": tpm, "tpd": tpd, "context_window": ctx}
+
+        return provider or "unknown", {"rpm": None, "rpd": None, "tpm": None, "tpd": None, "context_window": 131072}
+
+    def get_model_limits(self, model_id: str) -> Dict[str, Any]:
+        """Return limits for a model, scoped to this tracker's provider if set."""
+        _, limits = self._resolve_limits(model_id)
+        return limits
+
+    def get_context_window(self, model_id: str) -> int:
+        return self.get_model_limits(model_id)["context_window"]
 
     def _reset_windows(self, state: _KeyModelState, now: float) -> None:
         state.rpm.reset_if_expired(now, MINUTE)

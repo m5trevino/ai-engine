@@ -1,17 +1,18 @@
 """
 PEACOCK ENGINE — Global Pacing Coordinator (TB-009)
-Lightweight global throttle that prevents org-level limit violations
-across concurrent workers.
+Provider-agnostic lightweight global throttle that prevents org-level limit
+violations across concurrent workers.
 
 Scope:
   • Per-key-model semaphore (limits in-flight burst)
   • RPM pacing (minimum interval between requests)
   • TPM backpressure (delay when near ceiling)
   • Adaptive concurrency based on model RPM
+  • No cooldown-based lockout; only rate-limit-aware waiting
 
 References:
   • app.core.rate_limit_tracker (TB-001)
-  • app.core.key_manager        (GroqPool)
+  • app.core.key_manager        (provider pools)
 """
 
 import asyncio
@@ -19,27 +20,28 @@ import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional
 
-from app.core.rate_limit_tracker import GroqRateTracker
+from app.core.rate_limit_tracker import RateLimitTracker
 from app.core.config_store import config_store
 
 
 class GlobalPacer:
     """
-    Lightweight global throttle for concurrent workers.
+    Provider-agnostic lightweight global throttle for concurrent workers.
 
     Usage (context manager — recommended):
-        async with GroqPacer.gate("G_I7AT", "llama-3.3-70b-versatile", estimated_tokens=1500):
+        async with pacer.gate("G_I7AT", "llama-3.3-70b-versatile", estimated_tokens=1500):
             result = await execute_strike(...)
 
     Usage (manual acquire/release):
-        await GroqPacer.acquire("G_I7AT", "llama-3.3-70b-versatile", 1500)
+        await pacer.acquire("G_I7AT", "llama-3.3-70b-versatile", 1500)
         try:
             result = await execute_strike(...)
         finally:
-            GroqPacer.release("G_I7AT", "llama-3.3-70b-versatile")
+            pacer.release("G_I7AT", "llama-3.3-70b-versatile")
     """
 
-    def __init__(self, default_concurrency: int = 2):
+    def __init__(self, tracker: Optional[RateLimitTracker] = None, default_concurrency: int = 2):
+        self._tracker = tracker or RateLimitTracker()
         self._default_concurrency_override = default_concurrency
         self.default_concurrency = config_store.pacer.get("default_concurrency", default_concurrency)
         self._semaphores: Dict[str, asyncio.Semaphore] = {}
@@ -56,7 +58,7 @@ class GlobalPacer:
         """Adaptive concurrency: low-RPM models get serialized, high-RPM can parallelize.
         Burn mode overrides from runtime config (TB-021)."""
         mode = config_store.burn_mode
-        limits = GroqRateTracker.get_model_limits(model_id)
+        limits = self._tracker.get_model_limits(model_id)
         rpm = limits.get("rpm")
         if rpm is None:
             return self.default_concurrency
@@ -97,7 +99,7 @@ class GlobalPacer:
     async def _wait_for_rpm(self, key_label: str, model_id: str):
         """Enforce minimum inter-request interval to stay under RPM."""
         k = self._key(key_label, model_id)
-        limits = GroqRateTracker.get_model_limits(model_id)
+        limits = self._tracker.get_model_limits(model_id)
         rpm = limits.get("rpm")
         if not rpm or rpm <= 0:
             return
@@ -116,27 +118,27 @@ class GlobalPacer:
 
     async def _wait_for_tpm(self, key_label: str, model_id: str, estimated_tokens: int):
         """TPM backpressure: if we're near the ceiling, wait for the minute window to roll."""
-        limits = GroqRateTracker.get_model_limits(model_id)
+        limits = self._tracker.get_model_limits(model_id)
         tpm = limits.get("tpm")
         if not tpm or tpm <= 0:
             return
 
-        telemetry = GroqRateTracker.get_telemetry(key_label, model_id)
+        telemetry = self._tracker.get_telemetry(key_label, model_id)
 
         # If adding this request would push us over the backpressure threshold,
         # pause until window resets. Threshold controlled by runtime config (TB-021).
         backpressure_pct = config_store.pacer.get("tpm_backpressure_pct", 90)
         if telemetry.tpm_pct >= backpressure_pct:
             # Peek at the tracker's internal window start to know exactly how long to wait
-            state = GroqRateTracker._state.get(key_label, {}).get(model_id)
-            if state and state.tpm_start > 0:
-                remaining = max(0.0, 60.0 - (time.time() - state.tpm_start))
+            state = self._tracker._state.get(key_label, {}).get(model_id)
+            if state and state.tpm.window_start > 0:
+                remaining = max(0.0, 60.0 - (time.time() - state.tpm.window_start))
                 await asyncio.sleep(remaining)
             else:
                 await asyncio.sleep(60.0)
 
         # Double-check after sleep
-        telemetry = GroqRateTracker.get_telemetry(key_label, model_id)
+        telemetry = self._tracker.get_telemetry(key_label, model_id)
         if telemetry.tpm_pct >= 90:
             await asyncio.sleep(60.0)
 
@@ -215,4 +217,4 @@ class GlobalPacer:
 # SINGLETON INSTANCE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-GroqPacer = GlobalPacer()
+GroqPacer = GlobalPacer(tracker=RateLimitTracker(provider="groq"))
