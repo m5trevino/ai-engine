@@ -28,12 +28,21 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Literal, Optional, AsyncGenerator
 
 from pydantic_ai import Agent
+try:
+    from pydantic_ai.models.openai import OpenAIChatModel as OpenAIModel
+except ImportError:
+    from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.models.groq import GroqModel
-from pydantic_ai.models.openai import OpenAIModel
-from pydantic_ai.models.gemini import GeminiModel as GoogleModel
+try:
+    from pydantic_ai.models.google import GoogleModel
+except ImportError:
+    from pydantic_ai.models.gemini import GeminiModel as GoogleModel
 from pydantic_ai.providers.groq import GroqProvider
 from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.providers.google_gla import GoogleGLAProvider as GoogleProvider
+try:
+    from pydantic_ai.providers.google import GoogleProvider
+except ImportError:
+    from pydantic_ai.providers.google_gla import GoogleGLAProvider as GoogleProvider
 
 from app.config import MODEL_REGISTRY
 from app.core.plan_generator import ExecutionPlan, ChunkPlan

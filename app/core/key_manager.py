@@ -5,7 +5,7 @@ Handles API key rotation, shuffling, and usage tracking.
 
 import os
 import random
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
