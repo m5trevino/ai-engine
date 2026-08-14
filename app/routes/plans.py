@@ -5,7 +5,6 @@ Backend endpoints for viewing, overriding, and executing execution plans.
 References:
   • app.core.plan_generator     (TB-011)
   • app.core.plan_manager       (TB-014)
-  • app.core.proxy_rules        (TB-012)
   • app.core.plan_executor      (TB-016)
 """
 
@@ -34,7 +33,7 @@ class PlanCreateRequest(BaseModel):
 
 
 class RouteOverrideRequest(BaseModel):
-    route: Literal["direct", "proxy"]
+    route: Literal["direct"]
 
 
 class StatusUpdateRequest(BaseModel):
@@ -105,7 +104,6 @@ class RecentExecutionItem(BaseModel):
     total_tokens: int
     total_cost: float
     duration_ms: int
-    proxy_chunks: int
     direct_chunks: int
 
 
@@ -350,7 +348,6 @@ def _plan_to_response(plan_id: str, plan) -> dict:
         "status": plan.status,
         "model_id": plan.model_id,
         "config": plan.config,
-        "rules": plan.rules,
         "created_at": plan.created_at,
         "completed_at": plan.completed_at,
         "chunks": [

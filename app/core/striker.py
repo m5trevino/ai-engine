@@ -361,28 +361,6 @@ async def execute_strike(gateway: str, model_id: str, prompt: str,
                 pool = GroqPool
                 if not key_override:
                     asset = await pool.get_next_intelligent(model_id, estimated_tokens)
-                # --- TB-004 PRE-FLIGHT GUARD ---
-                from app.core.pre_flight_guard import check_request_safety
-                candidate_keys = [a.account for a in pool.deck]
-                preflight = await check_request_safety(
-                    request_data={"messages": [{"role": "user", "content": prompt}], "max_tokens": gen_params.get("max_tokens")},
-                    model_id=model_id,
-                    key_label=asset.account,
-                    candidate_keys=candidate_keys,
-                )
-                if not preflight.allowed:
-                    pool.mark_cooldown(asset.account, duration=60)
-                    if os.getenv("PEACOCK_VERBOSE") == "true":
-                        print(f"[!] Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
-                    continue
-                # --- TB-012 PROXY RULES ---
-                from app.core.proxy_rules import evaluate_rules
-                proxy_decision = evaluate_rules(asset.account, model_id, estimated_tokens)
-                if proxy_decision["route"] == "proxy" and (tunnel_client or proxy_client):
-                    active_client = tunnel_client or proxy_client
-                    if os.getenv("PEACOCK_VERBOSE") == "true":
-                        print(f"[!] Proxy routing triggered for {asset.account}: {proxy_decision['rationale']}")
-                # --------------------------
                 # --- TB-009 PACER ---
                 await GroqPacer.acquire(asset.account, model_id, estimated_tokens)
                 # --------------------
@@ -652,26 +630,6 @@ async def execute_streaming_strike(gateway: str, model_id: str, prompt: str,
                 asset = KeyAsset(label="AUDIT_OVERRIDE", account="AUDIT_OVERRIDE", key=key_override)
             else:
                 asset = await GroqPool.get_next_intelligent(model_id, estimated_tokens)
-            # --- TB-004 PRE-FLIGHT GUARD (streaming) ---
-            from app.core.pre_flight_guard import check_request_safety
-            streaming_candidates = [a.account for a in GroqPool.deck]
-            preflight = await check_request_safety(
-                request_data={"messages": [{"role": "user", "content": prompt}]},
-                model_id=model_id,
-                key_label=asset.account,
-                candidate_keys=streaming_candidates,
-            )
-            if not preflight.allowed:
-                GroqPool.mark_cooldown(asset.account, duration=60)
-                raise Exception(f"Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
-            # --- TB-012 PROXY RULES ---
-            from app.core.proxy_rules import evaluate_rules
-            proxy_decision = evaluate_rules(asset.account, model_id, estimated_tokens)
-            if proxy_decision["route"] == "proxy" and (tunnel_client or proxy_client):
-                active_client = tunnel_client or proxy_client
-                if os.getenv("PEACOCK_VERBOSE") == "true":
-                    print(f"[!] Proxy routing triggered for {asset.account}: {proxy_decision['rationale']}")
-            # --------------------------
             # --- TB-009 PACER ---
             await GroqPacer.acquire(asset.account, model_id, estimated_tokens)
             # --------------------
@@ -817,26 +775,7 @@ async def execute_precision_strike(gateway: str, model_id: str, prompt: str, tar
     # Initialize Model
     model = None
     if gateway == "groq":
-        # --- TB-004 PRECISION PRE-FLIGHT ---
-        from app.core.pre_flight_guard import check_request_safety
-        precision_candidates = [a.account for a in pool.deck]
-        preflight = await check_request_safety(
-            request_data={"messages": [{"role": "user", "content": prompt}]},
-            model_id=model_id,
-            key_label=asset.account,
-            candidate_keys=precision_candidates,
-        )
-        if not preflight.allowed:
-            raise Exception(f"Pre-flight blocked for {asset.account}: {preflight.reason} → {preflight.suggested_action}")
-        # --- TB-012 PROXY RULES ---
-        from app.core.proxy_rules import evaluate_rules
         estimated_tokens = count_tokens_for_strike(gateway, model_id, prompt)
-        proxy_decision = evaluate_rules(asset.account, model_id, estimated_tokens)
-        if proxy_decision["route"] == "proxy" and (tunnel_client or proxy_client):
-            active_client = tunnel_client or proxy_client
-            if os.getenv("PEACOCK_VERBOSE") == "true":
-                print(f"[!] Proxy routing triggered for {asset.account}: {proxy_decision['rationale']}")
-        # --------------------------
         # --- TB-009 PACER ---
         await GroqPacer.acquire(asset.account, model_id, estimated_tokens)
         # --------------------

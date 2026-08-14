@@ -1,26 +1,21 @@
 """
 PEACOCK ENGINE — Plan Execution Engine (TB-016)
-Executes an ExecutionPlan chunk-by-chunk while honoring both auto-routing
-and manual overrides.
+Executes an ExecutionPlan chunk-by-chunk while honoring manual overrides.
 
 Scope:
   • Load a persisted plan (TB-014)
   • For each chunk, determine effective route = manual_override or route
-  • Run TB-004 PreFlightGuard before pacing
   • Acquire TB-009 GlobalPacer gate per attempt
   • Delegate retries/key rotation to TB-008 RetryHandler
-  • Inject direct vs proxy httpx client on a per-chunk basis
   • Persist chunk/plan status via PlanManager
 
 References:
   • app.core.plan_generator     (TB-011)
-  • app.core.proxy_rules        (TB-012)
   • app.core.plan_scheduler     (TB-013)
   • app.core.plan_manager       (TB-014)
-  • app.core.pre_flight_guard   (TB-004)
   • app.core.global_pacer       (TB-009)
   • app.core.retry_handler      (TB-008)
-  • app.core.striker            (execute_strike fallback for non-groq)
+  • app.core.striker            (execute_strike fallback)
 """
 
 import os
@@ -35,18 +30,17 @@ from typing import Any, Callable, Dict, List, Literal, Optional, AsyncGenerator
 from pydantic_ai import Agent
 from pydantic_ai.models.groq import GroqModel
 from pydantic_ai.models.openai import OpenAIModel
-from pydantic_ai.models.google import GoogleModel
+from pydantic_ai.models.gemini import GeminiModel as GoogleModel
 from pydantic_ai.providers.groq import GroqProvider
 from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.providers.google import GoogleProvider
+from pydantic_ai.providers.google_gla import GoogleGLAProvider as GoogleProvider
 
 from app.config import MODEL_REGISTRY
 from app.core.plan_generator import ExecutionPlan, ChunkPlan
 from app.core.plan_manager import PlanManager
 from app.monitoring.metrics import global_metrics
-from app.core.key_manager import GroqPool, GooglePool, DeepSeekPool, MistralPool, KeyAsset
+from app.core.key_manager import GroqPool, KeyAsset
 from app.core.rate_limit_tracker import GroqRateTracker
-from app.core.pre_flight_guard import check_request_safety
 from app.core.global_pacer import GroqPacer
 from app.core.retry_handler import GroqRetryHandler, RateLimitError
 from app.core.striker import execute_strike
@@ -99,7 +93,6 @@ class PlanExecutor:
         self,
         retry_handler: Any = GroqRetryHandler,
         pacer: Any = GroqPacer,
-        max_guard_rotations: int = 3,
         abort_on_fail: bool = False,
         default_system_prompt: Optional[str] = None,
     ):
@@ -107,18 +100,16 @@ class PlanExecutor:
         Args:
             retry_handler: TB-008 retry handler (default GroqRetryHandler)
             pacer: TB-009 pacer (default GroqPacer)
-            max_guard_rotations: How many times to rotate keys on pre-flight block
             abort_on_fail: If True, stop execution on first chunk failure
             default_system_prompt: Optional system prompt prepended to every chunk
         """
         self.retry_handler = retry_handler
         self.pacer = pacer
-        self.max_guard_rotations = max_guard_rotations
         self.abort_on_fail = abort_on_fail
         self.default_system_prompt = default_system_prompt
 
     @staticmethod
-    def _effective_route(chunk: ChunkPlan) -> Literal["direct", "proxy"]:
+    def _effective_route(chunk: ChunkPlan) -> Literal["direct"]:
         return chunk.manual_override or chunk.route
 
     @staticmethod
@@ -127,7 +118,7 @@ class PlanExecutor:
         return cfg.gateway if cfg else "groq"
 
     @staticmethod
-    def _build_http_client(route: Literal["direct", "proxy"], timeout: float = 60.0) -> httpx.AsyncClient:
+    def _build_http_client(route: Literal["direct"], timeout: float = 60.0) -> httpx.AsyncClient:
         """Construct a per-chunk httpx client based on routing decision."""
         tunnel_enabled = os.getenv("PEACOCK_TUNNEL", "false").lower() == "true"
         proxy_enabled = os.getenv("PROXY_ENABLED", "false").lower() == "true"
@@ -136,9 +127,6 @@ class PlanExecutor:
         if tunnel_enabled:
             from app.core.striker import TUNNEL_SOCKS
             return httpx.AsyncClient(proxy=TUNNEL_SOCKS, timeout=timeout, trust_env=False)
-
-        if route == "proxy" and proxy_enabled and proxy_url:
-            return httpx.AsyncClient(proxy=proxy_url, timeout=timeout, trust_env=False)
 
         return httpx.AsyncClient(timeout=timeout, trust_env=False)
 
@@ -399,41 +387,7 @@ class PlanExecutor:
                     duration_ms=duration_ms,
                 )
 
-        # ── 4. Groq: Pre-flight guard with key rotation ──
-        candidate_keys = [a.account for a in GroqPool.deck]
-        key_label = chunk.key_label
-        guard_ok = False
-        guard_reason = ""
-
-        for rotation in range(self.max_guard_rotations):
-            request_data = {"messages": messages, "max_tokens": gen_params.get("max_tokens", 1024)}
-            preflight = await check_request_safety(
-                request_data=request_data,
-                model_id=chunk.model_id,
-                key_label=key_label,
-                candidate_keys=candidate_keys,
-            )
-            if preflight.allowed:
-                guard_ok = True
-                break
-
-            guard_reason = preflight.reason
-            if preflight.suggested_action == "rotate_key" and preflight.recommended_key:
-                key_label = preflight.recommended_key
-            else:
-                break
-
-        if not guard_ok:
-            return ChunkExecutionResult(
-                chunk_id=chunk.chunk_id,
-                status="failed",
-                route=route,
-                key_used=key_label,
-                error=f"Pre-flight guard blocked: {guard_reason}",
-                duration_ms=int((time.time() - chunk_start) * 1000),
-            )
-
-        # ── 5. Groq: Retry-wrapped strike with pacer gating ──
+        # ── 4. Groq: Retry-wrapped strike with pacer gating ──
         try:
             result = await self.retry_handler.execute(
                 self._groq_strike_once,
@@ -516,12 +470,12 @@ class PlanExecutor:
 
                 prompt = self._messages_to_prompt(messages)
                 result = await agent.run(prompt, model_settings=model_settings)
-                content = result.output
+                content = result.data
 
                 usage_obj = result.usage()
                 usage = {
-                    "prompt_tokens": usage_obj.input_tokens or 0,
-                    "completion_tokens": usage_obj.output_tokens or 0,
+                    "prompt_tokens": usage_obj.request_tokens or 0,
+                    "completion_tokens": usage_obj.response_tokens or 0,
                     "total_tokens": usage_obj.total_tokens or 0,
                 }
 

@@ -267,10 +267,6 @@ async def health():
             "multiplier": perf_cfg["multiplier"],
         },
         "effective_settings": {
-            "guard_warn_threshold": config_store.guard["warn_threshold"],
-            "guard_block_threshold": config_store.guard["block_threshold"],
-            "proxy_tpm_threshold_pct": config_store.proxy_rules["tpm_threshold_pct"],
-            "proxy_rpm_threshold_pct": config_store.proxy_rules["rpm_threshold_pct"],
             "pacer_burn_mode": config_store.burn_mode,
             "pacer_tpm_backpressure_pct": config_store.pacer["tpm_backpressure_pct"],
         },
@@ -343,10 +339,6 @@ async def system_status():
             "multiplier": perf_cfg["multiplier"],
         },
         "effective_settings": {
-            "guard_warn_threshold": config_store.guard["warn_threshold"],
-            "guard_block_threshold": config_store.guard["block_threshold"],
-            "proxy_tpm_threshold_pct": config_store.proxy_rules["tpm_threshold_pct"],
-            "proxy_rpm_threshold_pct": config_store.proxy_rules["rpm_threshold_pct"],
             "pacer_burn_mode": config_store.burn_mode,
             "pacer_tpm_backpressure_pct": config_store.pacer["tpm_backpressure_pct"],
         },

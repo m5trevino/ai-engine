@@ -1,6 +1,6 @@
 """
 PEACOCK ENGINE — Runtime Config API (TB-021 / TB-024)
-Read and update proxy rules, guard thresholds, burn mode, and cleanup TTL.
+Read and update provider state, burn mode, and cleanup TTL.
 """
 
 from typing import Dict, Any, Optional
@@ -16,19 +16,6 @@ router = APIRouter()
 # REQUEST / RESPONSE MODELS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class ProxyRulesConfig(BaseModel):
-    tpm_threshold_pct: float = Field(85.0, ge=0.0, le=100.0)
-    rpm_threshold_pct: float = Field(80.0, ge=0.0, le=100.0)
-    chunk_size_threshold: int = Field(8000, ge=100, le=50000)
-    recent_429_min_consecutive: int = Field(2, ge=1, le=10)
-    status_rule_enabled: bool = True
-
-
-class GuardConfig(BaseModel):
-    warn_threshold: float = Field(0.80, ge=0.0, le=1.0)
-    block_threshold: float = Field(0.95, ge=0.0, le=1.0)
-
-
 class PacerConfig(BaseModel):
     burn_mode: str = Field("BALANCED")
     tpm_backpressure_pct: int = Field(90, ge=50, le=100)
@@ -43,8 +30,6 @@ class CleanupConfig(BaseModel):
 
 
 class RuntimeConfigResponse(BaseModel):
-    proxy_rules: ProxyRulesConfig
-    guard: GuardConfig
     pacer: PacerConfig
     cleanup: CleanupConfig
 
@@ -60,8 +45,6 @@ class ProvidersConfig(BaseModel):
 
 
 class ConfigPatchRequest(BaseModel):
-    proxy_rules: Optional[Dict[str, Any]] = None
-    guard: Optional[Dict[str, Any]] = None
     pacer: Optional[Dict[str, Any]] = None
     cleanup: Optional[Dict[str, Any]] = None
 
@@ -91,8 +74,6 @@ async def get_config():
     """Get the current runtime configuration."""
     data = config_store.to_dict()
     return {
-        "proxy_rules": data.get("proxy_rules", {}),
-        "guard": data.get("guard", {}),
         "pacer": data.get("pacer", {}),
         "cleanup": data.get("cleanup", {}),
     }
@@ -107,26 +88,6 @@ async def patch_config(request: ConfigPatchRequest):
     Changes are persisted immediately and take effect on the next decision.
     """
     patch: Dict[str, Any] = {}
-
-    if request.proxy_rules is not None:
-        pr = request.proxy_rules
-        if "tpm_threshold_pct" in pr and not (0.0 <= pr["tpm_threshold_pct"] <= 100.0):
-            raise HTTPException(status_code=422, detail="tpm_threshold_pct must be 0-100")
-        if "rpm_threshold_pct" in pr and not (0.0 <= pr["rpm_threshold_pct"] <= 100.0):
-            raise HTTPException(status_code=422, detail="rpm_threshold_pct must be 0-100")
-        if "chunk_size_threshold" in pr and not (100 <= pr["chunk_size_threshold"] <= 50000):
-            raise HTTPException(status_code=422, detail="chunk_size_threshold must be 100-50000")
-        if "recent_429_min_consecutive" in pr and not (1 <= pr["recent_429_min_consecutive"] <= 10):
-            raise HTTPException(status_code=422, detail="recent_429_min_consecutive must be 1-10")
-        patch["proxy_rules"] = pr
-
-    if request.guard is not None:
-        g = request.guard
-        if "warn_threshold" in g and not (0.0 <= g["warn_threshold"] <= 1.0):
-            raise HTTPException(status_code=422, detail="warn_threshold must be 0-1")
-        if "block_threshold" in g and not (0.0 <= g["block_threshold"] <= 1.0):
-            raise HTTPException(status_code=422, detail="block_threshold must be 0-1")
-        patch["guard"] = g
 
     if request.pacer is not None:
         p = request.pacer
@@ -159,8 +120,6 @@ async def reset_config():
     config_store.reset()
     data = config_store.to_dict()
     return {
-        "proxy_rules": data["proxy_rules"],
-        "guard": data["guard"],
         "pacer": data["pacer"],
         "cleanup": data["cleanup"],
     }
@@ -226,26 +185,21 @@ async def toggle_provider(gateway: str):
 async def get_effective_settings():
     """
     Get all effective runtime settings including performance mode,
-    guard thresholds, proxy rules, and pacer configuration.
-    
+    burn-mode pacer configuration, and provider state.
+
     This endpoint shows the actual values being used by the system.
     """
     from app.config import PERFORMANCE_MODES
-    
+
     perf_mode = config_store.performance_mode
     perf_cfg = PERFORMANCE_MODES.get(perf_mode, PERFORMANCE_MODES["balanced"])
-    
+
     return {
         "performance_mode": {
             "active": perf_mode,
             "name": perf_cfg["name"],
             "multiplier": perf_cfg["multiplier"],
         },
-        "guard": {
-            "warn_threshold": config_store.guard["warn_threshold"],
-            "block_threshold": config_store.guard["block_threshold"],
-        },
-        "proxy_rules": config_store.proxy_rules,
         "pacer": {
             "burn_mode": config_store.burn_mode,
             "tpm_backpressure_pct": config_store.pacer["tpm_backpressure_pct"],

@@ -11,7 +11,7 @@ Scope:
 
 References:
   • app.core.plan_generator (TB-011)
-  • app.core.proxy_rules (TB-012) — manual overrides originate here
+
   • app.core.index_store (TB-025) — fast listing via SQLite
 """
 
@@ -215,11 +215,11 @@ class PlanManager:
         cls,
         plan_id: str,
         chunk_id: int,
-        route: Literal["direct", "proxy"],
+        route: Literal["direct"],
     ) -> ExecutionPlan:
         """Apply a manual routing override to a chunk."""
-        if route not in {"direct", "proxy"}:
-            raise ValueError("route must be 'direct' or 'proxy'")
+        if route not in {"direct"}:
+            raise ValueError("route must be 'direct'")
         plan = cls.load(plan_id)
         chunk = next((c for c in plan.chunks if c.chunk_id == chunk_id), None)
         if chunk is None:

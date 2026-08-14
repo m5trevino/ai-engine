@@ -1,13 +1,11 @@
 """
-PEACOCK ENGINE — Plan Generator + Auto Routing Engine (TB-011)
+PEACOCK ENGINE — Plan Generator (TB-011)
 Creates a complete "Path to Completion" plan for file processing with
-per-chunk routing decisions (direct vs proxy), model assignment, and
-key selection based on real-time telemetry.
+model assignment and key selection based on real-time telemetry.
 
 Scope:
   • Ingest a file and split it into token-safe chunks using TB-003
   • Assign the best available key via TB-007 intelligent selector
-  • Decide direct vs proxy per chunk using TB-012 ProxyRulesEngine
   • Calculate estimated execution time per chunk and total
   • Save the plan as JSON for review / audit
 
@@ -15,35 +13,19 @@ References:
   • app.core.tiktoken_counter (TB-003)
   • app.core.rate_limit_tracker (TB-001)
   • app.core.key_manager (TB-007)
-  • app.core.proxy_rules (TB-012)
   • app.config.MODEL_REGISTRY
 """
 
 import os
 import time
-import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any, Literal
 from pathlib import Path
 
 from app.core.tiktoken_counter import count_text
-from app.core.rate_limit_tracker import GroqRateTracker
-from app.core.key_manager import GroqPool
-from app.core.proxy_rules import (
-    ProxyRulesEngine,
-    RoutingConfig as _RoutingConfigBase,
-    TPMThresholdRule,
-    RPMThresholdRule,
-    Recent429Rule,
-    ChunkSizeRule,
-    default_rules,
-)
+from app.core.key_manager import get_pool_for_gateway
 from app.core.plan_scheduler import PlanScheduler, ScheduledPlan
 from app.config import MODEL_REGISTRY
-
-
-# Re-export for backward compatibility
-RoutingConfig = _RoutingConfigBase
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -58,12 +40,11 @@ class ChunkPlan:
     token_count: int
     model_id: str
     key_label: str
-    route: Literal["direct", "proxy"]
+    route: Literal["direct"]
     estimated_seconds: float
     rationale: str
     wait_seconds: float = 0.0
     status: Literal["pending", "running", "completed", "failed"] = "pending"
-    manual_override: Optional[Literal["direct", "proxy"]] = None
     completed_at: Optional[float] = None
     error: Optional[str] = None
 
@@ -78,7 +59,6 @@ class ExecutionPlan:
     chunks: List[ChunkPlan]
     model_id: str
     config: Dict[str, Any]
-    rules: List[Dict[str, str]]
     makespan_seconds: float = 0.0    # Wall-clock time with pacing / concurrency (TB-013)
     status: Literal["pending", "queued", "running", "completed", "failed", "archived"] = "pending"
     completed_at: Optional[float] = None
@@ -96,7 +76,6 @@ class ExecutionPlan:
             "status": self.status,
             "model_id": self.model_id,
             "config": self.config,
-            "rules": self.rules,
             "created_at": self.created_at,
             "completed_at": self.completed_at,
             "execution_log": self.execution_log,
@@ -111,7 +90,6 @@ class ExecutionPlan:
                     "estimated_seconds": c.estimated_seconds,
                     "wait_seconds": c.wait_seconds,
                     "status": c.status,
-                    "manual_override": c.manual_override,
                     "rationale": c.rationale,
                 }
                 for c in self.chunks
@@ -129,7 +107,6 @@ class ExecutionPlan:
             "status": self.status,
             "model_id": self.model_id,
             "config": self.config,
-            "rules": self.rules,
             "created_at": self.created_at,
             "completed_at": self.completed_at,
             "execution_log": self.execution_log,
@@ -144,7 +121,6 @@ class ExecutionPlan:
                     "estimated_seconds": c.estimated_seconds,
                     "wait_seconds": c.wait_seconds,
                     "status": c.status,
-                    "manual_override": c.manual_override,
                     "completed_at": c.completed_at,
                     "error": c.error,
                     "rationale": c.rationale,
@@ -166,7 +142,6 @@ class ExecutionPlan:
             chunks=chunks,
             model_id=data["model_id"],
             config=data.get("config", {}),
-            rules=data.get("rules", []),
             makespan_seconds=data.get("makespan_seconds", 0.0),
             status=data.get("status", "pending"),
             completed_at=data.get("completed_at"),
@@ -280,54 +255,32 @@ def _chunk_text(text: str, model_id: str, max_chunk_tokens: int) -> List[str]:
 
 class PlanGenerator:
     """
-    Generates execution plans with per-chunk routing decisions.
+    Generates execution plans with model assignment and key selection.
 
     Usage:
-        engine = ProxyRulesEngine()
-        engine.add_rule(ChunkSizeRule(threshold_tokens=6000))
-        generator = PlanGenerator(rules_engine=engine)
+        generator = PlanGenerator()
         plan = await generator.generate_plan("/path/to/file.py", model_id="llama-3.3-70b-versatile")
         plan.save()
         for chunk in plan.chunks:
-            print(f"Chunk {chunk.chunk_id}: {chunk.route} via {chunk.key_label}")
+            print(f"Chunk {chunk.chunk_id} via {chunk.key_label}")
     """
 
     DEFAULT_MODEL = "llama-3.3-70b-versatile"
     DEFAULT_TARGET_CHUNK_TOKENS = 8000
+    DEFAULT_SYSTEM_PROMPT_TOKENS = 100
+    DEFAULT_COMPLETION_HEADROOM = 1000
 
     _THROUGHPUT: Dict[str, float] = {
         "groq": 250.0,
-        "google": 80.0,
-        "deepseek": 60.0,
-        "mistral": 100.0,
+        "opencode-go": 120.0,
+        "opencode-zen": 120.0,
+        "openrouter": 100.0,
+        "ollama": 60.0,
+        "hetzner": 80.0,
     }
 
-    def __init__(
-        self,
-        config: Optional[RoutingConfig] = None,
-        rules_engine: Optional[ProxyRulesEngine] = None,
-    ):
-        """
-        Args:
-            config: Legacy RoutingConfig (builds a default rules engine)
-            rules_engine: Direct TB-012 ProxyRulesEngine (takes precedence)
-        """
-        self.config = config or RoutingConfig()
-        if rules_engine is not None:
-            self.rules_engine = rules_engine
-        else:
-            self.rules_engine = self._build_engine_from_config(self.config)
-
-    @staticmethod
-    def _build_engine_from_config(config: RoutingConfig) -> ProxyRulesEngine:
-        """Convert legacy RoutingConfig into a TB-012 ProxyRulesEngine."""
-        rules = [
-            TPMThresholdRule(threshold_pct=config.proxy_when_tpm_pct_above),
-            RPMThresholdRule(threshold_pct=config.proxy_when_rpm_pct_above),
-            Recent429Rule(min_consecutive=1 if config.proxy_on_recent_429s else 999),
-            ChunkSizeRule(threshold_tokens=config.proxy_chunk_size_threshold),
-        ]
-        return ProxyRulesEngine(rules=rules)
+    def __init__(self):
+        pass
 
     @staticmethod
     def _get_model_config(model_id: str):
@@ -340,24 +293,23 @@ class PlanGenerator:
         """Compute max safe chunk size for a model."""
         model_cfg = self._get_model_config(model_id)
         max_ctx = model_cfg.context_window if model_cfg and model_cfg.context_window else 131072
-        safe = max_ctx - self.config.system_prompt_tokens - self.config.completion_headroom
+        safe = max_ctx - self.DEFAULT_SYSTEM_PROMPT_TOKENS - self.DEFAULT_COMPLETION_HEADROOM
         return min(safe, self.DEFAULT_TARGET_CHUNK_TOKENS)
 
-    def _estimate_seconds(self, chunk_tokens: int, route: str, gateway: str) -> float:
-        """Rough timing estimate based on throughput + proxy overhead."""
+    def _estimate_seconds(self, chunk_tokens: int, gateway: str) -> float:
+        """Rough timing estimate based on throughput."""
         base = chunk_tokens / self._THROUGHPUT.get(gateway, 100.0)
-        if route == "proxy":
-            base *= 1.30
         return round(base + 0.5, 2)
 
     def _pick_key(self, model_id: str, estimated_tokens: int) -> str:
         """Synchronous key selection fallback."""
         model_cfg = self._get_model_config(model_id)
         gateway = model_cfg.gateway if model_cfg else "groq"
+        pool = get_pool_for_gateway(gateway)
 
-        if gateway == "groq" and GroqPool.deck:
+        if pool and pool.deck:
             try:
-                asset = GroqPool.get_next()
+                asset = pool.get_next()
                 return asset.account
             except Exception:
                 pass
@@ -367,10 +319,11 @@ class PlanGenerator:
         """Async key selection using TB-007 intelligent selector."""
         model_cfg = self._get_model_config(model_id)
         gateway = model_cfg.gateway if model_cfg else "groq"
+        pool = get_pool_for_gateway(gateway)
 
-        if gateway == "groq" and GroqPool.deck:
+        if pool and pool.deck:
             try:
-                asset = await GroqPool.get_next_intelligent(model_id, estimated_tokens)
+                asset = await pool.get_next_intelligent(model_id, estimated_tokens)
                 return asset.account
             except Exception:
                 pass
@@ -421,12 +374,8 @@ class PlanGenerator:
             # Assign key
             key_label = await self._pick_key_async(model_id, tokens)
 
-            # Decide routing via TB-012 rule engine
-            chunk_id = f"chunk_{idx}"
-            decision = self.rules_engine.evaluate(key_label, model_id, tokens, chunk_id=chunk_id)
-
             # Estimate timing
-            est_seconds = self._estimate_seconds(tokens, decision["route"], gateway)
+            est_seconds = self._estimate_seconds(tokens, gateway)
 
             chunk_plans.append(
                 ChunkPlan(
@@ -435,9 +384,9 @@ class PlanGenerator:
                     token_count=tokens,
                     model_id=model_id,
                     key_label=key_label,
-                    route=decision["route"],
+                    route="direct",
                     estimated_seconds=est_seconds,
-                    rationale=decision["rationale"],
+                    rationale=f"direct via {gateway}",
                 )
             )
             total_tokens += tokens
@@ -451,15 +400,13 @@ class PlanGenerator:
             makespan_seconds=round(total_seconds, 2),
             chunks=chunk_plans,
             model_id=model_id,
-            config=asdict(self.config),
-            rules=self.rules_engine.list_rules(),
+            config={"target_chunk_tokens": self.DEFAULT_TARGET_CHUNK_TOKENS},
         )
 
         # TB-013: apply rate-limit-aware scheduling so each chunk has an accurate
-        # wait_seconds that accounts for RPM pacing, concurrency limits, and proxy
-        # latency overhead.
+        # wait_seconds that accounts for RPM pacing and concurrency limits.
         scheduled = PlanScheduler(
-            proxy_overhead=1.30,
+            proxy_overhead=1.0,
             fixed_overhead=0.5,
             proxy_fixed_overhead=0.0,
         ).schedule(plan)
@@ -478,10 +425,8 @@ class PlanGenerator:
 async def generate_plan(
     file_path: str,
     model_id: Optional[str] = None,
-    config: Optional[RoutingConfig] = None,
-    rules_engine: Optional[ProxyRulesEngine] = None,
     system_prompt: Optional[str] = None,
 ) -> ExecutionPlan:
     """One-shot plan generation."""
-    generator = PlanGenerator(config=config, rules_engine=rules_engine)
+    generator = PlanGenerator()
     return await generator.generate_plan(file_path, model_id=model_id, system_prompt=system_prompt)

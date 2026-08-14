@@ -1,7 +1,6 @@
 """
 PEACOCK ENGINE — Runtime Config Store (TB-021)
-Centralized, persistent configuration for proxy rules, guard thresholds,
-and burn-mode pacing behavior.
+Centralized, persistent configuration for provider state and burn-mode pacing.
 
 Scope:
   • JSON-backed config that survives restarts
@@ -12,8 +11,6 @@ Storage:
   • config/runtime_config.json
 
 References:
-  • app.core.proxy_rules     (TB-012)
-  • app.core.pre_flight_guard (TB-004)
   • app.core.global_pacer    (TB-009)
 """
 
@@ -30,17 +27,6 @@ CONFIG_PATH = Path(__file__).resolve().parent.parent.parent / "config" / "runtim
 # ═══════════════════════════════════════════════════════════════════════════════
 
 DEFAULT_CONFIG: Dict[str, Any] = {
-    "proxy_rules": {
-        "tpm_threshold_pct": 85.0,
-        "rpm_threshold_pct": 80.0,
-        "chunk_size_threshold": 8000,
-        "recent_429_min_consecutive": 2,
-        "status_rule_enabled": True,
-    },
-    "guard": {
-        "warn_threshold": 0.80,
-        "block_threshold": 0.95,
-    },
     "pacer": {
         "burn_mode": "BALANCED",
         "tpm_backpressure_pct": 90,
@@ -79,8 +65,8 @@ class RuntimeConfigStore:
     Usage:
         from app.core.config_store import config_store
 
-        tpm = config_store.get("proxy_rules.tpm_threshold_pct")
-        config_store.set("proxy_rules.tpm_threshold_pct", 75.0)
+        concurrency = config_store.get("pacer.default_concurrency")
+        config_store.set("pacer.default_concurrency", 4)
         config_store.save()
     """
 
@@ -167,14 +153,6 @@ class RuntimeConfigStore:
         if mode not in ("CONSERVATIVE", "BALANCED", "ULTRA"):
             return "BALANCED"
         return mode
-
-    @property
-    def proxy_rules(self) -> Dict[str, Any]:
-        return self._data.get("proxy_rules", DEFAULT_CONFIG["proxy_rules"]).copy()
-
-    @property
-    def guard(self) -> Dict[str, Any]:
-        return self._data.get("guard", DEFAULT_CONFIG["guard"]).copy()
 
     @property
     def pacer(self) -> Dict[str, Any]:

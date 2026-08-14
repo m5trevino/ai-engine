@@ -323,15 +323,14 @@ class StressRunner:
             "p99_ms": durations_sorted[int(len(durations) * 0.99)] if durations else 0,
         }
 
-        # Proxy effectiveness
-        proxy_chunks = sum(1 for c in all_chunks if c.status == "completed" and c.route == "proxy")
+        # Chunk completion counts
         direct_chunks = sum(1 for c in all_chunks if c.status == "completed" and c.route == "direct")
-        total_routed = proxy_chunks + direct_chunks
+        total_routed = direct_chunks
         proxy_effectiveness = {
-            "proxy_chunks": proxy_chunks,
+            "proxy_chunks": 0,
             "direct_chunks": direct_chunks,
-            "proxy_pct": round((proxy_chunks / total_routed) * 100, 1) if total_routed > 0 else 0.0,
-            "direct_pct": round((direct_chunks / total_routed) * 100, 1) if total_routed > 0 else 0.0,
+            "proxy_pct": 0.0,
+            "direct_pct": 100.0 if total_routed > 0 else 0.0,
         }
 
         # Bottlenecks
@@ -352,10 +351,6 @@ class StressRunner:
         # Suggestions
         suggestions: List[str] = []
         current_burn = config_store.burn_mode
-        if proxy_effectiveness["proxy_pct"] < 10 and proxy_effectiveness["proxy_chunks"] > 0:
-            suggestions.append("Proxy usage is low — verify proxy is reachable or lower thresholds")
-        elif proxy_effectiveness["proxy_pct"] > 80:
-            suggestions.append("Most chunks routed through proxy — consider raising TPM/RPM thresholds")
 
         if failed_plans > total_plans * 0.2:
             suggestions.append("High failure rate — try CONSERVATIVE burn mode or lower concurrency")
@@ -364,10 +359,6 @@ class StressRunner:
 
         if wait_distribution["p95_ms"] > wait_distribution["median_ms"] * 3:
             suggestions.append("High latency variance — some keys may be slower than others; check key health")
-
-        cfg = config_store.proxy_rules
-        if proxy_effectiveness["proxy_chunks"] == 0 and cfg.get("tpm_threshold_pct", 85) < 95:
-            suggestions.append("No proxy usage detected — proxy thresholds may be too conservative")
 
         return StressReport(
             run_id=run_id,
