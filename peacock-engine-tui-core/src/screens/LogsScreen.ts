@@ -7,28 +7,37 @@ import {
   RenderableEvents,
   ScrollBoxRenderable,
   type TabSelectOption,
+  type KeyEvent,
 } from "@opentui/core"
 import { getTheme, type ThemeColors } from "../lib/theme.js"
 import { fetchEngineLogs, fetchStrikerStatus } from "../lib/api.js"
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                               */
+/* ------------------------------------------------------------------ */
 
 interface LogsScreen {
   renderer: CliRenderer
   theme: ThemeColors
   parent: BoxRenderable
-  leftTabs: TabSelectRenderable | null
+  tabBar: TabSelectRenderable | null
   scrollBox: ScrollBoxRenderable | null
   contentText: TextRenderable | null
   statusText: TextRenderable | null
-  keyboardHandler: ((key: any) => void) | null
+  keyboardHandler: ((key: KeyEvent) => void) | null
   logOptions: TabSelectOption[]
   selectedLog: string | null
   refreshInterval: ReturnType<typeof setInterval> | null
 }
 
-const STATIC_LOG_SOURCES: TabSelectOption[] = [
-  { name: "Engine Log", value: "engine", description: "" },
-  { name: "Striker Logs", value: "striker", description: "" },
+const LOG_SOURCES: TabSelectOption[] = [
+  { name: "Engine Log", value: "engine", description: "Main engine output" },
+  { name: "Striker",    value: "striker",    description: "Batch striker logs" },
 ]
+
+/* ------------------------------------------------------------------ */
+/*  Factory                                                             */
+/* ------------------------------------------------------------------ */
 
 export function createLogsScreen(renderer: CliRenderer, contentParent: BoxRenderable): LogsScreen {
   const screen: LogsScreen = {
@@ -43,12 +52,12 @@ export function createLogsScreen(renderer: CliRenderer, contentParent: BoxRender
       flexDirection: "column",
       backgroundColor: getTheme("cyber").bgBase,
     }),
-    leftTabs: null,
+    tabBar: null,
     scrollBox: null,
     contentText: null,
     statusText: null,
     keyboardHandler: null,
-    logOptions: [...STATIC_LOG_SOURCES],
+    logOptions: [...LOG_SOURCES],
     selectedLog: "engine",
     refreshInterval: null,
   }
@@ -61,73 +70,51 @@ export function createLogsScreen(renderer: CliRenderer, contentParent: BoxRender
   return screen
 }
 
+/* ------------------------------------------------------------------ */
+/*  Layout                                                              */
+/* ------------------------------------------------------------------ */
+
 function buildLayout(screen: LogsScreen): void {
   const { renderer, theme, parent } = screen
 
-  const contentRow = new BoxRenderable(renderer, {
-    id: "logs-content",
-    zIndex: 0,
+  /* ---- Tab bar (horizontal) ---------------------------------------- */
+  screen.tabBar = new TabSelectRenderable(renderer, {
+    id: "logs-tabbar",
+    zIndex: 10,
     width: "auto",
-    height: "auto",
-    flexGrow: 1,
+    height: 3,
     flexDirection: "row",
-    padding: 1,
-    gap: 1,
-  })
-  parent.add(contentRow)
-
-  const leftBox = new BoxRenderable(renderer, {
-    id: "logs-left",
-    zIndex: 0,
-    width: 24,
-    height: "auto",
     flexGrow: 0,
-    flexShrink: 0,
-    flexDirection: "column",
-    backgroundColor: theme.bgRecessed,
-    borderStyle: "single",
-    borderColor: theme.borderDefault,
-    border: true,
-  })
-  const leftLabel = new TextRenderable(renderer, {
-    id: "logs-left-label",
-    content: "Sources",
-    fg: theme.accentCyan,
-    attributes: 1,
-    zIndex: 1,
-  })
-  leftBox.add(leftLabel)
-
-  screen.leftTabs = new TabSelectRenderable(renderer, {
-    id: "logs-tabs",
-    zIndex: 1,
-    width: "auto",
-    flexGrow: 1,
     options: screen.logOptions,
-    tabWidth: 20,
-    backgroundColor: theme.bgRecessed,
+    tabWidth: 12,
+    backgroundColor: theme.bgElevated,
     focusedBackgroundColor: theme.bgElevated,
     textColor: theme.textSecondary,
     focusedTextColor: theme.textPrimary,
     selectedBackgroundColor: theme.accentCyanDim,
     selectedTextColor: theme.textInverse,
-    showDescription: false,
-    showUnderline: false,
+    selectedDescriptionColor: theme.textMuted,
+    showDescription: true,
+    showUnderline: true,
+    showScrollArrows: true,
+    wrapSelection: false,
   })
-  leftBox.add(screen.leftTabs)
-  contentRow.add(leftBox)
+  parent.add(screen.tabBar)
 
+  /* ---- Log content area -------------------------------------------- */
   screen.scrollBox = new ScrollBoxRenderable(renderer, {
     id: "logs-scroll",
     zIndex: 0,
     width: "auto",
     height: "auto",
     flexGrow: 1,
+    margin: 1,
     backgroundColor: theme.bgRecessed,
     borderStyle: "single",
     borderColor: theme.borderDefault,
     border: true,
   })
+
   screen.contentText = new TextRenderable(renderer, {
     id: "logs-content-text",
     content: "",
@@ -138,8 +125,9 @@ function buildLayout(screen: LogsScreen): void {
     wrapMode: "none",
   })
   screen.scrollBox.add(screen.contentText)
-  contentRow.add(screen.scrollBox)
+  parent.add(screen.scrollBox)
 
+  /* ---- Footer ------------------------------------------------------ */
   const footer = new BoxRenderable(renderer, {
     id: "logs-footer",
     zIndex: 0,
@@ -151,21 +139,21 @@ function buildLayout(screen: LogsScreen): void {
   })
   screen.statusText = new TextRenderable(renderer, {
     id: "logs-status",
-    content: "R: refresh | ↑/↓: scroll | Q: back",
+    content: "←/→: switch tab | ↑/↓: scroll | R: refresh | Q: back",
     fg: theme.textMuted,
     zIndex: 1,
     flexGrow: 1,
   })
   footer.add(screen.statusText)
   parent.add(footer)
-
-  renderer.root.add(parent)
-  screen.leftTabs.focus()
 }
+
+/* ------------------------------------------------------------------ */
+/*  Data loading                                                        */
+/* ------------------------------------------------------------------ */
 
 async function loadLog(screen: LogsScreen, source: string): Promise<void> {
   if (!screen.contentText || !screen.scrollBox) return
-  setStatus(screen, `Loading ${source}...`)
   try {
     let lines: string[] = []
     if (source === "engine") {
@@ -184,6 +172,10 @@ async function loadLog(screen: LogsScreen, source: string): Promise<void> {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Auto-refresh                                                        */
+/* ------------------------------------------------------------------ */
+
 function startAutoRefresh(screen: LogsScreen): void {
   if (screen.refreshInterval) clearInterval(screen.refreshInterval)
   screen.refreshInterval = setInterval(() => {
@@ -191,17 +183,26 @@ function startAutoRefresh(screen: LogsScreen): void {
   }, 3000)
 }
 
+/* ------------------------------------------------------------------ */
+/*  Keyboard                                                            */
+/* ------------------------------------------------------------------ */
+
 function bindKeys(screen: LogsScreen): void {
-  screen.keyboardHandler = (key: any) => {
+  screen.keyboardHandler = (key: KeyEvent) => {
     if (key.name === "q" || key.name === "escape") {
       destroyLogsScreen(screen)
       return
     }
+
     if (key.name === "r" || key.name === "R") {
       if (screen.selectedLog) loadLog(screen, screen.selectedLog)
       return
     }
+
+    /* Let the TabSelectRenderable handle arrow keys natively */
+
     if (!screen.scrollBox) return
+    /* Scroll log content */
     if (key.name === "up" || key.name === "k") {
       screen.scrollBox.scrollBy(-1)
     } else if (key.name === "down" || key.name === "j") {
@@ -214,29 +215,39 @@ function bindKeys(screen: LogsScreen): void {
   }
   screen.renderer.keyInput.on("keypress", screen.keyboardHandler)
 
-  screen.leftTabs?.on(TabSelectRenderableEvents.ITEM_SELECTED, (_index: number, option: TabSelectOption) => {
+  screen.tabBar?.on(TabSelectRenderableEvents.SELECTION_CHANGED, (_index: number, option: TabSelectOption) => {
     screen.selectedLog = option.value
     loadLog(screen, option.value)
   })
 
-  screen.leftTabs?.on(RenderableEvents.FOCUSED, () => {
-    if (screen.statusText) screen.statusText.content = "Enter: select source | R: refresh | ↑/↓: scroll | Q: back"
+  screen.tabBar?.on(RenderableEvents.FOCUSED, () => {
+    if (screen.statusText) {
+      screen.statusText.content = "←/→: switch tab | ↑/↓: scroll | R: refresh | Q: back"
+    }
   })
 }
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                             */
+/* ------------------------------------------------------------------ */
 
 function setStatus(screen: LogsScreen, text: string): void {
   if (!screen.statusText) return
   screen.statusText.content = text
 }
 
+/* ------------------------------------------------------------------ */
+/*  Cleanup                                                             */
+/* ------------------------------------------------------------------ */
+
 export function destroyLogsScreen(screen: LogsScreen): void {
-  if (screen.keyboardHandler) {
-    screen.renderer.keyInput.off("keypress", screen.keyboardHandler)
-    screen.keyboardHandler = null
-  }
   if (screen.refreshInterval) {
     clearInterval(screen.refreshInterval)
     screen.refreshInterval = null
+  }
+  if (screen.keyboardHandler) {
+    screen.renderer.keyInput.off("keypress", screen.keyboardHandler)
+    screen.keyboardHandler = null
   }
   if (screen.parent) {
     screen.parent.parent?.remove(screen.parent.id)
