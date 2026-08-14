@@ -6,9 +6,6 @@ import {
   TabSelectRenderableEvents,
   RenderableEvents,
   type TabSelectOption,
-  t,
-  bold,
-  fg,
 } from "@opentui/core"
 import { getTheme, type ThemeColors } from "../lib/theme.js"
 import {
@@ -36,12 +33,12 @@ interface ProviderModelsScreen {
   messageTimeout: ReturnType<typeof setInterval> | null
 }
 
-export function createProviderModelsScreen(renderer: CliRenderer): ProviderModelsScreen {
+export function createProviderModelsScreen(renderer: CliRenderer, contentParent: BoxRenderable): ProviderModelsScreen {
   const screen: ProviderModelsScreen = {
     renderer,
     theme: getTheme("cyber"),
     parent: new BoxRenderable(renderer, {
-      id: "provider-models-root",
+      id: "provider-models-content",
       zIndex: 10,
       width: "auto",
       height: "auto",
@@ -65,38 +62,14 @@ export function createProviderModelsScreen(renderer: CliRenderer): ProviderModel
   buildLayout(screen)
   loadData(screen)
   bindKeys(screen)
+  contentParent.add(screen.parent)
   return screen
 }
 
 function buildLayout(screen: ProviderModelsScreen): void {
   const { renderer, theme, parent } = screen
 
-  // Header
-  const header = new BoxRenderable(renderer, {
-    id: "provider-models-header",
-    zIndex: 0,
-    width: "auto",
-    height: 3,
-    backgroundColor: theme.headerStart,
-    borderStyle: "single",
-    borderColor: theme.borderDefault,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingX: 1,
-    border: true,
-  })
-  const headerText = new TextRenderable(renderer, {
-    id: "provider-models-header-text",
-    content: "PROVIDERS & MODELS",
-    fg: theme.headerText,
-    attributes: 1,
-    zIndex: 1,
-    flexGrow: 1,
-  })
-  header.add(headerText)
-  parent.add(header)
-
-  // Main content row
+  // Content row
   const contentRow = new BoxRenderable(renderer, {
     id: "provider-models-content",
     zIndex: 0,
@@ -359,7 +332,7 @@ export function destroyProviderModelsScreen(screen: ProviderModelsScreen): void 
     screen.messageTimeout = null
   }
   if (screen.parent) {
-    screen.renderer.root.remove(screen.parent.id)
+    screen.parent.parent?.remove(screen.parent.id)
     screen.parent.destroy()
   }
 }

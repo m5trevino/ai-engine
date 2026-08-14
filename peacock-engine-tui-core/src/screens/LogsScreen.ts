@@ -30,12 +30,12 @@ const STATIC_LOG_SOURCES: TabSelectOption[] = [
   { name: "Striker Logs", value: "striker", description: "" },
 ]
 
-export function createLogsScreen(renderer: CliRenderer): LogsScreen {
+export function createLogsScreen(renderer: CliRenderer, contentParent: BoxRenderable): LogsScreen {
   const screen: LogsScreen = {
     renderer,
     theme: getTheme("cyber"),
     parent: new BoxRenderable(renderer, {
-      id: "logs-root",
+      id: "logs-content",
       zIndex: 10,
       width: "auto",
       height: "auto",
@@ -57,34 +57,12 @@ export function createLogsScreen(renderer: CliRenderer): LogsScreen {
   bindKeys(screen)
   startAutoRefresh(screen)
   loadLog(screen, "engine")
+  contentParent.add(screen.parent)
   return screen
 }
 
 function buildLayout(screen: LogsScreen): void {
   const { renderer, theme, parent } = screen
-
-  const header = new BoxRenderable(renderer, {
-    id: "logs-header",
-    zIndex: 0,
-    width: "auto",
-    height: 3,
-    backgroundColor: theme.headerStart,
-    borderStyle: "single",
-    borderColor: theme.borderDefault,
-    flexDirection: "row",
-    alignItems: "center",
-    border: true,
-  })
-  const headerText = new TextRenderable(renderer, {
-    id: "logs-header-text",
-    content: "LOGS",
-    fg: theme.headerText,
-    attributes: 1,
-    zIndex: 1,
-    flexGrow: 1,
-  })
-  header.add(headerText)
-  parent.add(header)
 
   const contentRow = new BoxRenderable(renderer, {
     id: "logs-content",
@@ -261,7 +239,7 @@ export function destroyLogsScreen(screen: LogsScreen): void {
     screen.refreshInterval = null
   }
   if (screen.parent) {
-    screen.renderer.root.remove(screen.parent.id)
+    screen.parent.parent?.remove(screen.parent.id)
     screen.parent.destroy()
   }
 }

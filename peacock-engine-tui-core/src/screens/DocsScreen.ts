@@ -59,12 +59,12 @@ const DOC_CONTENT: Record<string, string> = {
     "Tool Use\n\nTo use tools, send a request with tool definitions. The model may return tool_calls which the engine executes locally and returns for a final answer.\n\nSee app/providers/groq/tool_schemas.py for available tool schemas.",
 }
 
-export function createDocsScreen(renderer: CliRenderer): DocsScreen {
+export function createDocsScreen(renderer: CliRenderer, contentParent: BoxRenderable): DocsScreen {
   const screen: DocsScreen = {
     renderer,
     theme: getTheme("cyber"),
     parent: new BoxRenderable(renderer, {
-      id: "docs-root",
+      id: "docs-content",
       zIndex: 10,
       width: "auto",
       height: "auto",
@@ -83,34 +83,12 @@ export function createDocsScreen(renderer: CliRenderer): DocsScreen {
 
   buildLayout(screen)
   bindKeys(screen)
+  contentParent.add(screen.parent)
   return screen
 }
 
 function buildLayout(screen: DocsScreen): void {
   const { renderer, theme, parent } = screen
-
-  const header = new BoxRenderable(renderer, {
-    id: "docs-header",
-    zIndex: 0,
-    width: "auto",
-    height: 3,
-    backgroundColor: theme.headerStart,
-    borderStyle: "single",
-    borderColor: theme.borderDefault,
-    flexDirection: "row",
-    alignItems: "center",
-    border: true,
-  })
-  const headerText = new TextRenderable(renderer, {
-    id: "docs-header-text",
-    content: "DOCS",
-    fg: theme.headerText,
-    attributes: 1,
-    zIndex: 1,
-    flexGrow: 1,
-  })
-  header.add(headerText)
-  parent.add(header)
 
   const contentRow = new BoxRenderable(renderer, {
     id: "docs-content",
@@ -258,7 +236,7 @@ export function destroyDocsScreen(screen: DocsScreen): void {
     screen.keyboardHandler = null
   }
   if (screen.parent) {
-    screen.renderer.root.remove(screen.parent.id)
+    screen.parent.parent?.remove(screen.parent.id)
     screen.parent.destroy()
   }
 }
