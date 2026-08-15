@@ -23,7 +23,7 @@ from typing import List, Dict, Optional, Any, Literal
 from pathlib import Path
 
 from app.core.tiktoken_counter import count_text
-from app.core.key_manager import get_pool_for_gateway
+from app.core.key_manager import get_pool
 from app.core.plan_scheduler import PlanScheduler, ScheduledPlan
 from app.config import MODEL_REGISTRY
 
@@ -305,7 +305,7 @@ class PlanGenerator:
         """Synchronous key selection fallback."""
         model_cfg = self._get_model_config(model_id)
         gateway = model_cfg.gateway if model_cfg else "groq"
-        pool = get_pool_for_gateway(gateway)
+        pool = get_pool(gateway)
 
         if pool and pool.deck:
             try:
@@ -319,7 +319,7 @@ class PlanGenerator:
         """Async key selection using TB-007 intelligent selector."""
         model_cfg = self._get_model_config(model_id)
         gateway = model_cfg.gateway if model_cfg else "groq"
-        pool = get_pool_for_gateway(gateway)
+        pool = get_pool(gateway)
 
         if pool and pool.deck:
             try:
