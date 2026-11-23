@@ -3,12 +3,13 @@ OpenAI-compatible API surface for Peacock Engine.
 Allows OpenClaw and other standard clients to consume the engine.
 """
 
+import asyncio
 import time
 import json
 import uuid
 import os
 from typing import List, Optional, Literal, Union, Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
 
@@ -24,6 +25,68 @@ from app.core.pea_trace import (
     make_traced_client,
     valid_session_name,
 )
+from app.core.soma_counter import assign_session, assign_stage
+
+
+def _requested_provider(request) -> Optional[str]:
+    """The provider the client asked for, or None. `gateway` is an alias."""
+    value = (getattr(request, "provider", None) or getattr(request, "gateway", None) or "").strip()
+    return value or None
+
+
+def _find_model_config(model: str, provider: Optional[str]):
+    """Registry entry for this model on this provider; None when there is none.
+
+    Used where a miss must not raise (error logging). With no provider it is the
+    old first-match-by-id lookup.
+    """
+    if provider:
+        return next((m for m in MODEL_REGISTRY if m.id == model and m.gateway == provider), None)
+    return next((m for m in MODEL_REGISTRY if m.id == model), None)
+
+
+def _resolve_model_config(request):
+    """Pick the registry entry for (model, provider).
+
+    A model that several gateways offer is served by the gateway the client
+    named, never by whichever one was registered first. With no provider the
+    old first-match behaviour still applies, so existing callers keep working,
+    unless REQUIRE_PROVIDER=1 is set in the engine's environment.
+    """
+    provider = _requested_provider(request)
+    candidates = [m for m in MODEL_REGISTRY if m.id == request.model]
+    offered = sorted({m.gateway for m in candidates})
+    if not candidates:
+        raise HTTPException(status_code=400, detail=f"Unknown model '{request.model}'")
+    if not provider:
+        if os.getenv("REQUIRE_PROVIDER", "").strip().lower() in ("1", "true", "yes"):
+            raise HTTPException(status_code=400, detail=(
+                f"'provider' is required with 'model' ('{request.model}'). Send them as two "
+                f"fields, e.g. {{\"model\": \"{request.model}\", \"provider\": \"{offered[0]}\"}}. "
+                f"Providers offering this model: {offered}"))
+        return candidates[0]
+    cfg = next((m for m in candidates if m.gateway == provider), None)
+    if cfg is None:
+        raise HTTPException(status_code=400, detail=(
+            f"Model '{request.model}' is not offered by provider '{provider}'. "
+            f"Providers offering it: {offered}"))
+    return cfg
+
+
+def _tag_provider(result, model_config):
+    """Say in the reply which provider served the call, so clients can verify it."""
+    if isinstance(result, dict):
+        result.setdefault("provider", model_config.gateway)
+    return result
+
+
+def _soma_stage_meta(request) -> dict:
+    """Return ``{stage, stage_id}`` when the request carries a Soma stage."""
+    sid = getattr(request, "soma_stage_id", None)
+    sname = getattr(request, "soma_stage_name", None)
+    if sid and sname:
+        return {"stage": sname, "stage_id": sid}
+    return {}
 
 router = APIRouter()
 
@@ -50,6 +113,14 @@ class OpenAIChatRequest(BaseModel):
     extra_body: Optional[dict] = Field(default=None)
     trace: bool = False
     pea_session: Optional[str] = Field(default=None, max_length=128)
+    stage: Optional[str] = Field(default=None, max_length=64)
+    # Which gateway must serve `model`. Sent next to the model, never inside it.
+    # `gateway` is accepted as an alias: older scripts already send that name.
+    provider: Optional[str] = Field(default=None, max_length=64)
+    gateway: Optional[str] = Field(default=None, max_length=64)
+    # Server-assigned Soma linkage (populated by the endpoint, not the client).
+    soma_stage_id: Optional[str] = Field(default=None, exclude=True)
+    soma_stage_name: Optional[str] = Field(default=None, exclude=True)
 
 
 class OpenAIUsage(BaseModel):
@@ -124,7 +195,7 @@ def _get_gateway_base_url(gateway: str, model_id: str) -> str:
         "deepseek": "https://api.deepseek.com/v1",
         "mistral": "https://api.mistral.ai/v1",
         "openrouter": "https://openrouter.ai/api/v1",
-        "hetzner": "https://inference.hetzner.com/api/v1",
+        "hetzner": "https://inference.hetzner.com/v1",
         "merge": "https://merge-api.xkiro.ai/v1",
         "novita": "https://api.novita.ai/openai",
         "xkiro": "https://api.xkiro.com/v1",
@@ -144,7 +215,11 @@ def _get_gateway_base_url(gateway: str, model_id: str) -> str:
         "airforce": "https://api.airforce/v1",
         "deepinfra": "https://api.deepinfra.com/v1/openai",
     }
-    return defaults.get(gateway, "")
+    if gateway in defaults:
+        return defaults[gateway]
+    from app.core.extra_gateways import extra_gateway_spec
+    spec = extra_gateway_spec(gateway)
+    return spec.base_url if spec else ""
 
 
 def _get_gateway_key(gateway: str) -> str:
@@ -184,6 +259,9 @@ def _get_gateway_key(gateway: str) -> str:
         "deepinfra": DeepinfraPool,
     }
     pool = pools.get(gateway)
+    if pool is None:
+        from app.core.key_manager import get_pool
+        pool = get_pool(gateway)
     if pool and pool.deck:
         # Find first non-cooldown key
         for asset in pool.deck:
@@ -504,9 +582,43 @@ async def _execute_tool_request_raw(
         return resp.json()
 
 
+async def _run_unless_disconnected(http_request: Request, coro):
+    """Run the upstream call, and cancel it if the client hangs up.
+
+    A non-streaming request keeps running after the client has gone: the
+    server never notices, so the provider call runs to its own limit (900 s,
+    1800 s were seen) and its tokens are billed for an answer nobody reads.
+    Watching for the disconnect and cancelling the task closes the upstream
+    connection at once.
+    """
+    task = asyncio.ensure_future(coro)
+
+    async def _watch():
+        while not task.done():
+            if await http_request.is_disconnected():
+                task.cancel()
+                return
+            await asyncio.sleep(1.0)
+
+    watcher = asyncio.ensure_future(_watch())
+    try:
+        return await task
+    finally:
+        watcher.cancel()
+
+
 @router.post("/chat/completions")
-async def openai_chat_completions(request: OpenAIChatRequest):
+async def openai_chat_completions(request: OpenAIChatRequest, http_request: Request):
     """OpenAI-compatible chat completions endpoint."""
+    # Soma pipeline linkage: when the client sends a `stage`, assign a
+    # human-readable session ID (if not already supplied) so the response,
+    # the PEA log, and the dashboard all share the same identity.
+    if request.stage:
+        if not request.pea_session:
+            request.pea_session = assign_session()
+        request.soma_stage_id = assign_stage(request.stage)
+        request.soma_stage_name = request.stage
+
     want_trace = bool(request.trace or request.pea_session)
     if request.pea_session and not valid_session_name(request.pea_session):
         raise HTTPException(status_code=400, detail="invalid pea_session")
@@ -524,14 +636,32 @@ async def openai_chat_completions(request: OpenAIChatRequest):
         token = current_trace.set(recorder)
 
     try:
-        return await _openai_chat_completions_impl(request, recorder)
+        return await _run_unless_disconnected(
+            http_request, _openai_chat_completions_impl(request, recorder))
+    except asyncio.CancelledError:
+        # The client hung up and the upstream call was cancelled with it.
+        # Record it, so the engine log shows a short FAIL and not a call that
+        # ran on to the provider's own limit.
+        if recorder is not None:
+            try:
+                meta = {"model": request.model}
+                meta["duration_ms"] = round((time.time() - recorder.started_at.timestamp()) * 1000)
+                meta.update(_soma_stage_meta(request))
+                finalize_error(
+                    499, "client disconnected; upstream call cancelled", recorder,
+                    trace_enabled=request.trace, session=request.pea_session, meta=meta,
+                )
+            except Exception:
+                pass
+        raise
     except HTTPException as exc:
         if recorder is not None:
             meta = {"model": request.model}
-            cfg = next((m for m in MODEL_REGISTRY if m.id == request.model), None)
+            cfg = _find_model_config(request.model, _requested_provider(request))
             if cfg:
                 meta["gateway"] = cfg.gateway
             meta["duration_ms"] = round((time.time() - recorder.started_at.timestamp()) * 1000)
+            meta.update(_soma_stage_meta(request))
             out = finalize_error(
                 exc.status_code, exc.detail, recorder,
                 trace_enabled=request.trace, session=request.pea_session, meta=meta,
@@ -542,10 +672,11 @@ async def openai_chat_completions(request: OpenAIChatRequest):
     except Exception as exc:
         if recorder is not None:
             meta = {"model": request.model}
-            cfg = next((m for m in MODEL_REGISTRY if m.id == request.model), None)
+            cfg = _find_model_config(request.model, _requested_provider(request))
             if cfg:
                 meta["gateway"] = cfg.gateway
             meta["duration_ms"] = round((time.time() - recorder.started_at.timestamp()) * 1000)
+            meta.update(_soma_stage_meta(request))
             out = finalize_error(
                 500, str(exc), recorder,
                 trace_enabled=request.trace, session=request.pea_session, meta=meta,
@@ -561,15 +692,10 @@ async def openai_chat_completions(request: OpenAIChatRequest):
 async def _openai_chat_completions_impl(request: OpenAIChatRequest, recorder):
     started = time.time()
     # --- OpenRouter rate limiting: 5 requests per 15 seconds ---
-    model_config = next((m for m in MODEL_REGISTRY if m.id == request.model), None)
-    if model_config and model_config.gateway == "openrouter":
+    model_config = _resolve_model_config(request)
+    if model_config.gateway == "openrouter":
         await openrouter_rate_limiter.acquire()
     # ----------------------------------------------------------
-    if not model_config:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unknown model '{request.model}'"
-        )
 
     # If tools are provided, use raw HTTP passthrough to preserve tool calling
     if request.tools:
@@ -596,7 +722,7 @@ async def _openai_chat_completions_impl(request: OpenAIChatRequest, recorder):
             messages=raw_messages,
             tools=request.tools,
             tool_choice=request.tool_choice,
-            temperature=request.temperature or 0.7,
+            temperature=request.temperature if request.temperature is not None else 0.7,
             max_tokens=request.max_tokens,
             top_p=request.top_p,
             stop=request.stop,
@@ -604,10 +730,10 @@ async def _openai_chat_completions_impl(request: OpenAIChatRequest, recorder):
             extra_body=request.extra_body,
         )
         return finalize(
-            result, recorder,
+            _tag_provider(result, model_config), recorder,
             trace_enabled=request.trace,
             session=request.pea_session,
-            meta={"gateway": model_config.gateway, "model": request.model},
+            meta={**_soma_stage_meta(request), "gateway": model_config.gateway, "model": request.model},
         )
 
     # Merge.dev uses the OpenAI Responses API, not chat completions.
@@ -624,15 +750,15 @@ async def _openai_chat_completions_impl(request: OpenAIChatRequest, recorder):
         merge_result = await _execute_merge_request(
             model_id=request.model,
             messages=raw_messages,
-            temperature=request.temperature or 0.7,
+            temperature=request.temperature if request.temperature is not None else 0.7,
             max_tokens=request.max_tokens,
             top_p=request.top_p,
         )
         return finalize(
-            merge_result, recorder,
+            _tag_provider(merge_result, model_config), recorder,
             trace_enabled=request.trace,
             session=request.pea_session,
-            meta={"gateway": model_config.gateway, "model": request.model},
+            meta={**_soma_stage_meta(request), "gateway": model_config.gateway, "model": request.model},
         )
 
     # No tools — use the standard pydantic_ai path
@@ -727,13 +853,14 @@ async def _openai_chat_completions_impl(request: OpenAIChatRequest, recorder):
                     "finish_reason": "stop"
                 }
             ],
-            "usage": usage
+            "usage": usage,
+            "provider": model_config.gateway,
         }
         return finalize(
             payload, recorder,
             trace_enabled=request.trace,
             session=request.pea_session,
-            meta={
+            meta={**_soma_stage_meta(request),
                 "gateway": model_config.gateway,
                 "model": request.model,
                 "usage": usage,
