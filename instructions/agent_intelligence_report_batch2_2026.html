@@ -1,0 +1,654 @@
+
+<h2 class="sr-only">Agent Intelligence Report 2026 Batch 2: Strengths and Weaknesses of 25 More AI Agent Frameworks</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.header { padding: 1.5rem 0 1rem; }
+.header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
+.controls input { flex: 1; min-width: 200px; font-size: 13px; padding: 7px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); }
+.filter-btn { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; white-space: nowrap; }
+.filter-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: var(--color-border-info); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 10px; }
+.card-header { display: flex; align-items: flex-start; gap: 10px; }
+.badge { font-size: 11px; padding: 3px 9px; border-radius: 20px; white-space: nowrap; font-weight: 500; }
+.badge-code { background: var(--color-background-info); color: var(--color-text-info); }
+.badge-nocode { background: var(--color-background-success); color: var(--color-text-success); }
+.badge-lowcode { background: var(--color-background-warning); color: var(--color-text-warning); }
+.badge-coding { background: var(--color-background-danger); color: var(--color-text-danger); }
+.badge-memory { background: var(--color-background-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border-secondary); }
+.agent-name { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+.agent-tagline { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+.famous-for { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+.list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+.list li { font-size: 13px; color: var(--color-text-primary); line-height: 1.5; display: flex; gap: 6px; }
+.tick { color: var(--color-text-success); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.cross { color: var(--color-text-danger); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); }
+.count { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.hidden { display: none; }
+</style>
+
+<div class="header">
+  <h1>Agent Intelligence Report 2026 — Batch 2</h1>
+  <p>25 more frameworks: platforms, memory layers, coding agents, and specialists</p>
+</div>
+
+<div class="controls">
+  <input type="text" id="search2" placeholder="Search agents, strengths, weaknesses..." oninput="filterCards2()">
+  <button class="filter-btn active" onclick="setFilter2('all',this)">All (25)</button>
+  <button class="filter-btn" onclick="setFilter2('code',this)">Code-first</button>
+  <button class="filter-btn" onclick="setFilter2('nocode',this)">No-code</button>
+  <button class="filter-btn" onclick="setFilter2('lowcode',this)">Low-code</button>
+  <button class="filter-btn" onclick="setFilter2('coding',this)">Coding agent</button>
+  <button class="filter-btn" onclick="setFilter2('memory',this)">Memory layer</button>
+</div>
+
+<p class="count" id="count2">Showing 25 agents</p>
+
+<div class="grid" id="grid2">
+
+<div class="card" data-type="coding" data-name="Cursor" data-text="AI IDE code editor flow autocomplete multi file codebase understanding refactor test bug fix developer experience most popular individual developers large refactor looping incomplete repo pricing changes">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Cursor</div><div class="agent-tagline">The AI-native code editor — flow state for devs</div></div>
+    <span class="badge badge-coding">Coding agent</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Most broadly adopted AI coding tool among individual devs and small teams in 2026</li>
+    <li><span class="tick">+</span>Autocomplete + chat inside the editor — never breaks flow to switch tools</li>
+    <li><span class="tick">+</span>"Stays out of the way" — fast, quiet, reliable on small-to-medium tasks</li>
+    <li><span class="tick">+</span>Multi-file context awareness baked into every suggestion</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Large, complex refactors — looping behavior and incomplete repo-wide changes are reported</li>
+    <li><span class="cross">–</span>Pricing changes have generated significant backlash ("pay more, get less")</li>
+    <li><span class="cross">–</span>Weaker than Claude Code on deep architectural reasoning and unfamiliar codebases</li>
+  </ul>
+</div>
+
+<div class="card" data-type="coding" data-name="GitHub Copilot" data-text="inline autocomplete VS Code JetBrains IDE integration best practices public repositories agent mode MCP mission control parallel tasks team collaboration slow cold boot web agent environment spin up sandboxed no private repo learning">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">GitHub Copilot</div><div class="agent-tagline">Microsoft's IDE-embedded pair programmer</div></div>
+    <span class="badge badge-coding">Coding agent</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Trained on billions of public repos — suggests widely adopted patterns and best practices</li>
+    <li><span class="tick">+</span>Native IDE integration across VS Code, JetBrains, and more — zero context switching</li>
+    <li><span class="tick">+</span>Agent Mode (2025): orchestrates multi-file changes, tests, and iteration autonomously</li>
+    <li><span class="tick">+</span>Mission Control (2026): runs multiple agent tasks in parallel as a team</li>
+    <li><span class="tick">+</span>GitHub PR-aware — reads issues, discussions, and repo context for agentic tasks</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Web-based agent has 90+ second cold boot times — "stop-n-go" workflow is frustrating</li>
+    <li><span class="cross">–</span>Sandboxed environment: restricted internet, limited repo permissions, all commits need human review</li>
+    <li><span class="cross">–</span>Doesn't learn from private repositories — suggestions not personalized to your codebase style</li>
+  </ul>
+</div>
+
+<div class="card" data-type="coding" data-name="Claude Code" data-text="terminal native CLI agent 80 percent SWE-bench deep reasoning architecture debugging multi file production codebase unfamiliar complex senior level cost expensive API usage billing">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Claude Code</div><div class="agent-tagline">Terminal-native agent for hard engineering problems</div></div>
+    <span class="badge badge-coding">Coding agent</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>80.8% SWE-bench Verified — #1 ranked AI coding agent in 2026</li>
+    <li><span class="tick">+</span>Universally described as the escalation path when other tools fail on hard problems</li>
+    <li><span class="tick">+</span>Deepest reasoning on unfamiliar codebases, architectural changes, and subtle bugs</li>
+    <li><span class="tick">+</span>Terminal-native — reads, writes, refactors, and debugs across entire repositories</li>
+    <li><span class="tick">+</span>Trusted for design-level changes where correctness matters more than speed</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Expensive — usage-based API billing surprises teams at scale</li>
+    <li><span class="cross">–</span>Line-by-line autocomplete is slower than Cursor/Copilot — not built for flow state</li>
+    <li><span class="cross">–</span>No persistent IDE integration — requires terminal context management from user</li>
+  </ul>
+</div>
+
+<div class="card" data-type="memory" data-name="Mem0" data-text="universal memory layer agents persistent cross session episodic semantic procedural associative actor aware multi agent vector graph 26 percent accuracy AWS exclusive memory provider self improving decay bloat">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Mem0</div><div class="agent-tagline">Universal persistent memory layer for agents</div></div>
+    <span class="badge badge-memory">Memory layer</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>26% accuracy boost over OpenAI Memory baseline on LOCOMO benchmark</li>
+    <li><span class="tick">+</span>91% faster responses and 90% lower token usage than full-context approaches</li>
+    <li><span class="tick">+</span>Four memory types: episodic, semantic, procedural, and associative</li>
+    <li><span class="tick">+</span>Actor-aware memory — tracks which agent said what in multi-agent systems</li>
+    <li><span class="tick">+</span>Exclusive AWS Agent SDK memory provider; 19 vector store backends supported</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Requires an LLM to function — not fully self-contained</li>
+    <li><span class="cross">–</span>Temporal reasoning is weaker than Zep's graph-based approach</li>
+    <li><span class="cross">–</span>Cloud tier has SOC 2 compliance but self-hosted version puts all security on you</li>
+  </ul>
+</div>
+
+<div class="card" data-type="memory" data-name="Letta (formerly MemGPT)" data-text="stateful agents long term memory tool based memory control agents rewrite own instructions procedural memory open source self hosting customizable smaller community migration MemGPT rename">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Letta</div><div class="agent-tagline">Formerly MemGPT — stateful agents with deep memory control</div></div>
+    <span class="badge badge-memory">Memory layer</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Procedural memory — agents can rewrite their own system instructions over time</li>
+    <li><span class="tick">+</span>Tool-based memory architecture gives complete control over how memory works</li>
+    <li><span class="tick">+</span>Long-term memory built into the agent runtime, not bolted on as a side layer</li>
+    <li><span class="tick">+</span>Open-source and self-hostable — full data sovereignty</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Smaller community than Mem0; fewer production deployments documented</li>
+    <li><span class="cross">–</span>MemGPT → Letta rebrand created confusion and migration friction</li>
+    <li><span class="cross">–</span>No managed cloud option — self-hosting burden is entirely on the team</li>
+  </ul>
+</div>
+
+<div class="card" data-type="lowcode" data-name="Flowise" data-text="drag drop LangChain visual agent builder chatflow agentflow RAG multi agent human in the loop Workday acquisition enterprise HR finance open source Y Combinator complex debugging scalability high volume performance limits">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Flowise</div><div class="agent-tagline">Visual LangChain agent builder — now Workday-backed</div></div>
+    <span class="badge badge-lowcode">Low-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Best visual tool for wiring full LangChain-based agent stacks without code</li>
+    <li><span class="tick">+</span>Chatflow (single agent) + Agentflow (multi-agent) cover both simple and complex cases</li>
+    <li><span class="tick">+</span>Human-in-the-loop checkpoints built into visual flows natively</li>
+    <li><span class="tick">+</span>Acquired by Workday (Aug 2025) — enterprise infrastructure and compliance now backing it</li>
+    <li><span class="tick">+</span>30k+ GitHub stars; YC-backed origin with strong developer community</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Debugging visual flows is harder than debugging code — errors are harder to trace</li>
+    <li><span class="cross">–</span>Performance limits on highly complex or high-volume scenarios</li>
+    <li><span class="cross">–</span>Workday acquisition raises questions about future open-source direction for indie builders</li>
+  </ul>
+</div>
+
+<div class="card" data-type="nocode" data-name="Voiceflow" data-text="conversational AI voice chat Figma design UX product team prototype visual builder telephony Alexa Google Assistant collaboration multi channel no code CX product manager limited backend self hosting enterprise heavy tasks backend logic">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Voiceflow</div><div class="agent-tagline">The Figma of conversational AI design</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Best-in-class collaboration tool — designers, PMs, and CX teams all work in one canvas</li>
+    <li><span class="tick">+</span>Voice AND chat in one platform — telephony channel is unique vs most competitors</li>
+    <li><span class="tick">+</span>Fastest path from whiteboard to working prototype for conversation flows</li>
+    <li><span class="tick">+</span>Knowledge base ingestion (FAQs, help docs) → live agent in minutes</li>
+    <li><span class="tick">+</span>Multi-LLM flexibility without managing model infrastructure</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>No self-hosting option — cloud-only with limited enterprise data residency controls</li>
+    <li><span class="cross">–</span>Heavy backend logic requires external tools (devs add Flowise/n8n alongside it)</li>
+    <li><span class="cross">–</span>Not suited for agentic task execution beyond conversation flows</li>
+  </ul>
+</div>
+
+<div class="card" data-type="nocode" data-name="Botpress" data-text="open source chatbot developer controlled self host multi channel Zendesk live chat 50 integrations LLM customizable enterprise support FAQ website channel availability technical team overkill simple bot setup complexity hosting maintenance">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Botpress</div><div class="agent-tagline">Developer-controlled open-source chatbot platform</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Available on the most channels of any chatbot builder (10+ including WhatsApp, Teams, Telegram)</li>
+    <li><span class="tick">+</span>Built-in live chat handoff + native Zendesk integration — real support workflows</li>
+    <li><span class="tick">+</span>50+ direct app integrations with fine-grained LLM customization</li>
+    <li><span class="tick">+</span>Self-hostable open-source core for full data control</li>
+    <li><span class="tick">+</span>Best analytics of any chatbot builder in the segment</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Overkill for simple FAQ bots — Voiceflow is faster for basic use cases</li>
+    <li><span class="cross">–</span>Self-hosting means your team owns server management, updates, and scaling</li>
+    <li><span class="cross">–</span>Less intuitive UX than Voiceflow for non-technical teams</li>
+  </ul>
+</div>
+
+<div class="card" data-type="nocode" data-name="Lindy AI" data-text="AI employees plain English no code 5000 integrations workflow automation business automation non technical 40k users raised 50M credit billing unpredictable pricing scale complex custom logic developer control limited deep technical integration">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Lindy AI</div><div class="agent-tagline">Build AI employees in plain English</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>5,000+ integrations — broadest workflow connectivity of any no-code agent platform</li>
+    <li><span class="tick">+</span>Natural language setup: describe your agent, Lindy builds it — no flow builder needed</li>
+    <li><span class="tick">+</span>Best for non-technical teams automating communication, scheduling, and CRM tasks</li>
+    <li><span class="tick">+</span>$50M raised, ~40k active users — strong product-market fit signal</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Credit-based billing surprises users — costs scale unpredictably at volume</li>
+    <li><span class="cross">–</span>Limited developer control for custom logic or non-standard integrations</li>
+    <li><span class="cross">–</span>Not suitable for complex stateful workflows that need checkpointing or rollback</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Swarms Framework" data-text="enterprise multi agent orchestration hierarchical concurrent sequential graph swarm Python Rust cloud native high availability microservices agent registry MAKER voting red flagging large scale production complexity documentation smaller community learning curve">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Swarms Framework</div><div class="agent-tagline">Enterprise-grade swarm orchestration</div></div>
+    <span class="badge badge-code">Code-first</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Most orchestration patterns of any framework: hierarchical, concurrent, sequential, graph, and swarm</li>
+    <li><span class="tick">+</span>MAKER architecture: micro-agent voting + red-flagging for statistical agreement on each step</li>
+    <li><span class="tick">+</span>Python AND Rust support — performance-critical deployments can run native speed</li>
+    <li><span class="tick">+</span>Agent registry + marketplace for reusable enterprise swarm components</li>
+    <li><span class="tick">+</span>Built-in high availability, observability, and legacy system integration</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Complexity is high — not for teams without serious multi-agent architecture experience</li>
+    <li><span class="cross">–</span>Smaller community and fewer production war stories vs LangGraph or CrewAI</li>
+    <li><span class="cross">–</span>Documentation does not yet match the speed of feature development</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="OpenAI Swarm" data-text="lightweight experimental educational multi agent handoff prototype pattern exploration minimal abstraction no persistence no error recovery no observability not production ready learning tool">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">OpenAI Swarm</div><div class="agent-tagline">Educational lightweight multi-agent handoff framework</div></div>
+    <span class="badge badge-code">Code-first</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Cleanest possible reference implementation of multi-agent handoff patterns</li>
+    <li><span class="tick">+</span>Minimal abstraction — ideal for learning how coordination actually works under the hood</li>
+    <li><span class="tick">+</span>Fast to prototype: 2–5 agent patterns with explicit handoffs in minutes</li>
+    <li><span class="tick">+</span>OpenAI explicitly manages it as an educational framework — documentation is clear</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>No persistence, no error recovery, no orchestration logic for production</li>
+    <li><span class="cross">–</span>OpenAI explicitly says: do not deploy to production</li>
+    <li><span class="cross">–</span>Superseded by OpenAI Agents SDK for anything beyond experiments — don't migrate to Swarm</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Microsoft TaskWeaver" data-text="data analytics code first Python DataFrame rich data structure stateful execution reflective code verification plugin domain knowledge container mode security AgentOps observability niche scope non data analytics enterprise adoption limited">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Microsoft TaskWeaver</div><div class="agent-tagline">Code-first data analytics agent from Microsoft Research</div></div>
+    <span class="badge badge-code">Code-first</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Preserves both chat history AND code execution history including in-memory DataFrames</li>
+    <li><span class="tick">+</span>Reflective execution — agent adjusts mid-task if code verification reveals issues</li>
+    <li><span class="tick">+</span>Container-mode execution for isolated, secure code runs by default</li>
+    <li><span class="tick">+</span>Plugin system for encapsulating custom domain algorithms</li>
+    <li><span class="tick">+</span>Built-in AgentOps integration for observability and monitoring</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Narrowly scoped to data analytics — not a general-purpose agent framework</li>
+    <li><span class="cross">–</span>Limited enterprise adoption outside Microsoft-adjacent data science teams</li>
+    <li><span class="cross">–</span>Vision input (for Planner role) is still experimental as of early 2026</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Strands Agents (AWS)" data-text="AWS Bedrock code first multi agent LLM invocation tool execution conversation management Amazon Bedrock Anthropic Claude Gemini OpenAI Mem0 integration framework agnostic runtime newer AWS lock in smaller community documentation limited examples">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Strands Agents</div><div class="agent-tagline">AWS's code-first agent framework for Bedrock</div></div>
+    <span class="badge badge-code">Code-first</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>AWS-native — seamless integration with Bedrock, ElastiCache, and Neptune out of the box</li>
+    <li><span class="tick">+</span>Model-agnostic: Bedrock, Claude, Gemini, and OpenAI all work within the same framework</li>
+    <li><span class="tick">+</span>Official Mem0 integration for persistent cross-session agent memory</li>
+    <li><span class="tick">+</span>AgentCore Runtime: framework-agnostic hosted execution layer for production deployment</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>New (2025) — smaller community and fewer third-party resources vs LangGraph</li>
+    <li><span class="cross">–</span>Best features assume AWS infrastructure — portability outside AWS is reduced</li>
+    <li><span class="cross">–</span>Documentation still catching up to feature scope</li>
+  </ul>
+</div>
+
+<div class="card" data-type="nocode" data-name="Coze (ByteDance)" data-text="ByteDance AI agent builder plugin ecosystem generous free tier visual no code rapid prototyping multi model support workflow automation data sovereignty ByteDance ownership enterprise compliance concern privacy regulation US companies sensitive data">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Coze</div><div class="agent-tagline">ByteDance's AI agent builder with plugin ecosystem</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Generous free tier — fastest way to get a production-quality agent running at zero cost</li>
+    <li><span class="tick">+</span>Plugin marketplace rivals n8n in breadth — hundreds of pre-built connectors</li>
+    <li><span class="tick">+</span>Coze Studio open-sourced (July 2025) — 15k+ stars in weeks, ByteDance-backed pace</li>
+    <li><span class="tick">+</span>Multi-model support and visual workflow builder out of the box</li>
+    <li><span class="tick">+</span>One-stop: planning, tools, memory, and execution in one interface</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>ByteDance ownership creates data sovereignty concerns for US enterprise and regulated industries</li>
+    <li><span class="cross">–</span>Compliance certifications (SOC 2, HIPAA) not yet at the level of AWS or Azure alternatives</li>
+    <li><span class="cross">–</span>Ecosystem still young outside China — limited Western community resources</li>
+  </ul>
+</div>
+
+<div class="card" data-type="lowcode" data-name="Relevance AI" data-text="sales marketing AI workforce no code team automation business process sales focused credit billing revenue operations enterprise task automation unpredictable billing limited developer control custom logic non sales use cases weaker">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Relevance AI</div><div class="agent-tagline">AI workforce platform for sales and revenue ops</div></div>
+    <span class="badge badge-lowcode">Low-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Strongest product-market fit for sales and GTM automation specifically</li>
+    <li><span class="tick">+</span>Pre-built AI workforce templates: SDR agents, research agents, outreach sequences</li>
+    <li><span class="tick">+</span>Teams can deploy an AI sales team without any technical staff</li>
+    <li><span class="tick">+</span>Good observability — agent runs are loggable and auditable by non-developers</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Credit-based billing surprises many users — costs scale quickly at volume</li>
+    <li><span class="cross">–</span>Narrow domain strength — non-sales use cases are significantly weaker</li>
+    <li><span class="cross">–</span>Limited deep technical customization for engineering teams</li>
+  </ul>
+</div>
+
+<div class="card" data-type="nocode" data-name="Zapier AI Agents" data-text="5000 app integrations workflow automation no code business automation triggered workflows AI decision node largest integration library agent capabilities bolt on real time latency delays not true agentic reasoning legacy automation DNA">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Zapier AI Agents</div><div class="agent-tagline">Automation giant adds AI reasoning to 5,000+ integrations</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>5,000+ app integrations — no other agent platform connects to more tools</li>
+    <li><span class="tick">+</span>Lowest barrier entry for non-technical teams already using Zapier</li>
+    <li><span class="tick">+</span>AI decision nodes let agents make conditional choices mid-workflow</li>
+    <li><span class="tick">+</span>Trusted brand — enterprises already have Zapier in their procurement pipeline</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>AI is bolted onto automation DNA — not a native agentic architecture</li>
+    <li><span class="cross">–</span>Real-time latency and reliability issues on complex multi-step agent tasks</li>
+    <li><span class="cross">–</span>Can't match LangGraph/CrewAI for stateful, complex agentic reasoning</li>
+  </ul>
+</div>
+
+<div class="card" data-type="nocode" data-name="Make (formerly Integromat)" data-text="visual workflow automation enterprise AI nodes HTTP custom API calls 1000 integrations scenario based no code data transformation complex routing business logic latency issues not real time streaming not true agent reasoning">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Make</div><div class="agent-tagline">Scenario-based automation with deep data transformation</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Best data transformation capabilities of any no-code automation platform</li>
+    <li><span class="tick">+</span>HTTP module: can call any API in the world without a pre-built connector</li>
+    <li><span class="tick">+</span>Complex conditional routing and branching that feels more like programming</li>
+    <li><span class="tick">+</span>1,000+ app integrations with deep field-level mapping</li>
+    <li><span class="tick">+</span>AI nodes: call GPT, Claude, or any LLM mid-scenario for dynamic decisions</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Scenario-based thinking ≠ agentic reasoning — complex agent loops require workarounds</li>
+    <li><span class="cross">–</span>Latency issues on large, real-time agent workflows</li>
+    <li><span class="cross">–</span>Pricing becomes expensive fast on high execution volume</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="DSPy (Stanford NLP)" data-text="program language model compile optimize prompts few shot chain of thought ReAct patterns automatic prompt optimization research teams LLM reliability reduced manual prompt engineering steep learning curve not production ready deployment complex setup">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">DSPy</div><div class="agent-tagline">Stanford's framework for programming — not prompting — LLMs</div></div>
+    <span class="badge badge-code">Code-first</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Compiles and optimizes prompts automatically — no manual prompt engineering required</li>
+    <li><span class="tick">+</span>Treats LLM pipelines as programs to be optimized, not prompts to be hand-tuned</li>
+    <li><span class="tick">+</span>23k+ stars — strong academic and research community adoption</li>
+    <li><span class="tick">+</span>Built-in ReAct agent loop, chain-of-thought, and few-shot compilation strategies</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Steep learning curve — requires understanding the "program synthesis" mental model</li>
+    <li><span class="cross">–</span>Not designed for production deployment — primarily a research and optimization tool</li>
+    <li><span class="cross">–</span>Complex debugging when compiled pipelines produce unexpected outputs</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="CAMEL-AI" data-text="role playing multi agent collaborative conversations role assignment inception prompting structured social simulation research academic cooperative task solving older framework smaller community production use case narrow">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">CAMEL-AI</div><div class="agent-tagline">Role-playing multi-agent collaboration framework</div></div>
+    <span class="badge badge-code">Code-first</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Pioneered structured role-playing for agent collaboration (2023 — before CrewAI)</li>
+    <li><span class="tick">+</span>Inception prompting: agents given detailed role assignments that guide behavior</li>
+    <li><span class="tick">+</span>Strong academic lineage — used in 100+ papers for cooperative task solving research</li>
+    <li><span class="tick">+</span>18k+ stars; good for simulating human collaborative processes artificially</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>CrewAI superseded it for production role-based workflows — more practical, less academic</li>
+    <li><span class="cross">–</span>No built-in state management or fault tolerance</li>
+    <li><span class="cross">–</span>Narrower use case: social simulation and cooperative task research, not production automation</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Activepieces" data-text="MIT license open source workflow automation self host no code AI agents 200 integrations Zapier alternative privacy compliance community free commercial use no restrictions AI reasoning weaker than dedicated frameworks smaller integration ecosystem vs Zapier n8n">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Activepieces</div><div class="agent-tagline">MIT-licensed open-source Zapier alternative</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Only major automation platform with a true MIT license — zero commercial use restrictions</li>
+    <li><span class="tick">+</span>Self-hostable with full data sovereignty — strong privacy and compliance story</li>
+    <li><span class="tick">+</span>AI agent nodes for LLM-driven decisions within automation flows</li>
+    <li><span class="tick">+</span>200+ integrations and growing community — active open-source development</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Integration depth is shallower than Zapier (5k) or n8n (400+)</li>
+    <li><span class="cross">–</span>AI reasoning capabilities weaker than dedicated agent frameworks</li>
+    <li><span class="cross">–</span>Smaller community means fewer templates, tutorials, and support resources</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Rivet (Ironclad)" data-text="visual AI programming node graph IDE plugin VS Code debugging complex LLM pipelines transparent visual debugging iteration prompt chaining developer tool niche smaller ecosystem not multi agent orchestration no production deployment features">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Rivet</div><div class="agent-tagline">Visual AI programming environment for complex LLM pipelines</div></div>
+    <span class="badge badge-lowcode">Low-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Node-graph editor that makes complex prompt chains visually transparent</li>
+    <li><span class="tick">+</span>Best-in-class for debugging LLM pipelines — see exactly what each node outputs</li>
+    <li><span class="tick">+</span>VS Code plugin for running Rivet graphs directly inside the developer's existing workflow</li>
+    <li><span class="tick">+</span>Built by Ironclad (legal AI company) — battle-tested on real enterprise AI workflows</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Not a multi-agent orchestration framework — single pipeline focus limits scope</li>
+    <li><span class="cross">–</span>No built-in production deployment features — requires external hosting setup</li>
+    <li><span class="cross">–</span>Niche tool; smaller community than Langflow or n8n for the visual-builder space</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Agentforce (Salesforce)" data-text="Salesforce CRM enterprise customer service sales support narrow reliability production stability Salesforce data deeply embedded omnichannel atlas reasoning engine outside Salesforce ecosystem locked in expensive licensing general purpose weak arbitrary web tasks">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Agentforce</div><div class="agent-tagline">Salesforce's enterprise CRM-embedded agent platform</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Ultra-reliable on narrow CRM tasks — updates records, drafts emails, escalates tickets</li>
+    <li><span class="tick">+</span>Zero setup for Salesforce shops — agents have native access to all CRM data</li>
+    <li><span class="tick">+</span>Atlas Reasoning Engine built specifically for enterprise-grade production stability</li>
+    <li><span class="tick">+</span>Omnichannel: voice, email, chat, and Slack all in one agent interface</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Locked to Salesforce ecosystem — useless outside it</li>
+    <li><span class="cross">–</span>Expensive licensing — enterprise contracts required for full agentic features</li>
+    <li><span class="cross">–</span>General-purpose agent tasks score low on GAIA benchmarks by design — it doesn't try</li>
+  </ul>
+</div>
+
+<div class="card" data-type="coding" data-name="Aider" data-text="terminal git aware coding agent CLI open source multi model Claude GPT Gemini diff based editing cost efficient benchmark SWE-bench interactive terminal less user friendly than IDE tools no visual interface expert developer only">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Aider</div><div class="agent-tagline">Git-aware CLI coding agent for power users</div></div>
+    <span class="badge badge-coding">Coding agent</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Git-aware diffs — every change is tracked and reviewable before commit</li>
+    <li><span class="tick">+</span>Model-agnostic: Claude, GPT-4o, Gemini — swap models per task</li>
+    <li><span class="tick">+</span>Cost-efficient — diff-based editing uses far fewer tokens than full-file rewrites</li>
+    <li><span class="tick">+</span>Strong SWE-bench scores for a lightweight, open-source CLI tool</li>
+    <li><span class="tick">+</span>Experts use it as context-precise Claude Code alternative with more explicit control</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Terminal-only — no IDE integration means high friction for non-CLI developers</li>
+    <li><span class="cross">–</span>Requires expertise to manage context windows and model selection effectively</li>
+    <li><span class="cross">–</span>No agent-mode autonomous loop — primarily interactive, not fire-and-forget</li>
+  </ul>
+</div>
+
+<div class="card" data-type="coding" data-name="Replit Agent" data-text="browser based full stack app builder natural language one click deploy integrated development environment beginners prototyping no local setup startup speed simple apps Replit lock in performance limits complex production apps scalability cost">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Replit Agent</div><div class="agent-tagline">Browser-based full-stack app builder from natural language</div></div>
+    <span class="badge badge-coding">Coding agent</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Zero local setup — describe an app in plain English, deploy a running URL in minutes</li>
+    <li><span class="tick">+</span>Best for non-developers and beginners building real full-stack apps without a local environment</li>
+    <li><span class="tick">+</span>One-click deployment with integrated cloud hosting</li>
+    <li><span class="tick">+</span>Agent manages the full loop: code + environment + deploy + iterate</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Replit lock-in — deploying outside Replit's infrastructure is painful</li>
+    <li><span class="cross">–</span>Performance and scalability limits on complex production workloads</li>
+    <li><span class="cross">–</span>Serious engineering teams outgrow it quickly — not suited for large codebase collaboration</li>
+  </ul>
+</div>
+
+<div class="card" data-type="nocode" data-name="Notion AI Agents" data-text="Notion workspace AI agents non technical teams read write pages knowledge base Slack Google Drive connectors 21000 beta agents natural language setup fast adoption outside Notion walls limited no complex workflows narrow ecosystem no stateful execution">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Notion AI Agents</div><div class="agent-tagline">Native AI agents inside the Notion workspace</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>21,000+ custom agents built during beta — fastest non-technical agent adoption of any platform</li>
+    <li><span class="tick">+</span>Pages are the agent memory — zero extra infrastructure for Notion-heavy teams</li>
+    <li><span class="tick">+</span>Natural language setup: describe the agent, it builds</li>
+    <li><span class="tick">+</span>Native Slack and Google Drive connectors for cross-tool context</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>"Don't expect it to handle anything outside Notion's walls" — hard ecosystem boundary</li>
+    <li><span class="cross">–</span>No stateful execution, checkpointing, or fault tolerance</li>
+    <li><span class="cross">–</span>Not suitable for complex or multi-step agentic reasoning beyond knowledge retrieval</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Microsoft Copilot (M365)" data-text="Windows Office 365 Excel Word Outlook PowerPoint API level control native app integration multi model GPT enterprise security Azure AD integration Teams Dynamics Power Platform task breadth not deep agentic reasoning outside Microsoft apps useless slow cold boot web">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Microsoft 365 Copilot</div><div class="agent-tagline">Office-embedded AI that controls Microsoft apps at API level</div></div>
+    <span class="badge badge-nocode">No-code</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>API-level control of Office apps — manipulates Excel cells, not just reads them</li>
+    <li><span class="tick">+</span>Cross-app orchestration: PDF → Excel → PowerPoint in one natural language request</li>
+    <li><span class="tick">+</span>Fara model: specialized for Windows UI task sequences + GPT-5-class reasoning</li>
+    <li><span class="tick">+</span>Enterprise security built-in: Azure AD, data residency, compliance by default</li>
+    <li><span class="tick">+</span>Zero new tooling for enterprises already in Microsoft 365</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Useless outside the Microsoft ecosystem — no cross-vendor agentic capability</li>
+    <li><span class="cross">–</span>Web-based agent has cold boot problems (similar to GitHub Copilot web agent)</li>
+    <li><span class="cross">–</span>Not designed for GAIA-style arbitrary web tasks — reliability over breadth is the design choice</li>
+  </ul>
+</div>
+
+<div class="card" data-type="code" data-name="Manus AI" data-text="general purpose browser use computer use autonomous agent web tasks benchmark GAIA high benchmark score real world web navigation research data extraction autonomous computer control unpredictable reliability production benchmark optimized overly aggressive risky strategies">
+  <div class="card-header">
+    <div style="flex:1"><div class="agent-name">Manus AI</div><div class="agent-tagline">General-purpose autonomous computer-use agent</div></div>
+    <span class="badge badge-code">Code-first</span>
+  </div>
+  <hr class="divider">
+  <div class="famous-for">Famous for</div>
+  <ul class="list">
+    <li><span class="tick">+</span>Top GAIA benchmark scores — one of the highest performing general-purpose web agents</li>
+    <li><span class="tick">+</span>Autonomous computer control: browser navigation, form filling, research, data extraction</li>
+    <li><span class="tick">+</span>Handles arbitrary web tasks that most specialized agents can't approach</li>
+    <li><span class="tick">+</span>Designed for breadth — the widest task coverage of any single-agent system</li>
+  </ul>
+  <div class="famous-for" style="margin-top:4px">Struggles with</div>
+  <ul class="list">
+    <li><span class="cross">–</span>Benchmark-optimized design means it attempts risky strategies to score high — less predictable in production</li>
+    <li><span class="cross">–</span>Higher error rate than reliability-focused agents like Agentforce on narrow tasks</li>
+    <li><span class="cross">–</span>Not designed for enterprise compliance, auditability, or sensitive data workflows</li>
+  </ul>
+</div>
+
+</div>
+
+<script>
+let activeFilter2 = 'all';
+function filterCards2() {
+  const q = document.getElementById('search2').value.toLowerCase();
+  const cards = document.querySelectorAll('#grid2 .card');
+  let visible = 0;
+  cards.forEach(c => {
+    const matchType = activeFilter2 === 'all' || c.dataset.type === activeFilter2;
+    const matchText = !q || c.dataset.text.includes(q) || c.dataset.name.toLowerCase().includes(q);
+    if (matchType && matchText) { c.classList.remove('hidden'); visible++; }
+    else c.classList.add('hidden');
+  });
+  document.getElementById('count2').textContent = 'Showing ' + visible + ' agent' + (visible !== 1 ? 's' : '');
+}
+function setFilter2(type, btn) {
+  activeFilter2 = type;
+  document.querySelectorAll('#grid2 .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterCards2();
+}
+</script>

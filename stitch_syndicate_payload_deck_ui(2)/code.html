@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Syndicate Payload Deck | LIM Protocol</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Roboto+Mono:wght@700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "danger-black": "#0D0D0D",
+                        "danger-charcoal": "#1C1C1C",
+                        "danger-red": "#FF0000",
+                        "danger-orange": "#FFA500",
+                        "surface": "#1C1C1C",
+                        "background": "#0D0D0D",
+                        "primary": "#FF0000",
+                        "secondary": "#FFA500"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Bebas Neue", "sans-serif"],
+                        "body": ["Roboto Mono Bold", "monospace"],
+                        "label": ["Bebas Neue", "sans-serif"],
+                        "mono": ["Roboto Mono", "monospace"]
+                    }
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                background-color: #0D0D0D;
+                color: #FFFFFF;
+                font-family: 'Roboto Mono', monospace;
+                font-weight: 700;
+                overflow: hidden;
+            }
+            h1, h2, h3, .headline {
+                font-family: 'Bebas Neue', sans-serif;
+                letter-spacing: 0.05em;
+            }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-red {
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+        }
+        .glow-orange {
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.4);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D0D0D;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FF0000;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-6 h-14 bg-danger-charcoal border-b border-danger-red/30">
+<div class="flex items-center gap-8">
+<span class="text-2xl headline font-normal text-danger-red uppercase tracking-wider">SYNDICATE_PAYLOAD</span>
+<nav class="hidden md:flex gap-1 h-full">
+<a class="h-14 flex items-center px-4 text-white bg-danger-red headline text-lg tracking-widest" href="#">DIRECTOR</a>
+<a class="h-14 flex items-center px-4 text-gray-400 headline text-lg hover:text-danger-orange transition-colors duration-150 uppercase" href="#">STAGING</a>
+<a class="h-14 flex items-center px-4 text-gray-400 headline text-lg hover:text-danger-orange transition-colors duration-150 uppercase" href="#">TELEMETRY</a>
+<a class="h-14 flex items-center px-4 text-gray-400 headline text-lg hover:text-danger-orange transition-colors duration-150 uppercase" href="#">EXECUTION</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute inset-y-0 left-3 flex items-center text-danger-red">
+<span class="material-symbols-outlined text-sm">search</span>
+</span>
+<input class="bg-danger-black border border-danger-red/50 focus:border-danger-orange outline-none px-10 py-1 text-[0.7rem] font-bold text-white w-48" placeholder="QUERY_ID..." type="text"/>
+</div>
+<button class="text-danger-red hover:text-danger-orange"><span class="material-symbols-outlined">settings_input_component</span></button>
+<button class="text-danger-red hover:text-danger-orange"><span class="material-symbols-outlined">terminal</span></button>
+<button class="text-danger-red hover:text-danger-orange relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-danger-orange"></span>
+</button>
+</div>
+</header>
+<aside class="fixed left-0 top-14 h-[calc(100vh-3.5rem)] w-20 flex flex-col items-center py-4 bg-danger-black border-r border-danger-red/20 z-40">
+<div class="mb-8 text-center">
+<div class="w-12 h-12 bg-danger-charcoal border border-danger-red/30 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-danger-red text-2xl">dns</span>
+</div>
+<span class="headline text-[0.6rem] text-danger-orange tracking-widest">NODE_01</span>
+</div>
+<div class="flex flex-col gap-1 w-full px-1">
+<button class="w-full py-4 flex flex-col items-center bg-danger-red text-white transition-all duration-200">
+<span class="material-symbols-outlined mb-1">folder_open</span>
+<span class="headline text-xs uppercase tracking-tighter">FSYS</span>
+</button>
+<button class="w-full py-4 flex flex-col items-center text-gray-600 hover:text-danger-red hover:bg-danger-charcoal transition-all duration-200">
+<span class="material-symbols-outlined mb-1">terminal</span>
+<span class="headline text-xs uppercase tracking-tighter">TERM</span>
+</button>
+<button class="w-full py-4 flex flex-col items-center text-gray-600 hover:text-danger-red hover:bg-danger-charcoal transition-all duration-200">
+<span class="material-symbols-outlined mb-1">settings_input_antenna</span>
+<span class="headline text-xs uppercase tracking-tighter">LOGIC</span>
+</button>
+<button class="w-full py-4 flex flex-col items-center text-gray-600 hover:text-danger-red hover:bg-danger-charcoal transition-all duration-200">
+<span class="material-symbols-outlined mb-1">monitoring</span>
+<span class="headline text-xs uppercase tracking-tighter">STATS</span>
+</button>
+</div>
+<div class="mt-auto w-full px-1">
+<button class="w-full py-4 flex flex-col items-center text-gray-600 hover:text-danger-orange hover:bg-danger-charcoal transition-all duration-200 border-t border-danger-red/20">
+<span class="material-symbols-outlined">power_settings_new</span>
+<span class="headline text-xs uppercase tracking-tighter">EXIT</span>
+</button>
+</div>
+</aside>
+<main class="ml-20 mt-14 p-4 h-[calc(100vh-3.5rem)] grid grid-cols-12 gap-4 bg-danger-black">
+<section class="col-span-3 bg-danger-charcoal flex flex-col overflow-hidden border border-danger-red/20">
+<div class="h-10 bg-danger-black flex items-center px-4 justify-between border-b border-danger-red/20">
+<span class="headline text-lg tracking-widest text-danger-red uppercase">DIRECTOR_FS</span>
+<span class="material-symbols-outlined text-sm text-danger-orange">unfold_more</span>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-1">
+<div class="group flex items-center justify-between p-2 hover:bg-danger-red/10 cursor-pointer transition-colors border border-transparent hover:border-danger-red/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-sm text-danger-red">description</span>
+<span class="text-[0.75rem] text-gray-300">root_access.md</span>
+</div>
+<span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 text-danger-red">visibility</span>
+</div>
+<div class="group flex items-center justify-between p-2 bg-danger-red/20 border border-danger-red/50 text-white cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-sm text-danger-red">description</span>
+<span class="text-[0.75rem] font-bold">bypass_v4.md</span>
+</div>
+<span class="material-symbols-outlined text-xs text-danger-red" style="font-variation-settings: 'FILL' 1;">visibility</span>
+</div>
+<div class="group flex items-center justify-between p-2 hover:bg-danger-red/10 cursor-pointer transition-colors border border-transparent hover:border-danger-red/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-sm text-danger-red">description</span>
+<span class="text-[0.75rem] text-gray-300">logic_gate_set.md</span>
+</div>
+<span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 text-danger-red">visibility</span>
+</div>
+<div class="group flex items-center justify-between p-2 hover:bg-danger-red/10 cursor-pointer transition-colors border border-transparent hover:border-danger-red/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-sm text-danger-red">description</span>
+<span class="text-[0.75rem] text-gray-300">recursive_payload.md</span>
+</div>
+<span class="material-symbols-outlined text-xs opacity-0 group-hover:opacity-100 text-danger-red">visibility</span>
+</div>
+<div class="group flex items-center justify-between p-2 opacity-30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-sm text-gray-600">lock</span>
+<span class="text-[0.75rem] text-gray-500">system_kernel.bin</span>
+</div>
+</div>
+</div>
+<div class="p-4 bg-danger-black mt-auto border-t border-danger-red/30">
+<button class="w-full py-3 bg-danger-red text-white headline text-lg tracking-widest flex items-center justify-center gap-2 glow-red">
+<span class="material-symbols-outlined text-xl">add_box</span>
+                NEW_PROMPT
+            </button>
+</div>
+</section>
+<section class="col-span-3 bg-danger-charcoal flex flex-col overflow-hidden border border-danger-red/20">
+<div class="h-10 bg-danger-black flex items-center px-4 justify-between border-b border-danger-red/20">
+<span class="headline text-lg tracking-widest text-danger-red uppercase">STAGING_BAY</span>
+<span class="headline text-sm bg-danger-orange text-black px-2 py-0.5">4_PENDING</span>
+</div>
+<div class="flex-1 overflow-y-auto p-3 space-y-3">
+<div class="bg-danger-black p-3 border-l-4 border-danger-red border-y border-r border-danger-red/20">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[0.7rem] font-bold text-danger-red tracking-tight">#P-992-X</span>
+<span class="text-[0.6rem] text-danger-orange">TS: 14:02:11</span>
+</div>
+<div class="h-12 bg-danger-charcoal p-2 border border-danger-red/20 overflow-hidden mb-2">
+<p class="text-[0.65rem] text-gray-300 leading-tight">INITIALIZE SECURE_HANDSHAKE --VERBOSE --RETRY=3</p>
+</div>
+<div class="flex justify-end gap-3">
+<button class="headline text-sm text-gray-500 hover:text-danger-orange uppercase">Purge</button>
+<button class="headline text-sm text-danger-red hover:text-white uppercase">Stage</button>
+</div>
+</div>
+<div class="bg-danger-black p-3 border-l-4 border-gray-700 border-y border-r border-danger-red/10">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[0.7rem] font-bold text-gray-400 tracking-tight">#P-993-A</span>
+<span class="text-[0.6rem] text-gray-600">TS: 14:02:45</span>
+</div>
+<div class="h-12 bg-danger-charcoal p-2 border border-danger-red/10 overflow-hidden mb-2">
+<p class="text-[0.65rem] text-gray-400 leading-tight">EXECUTE DATA_EXTRACTION --LAYER=7 --SILENT</p>
+</div>
+<div class="flex justify-end gap-3">
+<button class="headline text-sm text-gray-500 hover:text-danger-orange uppercase">Purge</button>
+<button class="headline text-sm text-danger-red hover:text-white uppercase">Stage</button>
+</div>
+</div>
+<div class="bg-danger-black p-3 border-l-4 border-gray-700 border-y border-r border-danger-red/10">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[0.7rem] font-bold text-gray-400 tracking-tight">#P-995-K</span>
+<span class="text-[0.6rem] text-gray-600">TS: 14:03:02</span>
+</div>
+<div class="h-12 bg-danger-charcoal p-2 border border-danger-red/10 overflow-hidden mb-2">
+<p class="text-[0.65rem] text-gray-400 leading-tight">OVERRIDE KERNEL_WATCHDOG --FORCE</p>
+</div>
+<div class="flex justify-end gap-3">
+<button class="headline text-sm text-gray-500 hover:text-danger-orange uppercase">Purge</button>
+<button class="headline text-sm text-danger-red hover:text-white uppercase">Stage</button>
+</div>
+</div>
+</div>
+</section>
+<section class="col-span-3 flex flex-col gap-4">
+<div class="bg-danger-charcoal border border-danger-red/20 flex-1 flex flex-col p-4">
+<div class="mb-4">
+<span class="headline text-lg tracking-widest text-danger-red uppercase">LOGIC_PARAMETERS</span>
+</div>
+<div class="space-y-6 flex-1">
+<div class="space-y-2">
+<div class="flex justify-between text-[0.65rem] tracking-tighter">
+<span class="text-gray-400 uppercase">TEMPERATURE</span>
+<span class="text-danger-orange font-bold">0.82</span>
+</div>
+<input class="w-full h-2 bg-danger-black appearance-none cursor-pointer accent-danger-red border border-danger-red/20" type="range" value="82"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[0.65rem] tracking-tighter">
+<span class="text-gray-400 uppercase">TOP_P_SCALING</span>
+<span class="text-danger-orange font-bold">0.95</span>
+</div>
+<input class="w-full h-2 bg-danger-black appearance-none cursor-pointer accent-danger-red border border-danger-red/20" type="range" value="95"/>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-[0.65rem] tracking-tighter">
+<span class="text-gray-400 uppercase">THREAD_ALLOCATION</span>
+<span class="text-danger-orange font-bold">64</span>
+</div>
+<input class="w-full h-2 bg-danger-black appearance-none cursor-pointer accent-danger-red border border-danger-red/20" type="range" value="64"/>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-4 border-t border-danger-red/20">
+<div class="flex items-center justify-between border border-danger-red/10 p-1">
+<span class="headline text-[0.7rem] text-gray-400">BATCH_MODE</span>
+<div class="w-8 h-4 bg-danger-red p-0.5 flex justify-end items-center">
+<div class="w-3 h-3 bg-white"></div>
+</div>
+</div>
+<div class="flex items-center justify-between border border-danger-red/10 p-1">
+<span class="headline text-[0.7rem] text-gray-400">JSON_LOCK</span>
+<div class="w-8 h-4 bg-danger-black border border-gray-700 p-0.5 flex justify-start items-center">
+<div class="w-3 h-3 bg-gray-700"></div>
+</div>
+</div>
+<div class="flex items-center justify-between border border-danger-red/10 p-1">
+<span class="headline text-[0.7rem] text-gray-400">OVERWRITE</span>
+<div class="w-8 h-4 bg-danger-black border border-gray-700 p-0.5 flex justify-start items-center">
+<div class="w-3 h-3 bg-gray-700"></div>
+</div>
+</div>
+<div class="flex items-center justify-between border border-danger-red/10 p-1">
+<span class="headline text-[0.7rem] text-gray-400">LOG_TRACE</span>
+<div class="w-8 h-4 bg-danger-orange p-0.5 flex justify-end items-center">
+<div class="w-3 h-3 bg-white"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-danger-charcoal border border-danger-red/20 h-48 p-4">
+<span class="headline text-lg tracking-widest text-danger-red uppercase block mb-4">HUD_TELEMETRY</span>
+<div class="flex justify-around items-center h-28">
+<div class="relative w-24 h-24 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle cx="48" cy="48" fill="none" r="40" stroke="#0D0D0D" stroke-width="6"></circle>
+<circle class="glow-red" cx="48" cy="48" fill="none" r="40" stroke="#FF0000" stroke-dasharray="251.2" stroke-dashoffset="60" stroke-width="6"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl headline font-normal text-white">412</span>
+<span class="headline text-[0.6rem] text-danger-red">TPS</span>
+</div>
+</div>
+<div class="relative w-24 h-24 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle cx="48" cy="48" fill="none" r="40" stroke="#0D0D0D" stroke-width="6"></circle>
+<circle class="glow-orange" cx="48" cy="48" fill="none" r="40" stroke="#FFA500" stroke-dasharray="251.2" stroke-dashoffset="180" stroke-width="6"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl headline font-normal text-white">2.4k</span>
+<span class="headline text-[0.6rem] text-danger-orange">RPM</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="col-span-3 flex flex-col gap-4">
+<div class="bg-danger-charcoal border border-danger-red/20 flex-1 p-4 grid grid-rows-3 gap-2">
+<div class="bg-danger-black border-l-2 border-danger-red p-3 flex flex-col justify-center">
+<span class="headline text-[0.7rem] text-gray-500 tracking-wider">TOTAL_PAYLOADS_SENT</span>
+<span class="text-4xl headline font-normal text-danger-red tracking-tight">1,204,492</span>
+</div>
+<div class="bg-danger-black border-l-2 border-white p-3 flex flex-col justify-center">
+<span class="headline text-[0.7rem] text-gray-500 tracking-wider">REMAINING_QUEUE</span>
+<span class="text-4xl headline font-normal text-white tracking-tight">18,502</span>
+</div>
+<div class="bg-danger-black border-l-2 border-danger-orange p-3 flex flex-col justify-center">
+<span class="headline text-[0.7rem] text-gray-500 tracking-wider">SYSTEM_LATENCY</span>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl headline font-normal text-danger-orange tracking-tight">12.4</span>
+<span class="headline text-lg text-danger-orange">MS</span>
+</div>
+</div>
+</div>
+<div class="bg-danger-charcoal border border-danger-red/20 p-4 flex flex-col gap-4">
+<div class="flex items-center justify-between p-3 bg-danger-black border-2 border-danger-red">
+<div class="flex flex-col">
+<span class="headline text-sm font-bold text-white tracking-widest">MASTER_ARM</span>
+<span class="headline text-xs text-danger-red animate-pulse">SYSTEM_UNLOCKED</span>
+</div>
+<div class="flex gap-1">
+<div class="w-8 h-8 bg-danger-red glow-red"></div>
+<div class="w-8 h-8 bg-danger-charcoal"></div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="h-2 bg-danger-black border border-danger-red/20 overflow-hidden">
+<div class="h-full bg-danger-orange w-3/4"></div>
+</div>
+<button class="bg-danger-red text-white h-24 flex flex-col items-center justify-center headline text-4xl tracking-widest hover:bg-danger-orange active:scale-95 transition-all glow-red uppercase relative overflow-hidden group">
+<span class="relative z-10 group-hover:text-black">LAUNCH_SEQUENCE</span>
+<span class="headline text-[0.7rem] mt-1 tracking-[0.3em] opacity-80 group-hover:text-black">LIM_PROTOCOL_READY</span>
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background: repeating-linear-gradient(45deg, #000, #000 15px, transparent 15px, transparent 30px);"></div>
+</button>
+<div class="flex justify-between">
+<span class="headline text-[0.6rem] text-danger-red tracking-widest">AUTH: 0x992B-SYND</span>
+<span class="headline text-[0.6rem] text-danger-orange tracking-widest">CRC_CHECK: OK</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<div class="fixed inset-0 pointer-events-none z-0 opacity-10 mix-blend-overlay">
+<div class="w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.4)_50%),linear-gradient(90deg,rgba(255,0,0,0.1),rgba(255,165,0,0.05),rgba(255,0,0,0.1))] bg-[length:100%_4px,5px_100%]"></div>
+</div>
+
+</body></html>

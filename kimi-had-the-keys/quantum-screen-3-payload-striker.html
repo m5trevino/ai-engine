@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>QUANTUM NEXUS | Payload Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "void": "#050508",
+                        "void-light": "#0a0a12",
+                        "void-panel": "#10101a",
+                        "neon-cyan": "#00f0ff",
+                        "neon-pink": "#ff00a0",
+                        "neon-purple": "#a855f7",
+                    },
+                    fontFamily: {
+                        "display": ["Orbitron", "sans-serif"],
+                        "ui": ["Rajdhani", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.4);
+            --panel-glow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(0, 240, 255, 0.1);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #050508 0%, #0a0a15 50%, #050510 100%);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        .qx-panel {
+            background: rgba(16, 16, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            box-shadow: var(--panel-glow), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        
+        .qx-btn-neon {
+            background: transparent;
+            border: 1px solid rgba(0, 240, 255, 0.5);
+            color: #00f0ff;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .qx-btn-neon:hover {
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            border-color: #00f0ff;
+        }
+        
+        .qx-btn-primary {
+            background: linear-gradient(135deg, #00f0ff 0%, #0080ff 100%);
+            color: #000;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+        .qx-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.7);
+        }
+        
+        .qx-gradient-text {
+            background: linear-gradient(135deg, #00f0ff 0%, #ff00a0 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .qx-glow-cyan { color: #00f0ff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+        
+        /* Radar animation */
+        .qx-radar {
+            position: relative;
+        }
+        .qx-radar::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #00f0ff, transparent);
+            transform-origin: left;
+            animation: sweep 3s linear infinite;
+        }
+        @keyframes sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Progress bars */
+        .qx-progress {
+            background: linear-gradient(90deg, #00f0ff, #0080ff);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        
+        /* Toggle grid pattern */
+        .qx-grid-bg {
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.2); border-radius: 3px; }
+    </style>
+</head>
+<body class="text-gray-300 h-screen overflow-hidden flex flex-col">
+    <!-- Header -->
+    <header class="qx-panel mx-2 mt-2 px-6 py-3 flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center">
+                    <span class="material-symbols-outlined text-black">rocket</span>
+                </div>
+                <div>
+                    <h1 class="font-display text-xl font-bold qx-gradient-text">PAYLOAD CONTROL</h1>
+                    <p class="font-mono text-[10px] text-gray-500 uppercase tracking-widest">Quantum Distribution Network</p>
+                </div>
+            </div>
+        </div>
+        <nav class="hidden md:flex items-center gap-6">
+            <a href="#" class="font-ui font-semibold text-sm text-neon-cyan border-b border-neon-cyan">Command</a>
+            <a href="#" class="font-ui font-semibold text-sm text-gray-500 hover:text-white transition-colors">Payloads</a>
+            <a href="#" class="font-ui font-semibold text-sm text-gray-500 hover:text-white transition-colors">Analytics</a>
+        </nav>
+        <div class="flex items-center gap-3">
+            <div class="qx-panel px-3 py-1 rounded-full flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-neon-cyan animate-pulse"></div>
+                <span class="font-mono text-[10px] text-gray-400">NET_ACTIVE</span>
+            </div>
+            <button class="qx-panel p-2 rounded-lg hover:border-neon-cyan/50">
+                <span class="material-symbols-outlined text-gray-400">settings</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main 6-Card Grid -->
+    <main class="flex-1 grid grid-cols-12 grid-rows-6 gap-2 p-2">
+        
+        <!-- CARD 1: File Explorer -->
+        <section class="col-span-12 md:col-span-2 row-span-4 qx-panel flex flex-col p-4">
+            <div class="flex justify-between items-center border-b border-white/5 pb-3 mb-3">
+                <h2 class="font-display text-xs font-bold text-gray-400 tracking-widest">DIRECTORY</h2>
+                <span class="font-mono text-[10px] text-neon-cyan">01:00:22</span>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-1 font-mono text-[11px]">
+                <div class="flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer text-gray-500">
+                    <span class="material-symbols-outlined text-sm">folder_open</span>
+                    <span>/quantum/core</span>
+                </div>
+                <div class="flex items-center gap-2 p-2 bg-neon-cyan/10 rounded cursor-pointer border-l-2 border-neon-cyan text-neon-cyan">
+                    <span class="material-symbols-outlined text-sm">code</span>
+                    <span>entanglement.js</span>
+                </div>
+                <div class="flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer text-gray-500">
+                    <span class="material-symbols-outlined text-sm">description</span>
+                    <span>superposition.yml</span>
+                </div>
+                <div class="flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer text-gray-500">
+                    <span class="material-symbols-outlined text-sm">memory</span>
+                    <span>qubit_alloc.bin</span>
+                </div>
+                <div class="p-2 text-gray-600 italic">
+                    <span>&gt; /modules/</span>
+                </div>
+                <div class="p-2 text-gray-600 italic">
+                    <span>&gt; /algorithms/</span>
+                </div>
+                <div class="flex items-center gap-2 p-2 hover:bg-white/5 rounded cursor-pointer text-gray-500">
+                    <span class="material-symbols-outlined text-sm">key</span>
+                    <span>quantum_key.pem</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARD 2: Staging Queue -->
+        <section class="col-span-12 md:col-span-2 row-span-4 qx-panel flex flex-col p-4">
+            <div class="flex justify-between items-center border-b border-white/5 pb-3 mb-3">
+                <h2 class="font-display text-xs font-bold text-gray-400 tracking-widest">QUEUE</h2>
+                <span class="text-[10px] bg-neon-cyan text-black font-bold px-2 py-0.5 rounded">LIVE</span>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-3">
+                <div class="qx-panel p-3 rounded-lg">
+                    <div class="flex justify-between text-[10px] mb-2">
+                        <span class="text-gray-400">ID: #QX-8821</span>
+                        <span class="text-gray-500">WAITING</span>
+                    </div>
+                    <div class="h-2 bg-black/50 rounded-full overflow-hidden">
+                        <div class="h-full bg-gray-600 w-1/3"></div>
+                    </div>
+                </div>
+                <div class="qx-panel p-3 rounded-lg border-neon-cyan/30">
+                    <div class="flex justify-between text-[10px] mb-2">
+                        <span class="text-gray-300">ID: #QX-8822</span>
+                        <span class="text-neon-cyan animate-pulse">PROCESSING</span>
+                    </div>
+                    <div class="h-2 bg-black/50 rounded-full overflow-hidden">
+                        <div class="qx-progress h-full w-3/4"></div>
+                    </div>
+                </div>
+                <div class="qx-panel p-3 rounded-lg opacity-50">
+                    <div class="flex justify-between text-[10px] mb-2">
+                        <span class="text-gray-500">ID: #QX-8823</span>
+                        <span class="text-gray-600">QUEUED</span>
+                    </div>
+                    <div class="h-2 bg-black/50 rounded-full"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARD 3: Settings & Toggles -->
+        <section class="col-span-12 md:col-span-5 row-span-2 grid grid-cols-2 gap-2">
+            <div class="qx-panel p-4 flex flex-col">
+                <h3 class="font-display text-[10px] text-gray-500 uppercase tracking-widest mb-3">Distribution</h3>
+                <div class="flex justify-around items-end flex-1 gap-2">
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="w-full bg-black/50 rounded-t-lg relative h-20 overflow-hidden">
+                            <div class="absolute bottom-0 w-full bg-gray-700 h-3/4"></div>
+                        </div>
+                        <span class="text-[10px] text-gray-500 mt-1">NODE_A</span>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="w-full bg-black/50 rounded-t-lg relative h-20 overflow-hidden border border-neon-cyan/30">
+                            <div class="qx-progress absolute bottom-0 w-full h-1/2"></div>
+                        </div>
+                        <span class="text-[10px] text-neon-cyan mt-1">NODE_B</span>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="w-full bg-black/50 rounded-t-lg relative h-20 overflow-hidden">
+                            <div class="absolute bottom-0 w-full bg-gray-700 h-full"></div>
+                        </div>
+                        <span class="text-[10px] text-gray-500 mt-1">NODE_C</span>
+                    </div>
+                </div>
+            </div>
+            <div class="qx-panel p-4 flex flex-col">
+                <h3 class="font-display text-[10px] text-gray-500 uppercase tracking-widest mb-3">Logic Gates</h3>
+                <div class="grid grid-cols-2 gap-2 flex-1">
+                    <button class="qx-btn-neon rounded text-[10px] py-2">HADAMARD</button>
+                    <button class="qx-panel rounded text-[10px] py-2 text-gray-500 hover:text-white">CNOT</button>
+                    <button class="qx-panel rounded text-[10px] py-2 text-gray-500 hover:text-white">PAULI-X</button>
+                    <button class="qx-btn-neon rounded text-[10px] py-2 border-neon-pink text-neon-pink hover:bg-neon-pink/10">TOFFOLI</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARD 4: Mission Stats & LAUNCH -->
+        <section class="col-span-12 md:col-span-3 row-span-2 qx-panel p-5 flex flex-col justify-between border-l-4 border-neon-cyan">
+            <div>
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="font-display text-2xl font-bold qx-gradient-text">EXECUTE</h2>
+                        <p class="text-[10px] text-neon-cyan font-mono tracking-wider">DIRECTIVE: QUANTUM-04</p>
+                    </div>
+                    <span class="material-symbols-outlined text-gray-500 cursor-pointer hover:text-neon-cyan">cancel</span>
+                </div>
+                <div class="space-y-3 font-mono">
+                    <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                        <span class="text-[10px] text-gray-500 uppercase">Data Load</span>
+                        <span class="text-lg font-bold text-white">14.02 <span class="text-xs text-gray-400">TB</span></span>
+                    </div>
+                    <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                        <span class="text-[10px] text-gray-500 uppercase">Coherence</span>
+                        <span class="text-lg font-bold text-neon-cyan qx-glow-cyan">99.7%</span>
+                    </div>
+                    <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                        <span class="text-[10px] text-gray-500 uppercase">Qubits</span>
+                        <span class="text-lg font-bold text-white">1,024</span>
+                    </div>
+                </div>
+            </div>
+            <button class="qx-btn-primary py-4 rounded-xl font-display text-lg tracking-widest flex flex-col items-center gap-1 mt-4">
+                <span class="material-symbols-outlined text-2xl">rocket_launch</span>
+                <span>INITIATE</span>
+            </button>
+        </section>
+
+        <!-- CARD 5: Radar Gauges -->
+        <section class="col-span-12 md:col-span-8 row-span-2 grid grid-cols-2 gap-2">
+            <div class="qx-panel p-4 flex items-center justify-center qx-radar qx-grid-bg">
+                <div class="w-28 h-28 relative flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-2 border-neon-cyan/20"></div>
+                    <div class="absolute inset-0 rounded-full border-[4px] border-neon-cyan/10 border-t-neon-cyan/60 animate-spin" style="animation-duration: 3s;"></div>
+                    <div class="flex flex-col items-center z-10">
+                        <span class="text-3xl font-display font-bold text-white">4.2</span>
+                        <span class="text-[10px] text-neon-cyan font-mono">TB/s</span>
+                    </div>
+                </div>
+                <div class="ml-6 space-y-2">
+                    <h3 class="font-display text-xs text-gray-400 uppercase tracking-widest">Throughput</h3>
+                    <p class="text-[10px] text-gray-500 font-mono">NODE_01: OPTIMAL<br/>LATENCY: 0.4ms</p>
+                    <div class="flex gap-1">
+                        <div class="w-2 h-4 bg-neon-cyan rounded-sm"></div>
+                        <div class="w-2 h-4 bg-neon-cyan rounded-sm"></div>
+                        <div class="w-2 h-4 bg-neon-cyan rounded-sm"></div>
+                        <div class="w-2 h-4 bg-gray-700 rounded-sm"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="qx-panel p-4 flex items-center justify-center qx-radar qx-grid-bg">
+                <div class="w-28 h-28 relative flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full border-2 border-neon-purple/20"></div>
+                    <div class="absolute inset-0 rounded-full border-[4px] border-neon-purple/10 border-r-neon-purple/60" style="animation: sweep 4s linear infinite reverse;"></div>
+                    <div class="flex flex-col items-center z-10">
+                        <span class="text-3xl font-display font-bold text-white">847</span>
+                        <span class="text-[10px] text-neon-purple font-mono">QOPS</span>
+                    </div>
+                </div>
+                <div class="ml-6 space-y-2">
+                    <h3 class="font-display text-xs text-gray-400 uppercase tracking-widest">Processing</h3>
+                    <p class="text-[10px] text-gray-500 font-mono">CORE_TEMP: 12K<br/>STABILITY: 99.9%</p>
+                    <div class="flex gap-1">
+                        <div class="w-2 h-4 bg-neon-purple rounded-sm"></div>
+                        <div class="w-2 h-4 bg-neon-purple rounded-sm"></div>
+                        <div class="w-2 h-4 bg-gray-700 rounded-sm"></div>
+                        <div class="w-2 h-4 bg-gray-700 rounded-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARD 6: Live Terminal -->
+        <section class="col-span-12 row-span-2 qx-panel flex flex-col">
+            <div class="flex justify-between items-center border-b border-white/5 px-4 py-2 bg-black/20">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-neon-cyan text-sm animate-pulse">radio_button_checked</span>
+                    <h2 class="font-display text-xs text-gray-300 tracking-widest">QUANTUM STREAM</h2>
+                </div>
+                <div class="flex gap-4 text-[10px] font-mono text-gray-500">
+                    <span>ENC: AES-256-Q</span>
+                    <span>BUFFER: 8192QB</span>
+                </div>
+            </div>
+            <div class="flex-1 p-4 overflow-y-auto font-mono text-xs space-y-1">
+                <p class="text-gray-600">[00:12:44] QUANTUM_INIT: Initializing qubit array...</p>
+                <p class="text-gray-500">[00:12:45] ENTANGLE: Pairing qubits across nodes...</p>
+                <p class="text-neon-cyan">[00:12:47] COHERENCE: 99.9% - System optimal</p>
+                <p class="text-gray-500">[00:12:50] TELEPORT: Quantum state transfer initiated</p>
+                <p class="text-neon-purple">[00:12:55] ERROR_CORRECT: Surface code active</p>
+                <p class="text-gray-500">[00:12:56] LOAD_DISTRIB: Balancing across 3 nodes</p>
+                <p class="text-neon-cyan">[00:13:02] PAYLOAD_QX-8821: Queued for distribution</p>
+                <p class="text-gray-500">[00:13:05] SYNC: Entanglement verified</p>
+                <p class="text-neon-cyan">[00:13:08] STATUS: All systems nominal</p>
+                <p class="text-gray-600">[00:13:12] MONITOR: Watching quantum states...</p>
+                <span class="inline-block w-2 h-4 bg-neon-cyan animate-pulse"></span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="qx-panel mx-2 mb-2 px-4 py-2 flex justify-between items-center text-[10px] font-mono">
+        <div class="flex items-center gap-4">
+            <span class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse"></span>
+                <span class="text-gray-400">QUANTUM_LINK: STABLE</span>
+            </span>
+            <span class="text-gray-600">DECOHERENCE: 0.001%</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-gray-600">ENTANGLEMENT_FIDELITY: 99.99%</span>
+            <span class="bg-neon-cyan text-black px-2 py-0.5 rounded font-bold">QX_v2.0.4</span>
+        </div>
+    </footer>
+</body>
+</html>

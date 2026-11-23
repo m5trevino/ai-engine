@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowchart: UI Evolution</title>
+    <style>
+        body { background-color: #111; color: #E0E0E0; font-family: 'Roboto Mono', monospace; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 800px; }
+        h1 { color: #00AFFF; border-bottom: 2px solid #00AFFF; padding-bottom: 10px; text-align: center; }
+        .flowchart { display: flex; flex-direction: column; align-items: center; }
+        .step { background-color: #222; border: 1px solid #444; border-left: 5px solid #00AFFF; padding: 15px 20px; margin: 10px 0; width: 90%; box-shadow: 0 4px 8px rgba(0,0,0,0.5); text-align: left; }
+        .step.initial { border-left-color: #FFA500; }
+        .step.final { border-left-color: #00FF7F; }
+        .step strong { color: #00FF7F; }
+        .step code { color: #FFD700; background-color: #333; padding: 2px 5px; border-radius: 3px; }
+        .arrow { color: #555; font-size: 2rem; margin: 0; padding: 0; line-height: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Feature Evolution: The UI</h1>
+        <div class="flowchart">
+            <div class="step initial">
+                <strong>START: Legacy Alpine.js UI</strong><br>
+                A 1,700+ line monolith described as "filler" and "Ghost UI." Prone to syntactic errors and routing collisions.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>PIVOT: High-Fidelity Vite/React Architecture</strong><br>
+                Shifted from static HTML/Alpine to a professional Multi-Page App (MPA) structure using Vite, then to a full Single-Page App (SPA) using React/TypeScript. New home: <code>ui/</code>.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>HARDENING: UI Unification & Root-Serve</strong><br>
+                Purged the legacy <code>app/static</code> directory. Refactored <code>main.py</code> to serve the single React build from the root (<code>/</code>) to eliminate prefixes and 404s.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>STABILIZATION: SPA Routing & API Link Fixed</strong><br>
+                Implemented a "catch-all" route in FastAPI to support client-side navigation. Removed hardcoded <code>localhost</code> URLs in <code>api.ts</code> for dynamic, production-ready API resolution.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>UPGRADE: "Sand Hill" Dashboard Overhaul</strong><br>
+                Upgraded typography to high-contrast fonts (Geist/Outfit). Implemented a collapsible right sidebar for advanced run settings, shifting to a Google AI Studio-style layout.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step final">
+                <strong>FINAL: Dedicated Payload Striker Screen</strong><br>
+                Isolated all complex batch/campaign logic from the main chat dashboard into its own dedicated <code>/striker</code> screen to maintain architectural integrity.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

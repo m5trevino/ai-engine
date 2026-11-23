@@ -1,0 +1,39 @@
+<!-- ============================================
+     PEACOCK ENGINE - Status Bar Component
+     Standardized footer for all screens
+     ============================================ -->
+<footer class="h-8 bg-[#0a0f13] flex items-center justify-between px-6 border-t border-[#414753]/5 shrink-0">
+    <!-- Left: Version & Status -->
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-[#aac7ff] animate-pulse shadow-[0_0_8px_#aac7ff]"></div>
+            <span class="text-[10px] font-mono text-slate-400 tracking-wider">ENGINE: <span class="text-[#aac7ff]">ONLINE</span></span>
+        </div>
+        <div class="h-3 w-px bg-[#414753]/30"></div>
+        <span class="text-[10px] font-mono text-slate-500">v3.0.0-stable</span>
+    </div>
+    
+    <!-- Right: Metrics -->
+    <div class="flex items-center gap-8">
+        <!-- Token Usage -->
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-slate-500">TOKENS:</span>
+            <span class="text-[10px] font-mono text-[#e0e3e8]">1.2M / 5.0M</span>
+            <div class="w-24 h-1.5 bg-[#262a2f] overflow-hidden">
+                <div class="h-full bg-[#aac7ff]" style="width: 24%"></div>
+            </div>
+        </div>
+        
+        <!-- Cost -->
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-slate-500">COST:</span>
+            <span class="text-[10px] font-mono text-[#ffdb3c]">$0.42</span>
+        </div>
+        
+        <!-- Gateway Status -->
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-slate-500">GATEWAY:</span>
+            <span class="text-[10px] font-mono text-[#00C851]">ACTIVE</span>
+        </div>
+    </div>
+</footer>

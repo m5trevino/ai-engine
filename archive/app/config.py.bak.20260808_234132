@@ -1,0 +1,170 @@
+from pydantic import BaseModel
+from typing import List, Literal, Optional
+import json
+from pathlib import Path
+
+class ModelConfig(BaseModel):
+    id: str
+    gateway: Literal['groq', 'google', 'deepseek', 'mistral', 'zai', 'zai-coding', 'ollama', 'opencode-go', 'opencode-zen']
+    tier: Literal['free', 'cheap', 'expensive', 'custom', 'deprecated']
+    note: str
+    status: Literal['active', 'frozen', 'deprecated'] = 'active'
+    context_window: Optional[int] = None
+    # Rate Limits
+    rpm: Optional[int] = None
+    tpm: Optional[int] = None
+    rpd: Optional[int] = None
+    # Pricing (per 1M tokens)
+    input_price_1m: float = 0.0
+    output_price_1m: float = 0.0
+    # Tool/function calling support
+    tools_supported: bool = False
+    # Display ordering index (lower = higher in dropdown)
+    index: Optional[int] = None
+    # Custom base URL for models with non-standard endpoints
+    base_url: Optional[str] = None
+    # Display name override for frontend
+    display_name: Optional[str] = None
+
+# 🏎️ HELLCAT PROTOCOL - PERFORMANCE MODES
+PERFORMANCE_MODES = {
+    "stealth": {"name": "BLACK KEY (Stealth)", "multiplier": 3.0, "color": "\033[90m"},
+    "balanced": {"name": "BLUE KEY (Balanced)", "multiplier": 1.15, "color": "\033[94m"},
+    "apex": {"name": "RED KEY (Apex)", "multiplier": 1.02, "color": "\033[91m"}
+}
+
+# Load persistent frozen status
+FROZEN_FILE = Path("frozen_models.json")
+FROZEN_IDS = []
+if FROZEN_FILE.exists():
+    try:
+        FROZEN_IDS = json.loads(FROZEN_FILE.read_text())
+    except:
+        pass
+
+MODEL_REGISTRY: List[ModelConfig] = [
+    # === TIER 0: BEST TOOL-CALLING MODELS (128K+ context) ===
+    ModelConfig(id="groq/compound", gateway="groq", tier="expensive", note="Groq Compound Reasoner - Built-in web search + code execution", rpm=30, rpd=250, tpm=70000, context_window=131072, tools_supported=True, index=0),
+    ModelConfig(id="deepseek-v4-pro:cloud", gateway="ollama", tier="expensive", note="Ollama Cloud DeepSeek V4 Pro - 1M context, 1.6T params", rpm=30, rpd=1000, tpm=70000, context_window=1048576, tools_supported=True, index=1),
+    ModelConfig(id="groq/compound-mini", gateway="groq", tier="expensive", note="Groq Compound Mini - Fast single tool call", rpm=30, rpd=250, tpm=70000, context_window=131072, tools_supported=True, index=2),
+    ModelConfig(id="models/gemini-2.5-pro", gateway="google", tier="expensive", note="Gemini 2.5 Pro - 1M context", rpm=150, rpd=1000, tpm=2000000, context_window=1048576, input_price_1m=3.50, output_price_1m=10.50, tools_supported=True, index=3),
+    ModelConfig(id="models/gemini-2.5-flash", gateway="google", tier="cheap", note="Gemini 2.5 Flash - 1M context", rpm=1000, rpd=10000, tpm=1000000, context_window=1048576, input_price_1m=0.35, output_price_1m=0.70, tools_supported=True, index=4),
+    ModelConfig(id="models/gemini-3-pro-preview", gateway="google", tier="expensive", note="Gemini 3 Pro Preview - Frontier Reasoning", rpm=25, rpd=250, tpm=2000000, context_window=1048576, tools_supported=True, index=5),
+    ModelConfig(id="glm-5.2", gateway="zai-coding", tier="expensive", note="ZAI Coding Plan GLM 5.2 — 1M context", context_window=1048576, tools_supported=True, index=6),
+    ModelConfig(id="llama-3.3-70b-versatile", gateway="groq", tier="expensive", note="Llama 3.3 70B Versatile - Full tool support", rpm=30, rpd=1000, tpm=12000, tpd=100000, context_window=131072, tools_supported=True, index=7),
+    ModelConfig(id="moonshotai/kimi-k2-instruct-0905", gateway="groq", tier="expensive", note="Moonshot Kimi K2 Instruct 0905 - 262K context", rpm=60, tpm=10000, tpd=300000, context_window=262144, tools_supported=True, index=8),
+    ModelConfig(id="moonshotai/kimi-k2-instruct", gateway="groq", tier="expensive", note="Moonshot Kimi K2 Instruct", rpm=60, tpm=10000, tpd=300000, context_window=131072, tools_supported=True, index=9),
+    ModelConfig(id="openai/gpt-oss-120b", gateway="groq", tier="expensive", note="GPT-OSS flagship reasoning", rpm=30, rpd=1000, tpm=8000, tpd=200000, context_window=131072, tools_supported=True, index=10),
+    ModelConfig(id="meta-llama/llama-4-scout-17b-16e-instruct", gateway="groq", tier="free", note="Llama 4 Frontier Scout (MoE 16e)", rpm=30, rpd=1000, tpm=30000, tpd=500000, context_window=131072, tools_supported=True, index=11),
+    ModelConfig(id="qwen/qwen3-32b", gateway="groq", tier="cheap", note="Qwen 3 32B High-Logic", rpm=60, rpd=1000, tpm=6000, tpd=500000, context_window=131072, tools_supported=True, index=12),
+    ModelConfig(id="deepseek-chat", gateway="deepseek", tier="cheap", note="DeepSeek V3 (Chat)", context_window=64000, tools_supported=True, index=13),
+    ModelConfig(id="deepseek-reasoner", gateway="deepseek", tier="expensive", note="DeepSeek R1 (Reasoner)", context_window=64000, tools_supported=True, index=14),
+    ModelConfig(id="mistral-large-latest", gateway="mistral", tier="expensive", note="Mistral Large 2", context_window=128000, tools_supported=True, index=15),
+    ModelConfig(id="glm-5.1", gateway="zai-coding", tier="expensive", note="ZAI Coding Plan GLM 5.1 - 262K context", context_window=262144, tools_supported=True, index=16),
+    ModelConfig(id="deepseek-v4-pro", gateway="ollama", tier="expensive", note="Ollama Cloud DeepSeek V4 Pro", context_window=131072, tools_supported=True, index=17),
+    ModelConfig(id="kimi-k2.6", gateway="ollama", tier="expensive", note="Ollama Cloud Kimi K2.6 - 262K", context_window=262144, tools_supported=True, index=18),
+    ModelConfig(id="kimi-k3:cloud", gateway="ollama", tier="expensive", note="Ollama Cloud Kimi K3 - 262K", context_window=262144, tools_supported=True, index=19),
+
+    # === TIER 1: SOLID MODELS (good context, good tools) ===
+    ModelConfig(id="models/gemini-2.5-flash-lite", gateway="google", tier="free", note="Gemini 2.5 Flash-Lite - 1M context", rpm=4000, tpm=4000000, context_window=1048576, input_price_1m=0.10, output_price_1m=0.30, tools_supported=True, index=20),
+    ModelConfig(id="models/gemma-4-26b-a4b-it", gateway="google", tier="cheap", note="Gemma 4 26B A4B IT", context_window=262144, tools_supported=True, index=21),
+    ModelConfig(id="models/gemma-4-31b-it", gateway="google", tier="cheap", note="Gemma 4 31B IT", context_window=262144, tools_supported=True, index=22),
+    ModelConfig(id="llama-3.1-8b-instant", gateway="groq", tier="free", note="Llama 3.1 8B Instant", rpm=30, rpd=14400, tpm=6000, tpd=500000, context_window=131072, tools_supported=True, index=23),
+    ModelConfig(id="qwen/qwen3.6-27b", gateway="groq", tier="cheap", note="Qwen 3.6 27B — local tool use + parallel tool use", rpm=30, rpd=1000, tpm=6000, tpd=500000, context_window=131072, tools_supported=True, index=24),
+    ModelConfig(id="minimaxai/minimax-m2.7", gateway="groq", tier="cheap", note="MiniMax M2.7 — local tool use + parallel tool use", rpm=30, rpd=1000, tpm=6000, tpd=500000, context_window=131072, tools_supported=True, index=25),
+    ModelConfig(id="glm-4.5-air", gateway="zai", tier="free", note="ZAI GLM 4.5 Air", context_window=131072, input_price_1m=0.2, output_price_1m=1.1, tools_supported=True, index=26),
+    ModelConfig(id="glm-4.7-flash", gateway="zai", tier="free", note="ZAI GLM 4.7 Flash — free tier", context_window=131072, tools_supported=True, index=27),
+    ModelConfig(id="glm-5", gateway="zai-coding", tier="expensive", note="ZAI Coding Plan GLM 5", context_window=131072, tools_supported=True, index=28),
+    ModelConfig(id="glm-5-turbo", gateway="zai-coding", tier="expensive", note="ZAI Coding Plan GLM 5 Turbo", context_window=131072, tools_supported=True, index=29),
+    ModelConfig(id="glm-4.7", gateway="zai-coding", tier="expensive", note="ZAI Coding Plan GLM 4.7", context_window=131072, tools_supported=True, index=30),
+    ModelConfig(id="glm-4.6", gateway="zai-coding", tier="expensive", note="ZAI Coding Plan GLM 4.6", context_window=131072, tools_supported=True, index=31),
+    ModelConfig(id="glm-4.5", gateway="zai-coding", tier="expensive", note="ZAI Coding Plan GLM 4.5", context_window=131072, tools_supported=True, index=32),
+    ModelConfig(id="openai/gpt-oss-20b", gateway="groq", tier="cheap", note="GPT-OSS high-speed variant", rpm=30, rpd=1000, tpm=8000, tpd=200000, context_window=131072, tools_supported=True, index=33),
+    ModelConfig(id="openai/gpt-oss-safeguard-20b", gateway="groq", tier="cheap", note="GPT-OSS Safeguard 20B", rpm=30, rpd=1000, tpm=8000, tpd=200000, context_window=131072, tools_supported=False, index=34),
+    ModelConfig(id="deepseek-v4-flash", gateway="ollama", tier="cheap", note="Ollama Cloud DeepSeek V4 Flash", context_window=131072, tools_supported=True, index=35),
+    ModelConfig(id="kimi-k2.5", gateway="ollama", tier="expensive", note="Ollama Cloud Kimi K2.5", context_window=131072, tools_supported=True, index=36),
+    ModelConfig(id="kimi-k2.7-code", gateway="ollama", tier="expensive", note="Ollama Cloud Kimi K2.7 Code", context_window=131072, tools_supported=True, index=37),
+    ModelConfig(id="qwen3.5:397b", gateway="ollama", tier="expensive", note="Ollama Cloud Qwen 3.5 397B", context_window=131072, tools_supported=True, index=38),
+    ModelConfig(id="gemma4:31b", gateway="ollama", tier="cheap", note="Ollama Cloud Gemma 4 31B", context_window=262144, tools_supported=True, index=39),
+    ModelConfig(id="gpt-oss:120b", gateway="ollama", tier="expensive", note="Ollama Cloud GPT-OSS 120B", context_window=131072, tools_supported=True, index=40),
+    ModelConfig(id="minimax-m2.7", gateway="ollama", tier="cheap", note="Ollama Cloud MiniMax M2.7", context_window=131072, tools_supported=True, index=41),
+    ModelConfig(id="minimax-m3", gateway="ollama", tier="cheap", note="Ollama Cloud MiniMax M3", context_window=131072, tools_supported=True, index=42),
+    ModelConfig(id="nemotron-3-super", gateway="ollama", tier="cheap", note="Ollama Cloud Nemotron 3 Super", context_window=131072, tools_supported=True, index=43),
+    ModelConfig(id="nemotron-3-ultra", gateway="ollama", tier="expensive", note="Ollama Cloud Nemotron 3 Ultra - 262K", context_window=262144, tools_supported=True, index=44),
+    ModelConfig(id="qwen3.5:cloud", gateway="ollama", tier="expensive", note="Ollama Cloud Qwen 3.5", context_window=131072, tools_supported=True, index=45),
+    ModelConfig(id="gemma4:cloud", gateway="ollama", tier="cheap", note="Ollama Cloud Gemma 4", context_window=262144, tools_supported=True, index=46),
+    ModelConfig(id="gpt-oss:20b-cloud", gateway="ollama", tier="cheap", note="Ollama Cloud GPT-OSS 20B", context_window=131072, tools_supported=True, index=47),
+    ModelConfig(id="mistral-large-3:675b-cloud", gateway="ollama", tier="expensive", note="Ollama Cloud Mistral Large 3 675B - 262K", context_window=262144, tools_supported=True, index=48),
+    ModelConfig(id="deepseek-v4-flash:cloud", gateway="ollama", tier="cheap", note="Ollama Cloud DeepSeek V4 Flash", context_window=131072, tools_supported=True, index=49),
+    ModelConfig(id="deepseek-v4-flash:0731-cloud", gateway="ollama", tier="cheap", note="Ollama Cloud DeepSeek V4 Flash 0731", context_window=131072, tools_supported=True, index=50),
+
+    # === TIER 2: OPENCODE GO (reliable, good context) ===
+    ModelConfig(id="glm-5.2-go", gateway="opencode-go", tier="expensive", note="OpenCode Go GLM 5.2 - 1M context", base_url="https://opencode.ai/zen/go/v1", context_window=1048576, tools_supported=True, index=51),
+    ModelConfig(id="glm-5.1-go", gateway="opencode-go", tier="expensive", note="OpenCode Go GLM 5.1 - 262K", base_url="https://opencode.ai/zen/go/v1", context_window=262144, tools_supported=True, index=52),
+    ModelConfig(id="kimi-k2.7-go", gateway="opencode-go", tier="expensive", note="OpenCode Go Kimi K2.7", base_url="https://opencode.ai/zen/go/v1", context_window=131072, tools_supported=True, index=53),
+    ModelConfig(id="kimi-k2.6-go", gateway="opencode-go", tier="expensive", note="OpenCode Go Kimi K2.6 - 262K", base_url="https://opencode.ai/zen/go/v1", context_window=262144, tools_supported=True, index=54),
+    ModelConfig(id="deepseek-v4-pro-go", gateway="opencode-go", tier="expensive", note="OpenCode Go DeepSeek V4 Pro", base_url="https://opencode.ai/zen/go/v1", context_window=131072, tools_supported=True, index=55),
+    ModelConfig(id="deepseek-v4-flash-go", gateway="opencode-go", tier="cheap", note="OpenCode Go DeepSeek V4 Flash", base_url="https://opencode.ai/zen/go/v1", context_window=131072, tools_supported=True, index=56),
+    ModelConfig(id="mimo-v2.5-go", gateway="opencode-go", tier="cheap", note="OpenCode Go MiMo V2.5", base_url="https://opencode.ai/zen/go/v1", context_window=131072, tools_supported=True, index=57),
+    ModelConfig(id="mimo-v2.5-pro-go", gateway="opencode-go", tier="expensive", note="OpenCode Go MiMo V2.5 Pro", base_url="https://opencode.ai/zen/go/v1", context_window=131072, tools_supported=True, index=58),
+    ModelConfig(id="minimax-m3-go", gateway="opencode-go", tier="cheap", note="OpenCode Go MiniMax M3", base_url="https://opencode.ai/zen/go/", context_window=131072, tools_supported=True, index=59),
+    ModelConfig(id="minimax-m2.7-go", gateway="opencode-go", tier="cheap", note="OpenCode Go MiniMax M2.7", base_url="https://opencode.ai/zen/go/", context_window=131072, tools_supported=True, index=60),
+    ModelConfig(id="qwen3.7-max-go", gateway="opencode-go", tier="expensive", note="OpenCode Go Qwen 3.7 Max", base_url="https://opencode.ai/zen/go/", context_window=131072, tools_supported=True, index=61),
+    ModelConfig(id="qwen3.7-plus-go", gateway="opencode-go", tier="expensive", note="OpenCode Go Qwen 3.7 Plus", base_url="https://opencode.ai/zen/go/", context_window=131072, tools_supported=True, index=62),
+    ModelConfig(id="qwen3.6-plus-go", gateway="opencode-go", tier="cheap", note="OpenCode Go Qwen 3.6 Plus", base_url="https://opencode.ai/zen/go/", context_window=131072, tools_supported=True, index=63),
+
+    # === TIER 3: OPENCODE ZEN (free tier, good context) ===
+    ModelConfig(id="big-pickle", gateway="opencode-zen", tier="free", note="OpenCode Zen Big Pickle FREE", base_url="https://opencode.ai/zen/v1", context_window=131072, tools_supported=True, index=64),
+    ModelConfig(id="deepseek-v4-flash-free", gateway="opencode-zen", tier="free", note="OpenCode Zen DeepSeek V4 Flash FREE", base_url="https://opencode.ai/zen/v1", context_window=131072, tools_supported=True, index=65),
+    ModelConfig(id="mimo-v2.5-free", gateway="opencode-zen", tier="free", note="OpenCode Zen MiMo V2.5 FREE", base_url="https://opencode.ai/zen/v1", context_window=131072, tools_supported=True, index=66),
+    ModelConfig(id="north-mini-code-free", gateway="opencode-zen", tier="free", note="OpenCode Zen North Mini Code FREE", base_url="https://opencode.ai/zen/v1", context_window=131072, tools_supported=True, index=67),
+    ModelConfig(id="laguna-s-2.1-free", gateway="opencode-zen", tier="free", note="OpenCode Zen Laguna S 2.1 Free", base_url="https://opencode.ai/zen/v1", context_window=131072, tools_supported=True, index=68),
+    ModelConfig(id="nemotron-3-ultra-free", gateway="opencode-zen", tier="free", note="OpenCode Zen Nemotron 3 Ultra FREE - 262K", base_url="https://opencode.ai/zen/v1", context_window=262144, tools_supported=True, index=69),
+    ModelConfig(id="ling-3.0-flash-free", gateway="opencode-zen", tier="free", note="OpenCode Zen Ling 3.0 Flash Free", base_url="https://opencode.ai/zen/v1", context_window=131072, tools_supported=True, index=70),
+
+    # === TIER 4: SPECIALTY / SMALLER OLLAMA MODELS ===
+    ModelConfig(id="nemotron-3-nano:30b", gateway="ollama", tier="free", note="Ollama Cloud Nemotron 3 Nano 30B", context_window=131072, tools_supported=True, index=71),
+
+    # === TIER 5: GOOGLE EMBEDDINGS & SPECIALTY (no general chat) ===
+    ModelConfig(id="models/gemini-embedding-001", gateway="google", tier="free", note="Gemini Embedding 001", context_window=2048, tools_supported=False, index=80),
+    ModelConfig(id="models/gemini-embedding-2-preview", gateway="google", tier="free", note="Gemini Embedding 2 Preview", context_window=8192, tools_supported=False, index=81),
+    ModelConfig(id="models/lyria-3-pro-preview", gateway="google", tier="expensive", note="Lyria 3 Pro Preview - Music Engine", rpm=150, rpd=500, tpm=4000000, context_window=1048576, tools_supported=False, index=82),
+
+    # === TIER 9: LOW-CONTEXT GROQ MODELS (bottom of list) ===
+    ModelConfig(id="allam-2-7b", gateway="groq", tier="free", note="Allam 2 7B - 4K context", rpm=30, rpd=7000, tpm=6000, tpd=500000, context_window=4096, tools_supported=True, index=90),
+    ModelConfig(id="canopylabs/orpheus-arabic-saudi", gateway="groq", tier="free", note="Orpheus Arabic Saudi - TTS", rpm=10, rpd=100, tpm=1200, tpd=3600, context_window=4000, tools_supported=False, index=91),
+    ModelConfig(id="canopylabs/orpheus-v1-english", gateway="groq", tier="free", note="Orpheus v1 English - TTS", rpm=10, rpd=100, tpm=1200, tpd=3600, context_window=4000, tools_supported=False, index=92),
+    ModelConfig(id="whisper-large-v3", gateway="groq", tier="cheap", note="Whisper Large v3 - Speech-to-text", rpm=20, rpd=2000, context_window=448, tools_supported=False, index=93),
+    ModelConfig(id="whisper-large-v3-turbo", gateway="groq", tier="cheap", note="Whisper Large v3 Turbo - Speech-to-text", rpm=20, rpd=2000, context_window=448, tools_supported=False, index=94),
+    ModelConfig(id="meta-llama/llama-prompt-guard-2-86m", gateway="groq", tier="free", note="Llama Prompt Guard 2 86M - 512 tokens, jailbreak detection", rpm=30, rpd=14400, tpm=15000, tpd=500000, context_window=512, tools_supported=False, index=95),
+    ModelConfig(id="meta-llama/llama-prompt-guard-2-22m", gateway="groq", tier="free", note="Llama Prompt Guard 2 22M - 512 tokens, jailbreak detection", rpm=30, rpd=14400, tpm=15000, tpd=500000, context_window=512, tools_supported=False, index=96),
+]
+
+
+# Load dynamically registered models
+try:
+    _dynamic_path = os.path.join(os.path.dirname(__file__), "dynamic_models.json")
+    if os.path.exists(_dynamic_path):
+        with open(_dynamic_path, "r") as _f:
+            _dynamic_models = json.load(_f)
+        for _dm in _dynamic_models:
+            if not any(m.id == _dm["id"] for m in MODEL_REGISTRY):
+                MODEL_REGISTRY.append(ModelConfig(**_dm))
+except Exception:
+    pass  # Ignore corrupted dynamic file
+
+# Apply Status Overrides
+for m in MODEL_REGISTRY:
+    if m.id in FROZEN_IDS:
+        m.status = "frozen"
+
+# CONFIGURATION ENGINE
+class Config:
+    def __init__(self):
+        import os
+        self.MASTER_KEY = os.getenv("MASTER_KEY", os.getenv("PEACOCK_KEY"))
+        self.PORT = int(os.getenv("PORT", 3099))
+        self.ENV = os.getenv("ENV", "production")
+        self.DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+
+config = Config()

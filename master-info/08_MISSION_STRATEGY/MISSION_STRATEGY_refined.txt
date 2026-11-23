@@ -1,0 +1,76 @@
+# ==========================================
+# SYNDICATE ASSET: MISSION_STRATEGY (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 68
+# ==========================================
+# --- DATA CONTENT START ---
+Manifest Peacock Engine Refinery
+Focus on legos/semiotic-mold/invariants tree
+Operation Clean Slate: purge legacy items
+Restore Tactical Striker (Apex Edition)
+Print QUICK_REFERENCE.md for terminal use
+Use IMPLEMENTATION_CHECKLIST.md for deployment tracking
+Study ARCHITECTURE_DIAGRAMS.md for system connectivity
+Reference OPERATIONS_MANUAL.md for deep details
+Follow WORKFLOW_VISUALS.md for UX planning
+Ensure all endpoints have docstrings
+Generate OpenAPI spec
+Host Swagger UI at /docs
+Update AGENTS.md
+Create API usage examples
+Create WebSocket usage guide
+Extract Invariant Laws from open-source agents
+Codify laws into blueprint for Herbert and Dendritic agents
+Identify ~40 relevant agent frameworks for scouting
+Feed chunks and priming prompts to LLM via PEACOCK ENGINE
+Extract final Invariant Laws from LLM analysis
+Consolidate intelligence from binary session locks
+Mission 2: Live Wire SSE Unification
+Support Strike Groups for hierarchical campaigns
+Consolidate Today's Master Manifest
+User Onboarding Flow: Visit -> Caddy -> React SPA -> Health Check -> Fetch Models -> Populate UI -> Dashboard Ready
+Chat Session Workflow: User Input -> Send -> REST API -> Backend Processing -> Provider API -> Response Processing -> Return -> Display
+Payload Striker Batch Workflow: Select Prompt -> Load Payloads -> Configure Strike -> Initiate Strike -> Execution Monitor -> Completion
+Error Handling Matrix: Classify Error -> Action (Mark HOT, Log, Check FastAPI, Retry) -> Log to Vault -> Auto-Retry/Mark RED
+Key Rotation Strategy: Single Request (Shuffle) vs Payload Striker (Aggressive/Parallel)
+Key Health Monitoring: Healthy, Warning, Exhausted statuses
+Deployment Decision Tree: Fresh Install vs Code Update vs Emergency Recovery vs Monitoring
+Provision VPS (Ubuntu 22.04, 2GB RAM, 10GB disk, Static IP)
+System Updates and Timezone configuration
+Firewall Configuration (UFW: 22, 80, 443, 8384)
+DNS Configuration (chat.save-aichats.com, engine.save-aichats.com)
+Secure .env file (chmod 600)
+Python Virtual Environment (Rebuilt natively)
+Install requirements.txt
+Database Initialization (peacock.db)
+UI Build (npm install, npm run build)
+Systemd Service creation (/etc/systemd/system/peacock-engine.service)
+Systemd Service activation (daemon-reload, enable, start)
+Caddy Installation and Configuration
+Syncthing Installation and Folder Setup
+API Testing (Health, Models, Chat)
+Frontend Testing (Page load, Dropdown, Chat)
+Payload Striker Testing (File browser, Loading, Test Strike, Output)
+Finalize implementation checklist for v3.1.0-Refinery production sign-off
+MODEL_REGISTRY in app/config.py as single source of truth for model metadata
+Eagle_scaffold structured file output support
+Engine Version: 3.0.0
+Strike Execution Flow: Throttle -> KeyPool -> Agent -> Logger -> DB
+Troubleshooting: Placeholder issues, API call failures, Model loading, Styling, Alpine.js
+Team Roles: Human (Research, testing, validation, design coordination, final integration)
+Team Roles: AI (Core implementation: token counters, validators, tool calling, security)
+Team Roles: Bot 2 (WebUI backend API, monitoring, CLI polish, deployment files)
+Human Task 1: Designer Coordination (Feature spec, mockups)
+Human Task 2: Environment Setup (Keys, database verification)
+Human Task 4: Testing AI work (Counters, validators, tools, security)
+Human Task 5: Integration & Deployment (Review, merge, deploy)
+Creative North Star: The Kinetic Brutalist Interface
+Burn Rate: Batch vs Ultra toggle
+Workflow Pivot: The Git Mandate
+Filler Purge: remove hard-coded placeholders
+Handle launch sequence in TacticalStriker
+Automated payload processing
+sudo systemctl restart caddy: Proxy re-ignition
+Public Access: chat.save-aichats.com (Main UI)
+Public Access: engine.save-aichats.com (API Endpoint)
+Public Access: save-aichats.com/peacock (Portal Redirect)
+# --- DATA CONTENT END ---

@@ -1,0 +1,9 @@
+[project]
+name = "peacock-engine"
+version = "3.0.0"
+description = "Multi-gateway AI orchestration engine"
+requires-python = ">=3.11"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+packages = ["app"]

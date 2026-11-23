@@ -1,0 +1,16 @@
+fastapi[standard]
+uvicorn
+pydantic-ai-slim[groq,openai,google,mistral]
+python-dotenv
+httpx[socks]
+socksio
+google-genai
+pydantic
+pydantic-settings
+rich
+questionary
+pyyaml
+tiktoken
+sentencepiece
+protobuf
+google-cloud-aiplatform[tokenization]

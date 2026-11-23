@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .gold-glow {
+            filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.4));
+        }
+        .kinetic-focus:focus-within {
+            box-shadow: 0 0 0 1px #aac7ff;
+            background-color: #1c2024 !important;
+        }
+        /* Custom scrollbar for technical density */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #101418; }
+        ::-webkit-scrollbar-thumb { background: #363a3e; }
+        ::-webkit-scrollbar-thumb:hover { background: #aac7ff; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffe16b",
+                        "primary-fixed-dim": "#aac7ff",
+                        "error": "#ffb4ab",
+                        "outline": "#8e909a",
+                        "tertiary-fixed-dim": "#7ad0ff",
+                        "on-surface-variant": "#c4c6d0",
+                        "on-secondary-container": "#524400",
+                        "surface-tint": "#aac7ff",
+                        "surface-container-high": "#262a2f",
+                        "surface-bright": "#363a3e",
+                        "outline-variant": "#43474f",
+                        "on-tertiary-fixed": "#001e2c",
+                        "primary-container": "#aac7ff",
+                        "on-secondary-fixed": "#221b00",
+                        "surface-container": "#1c2024",
+                        "on-secondary": "#3a3000",
+                        "on-primary-fixed": "#001b3e",
+                        "on-tertiary": "#003549",
+                        "inverse-on-surface": "#2d3135",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "primary-fixed": "#d6e3ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#181c20",
+                        "primary": "#d6e2ff",
+                        "on-primary-container": "#355283",
+                        "surface-container-highest": "#31353a",
+                        "on-primary-fixed-variant": "#284777",
+                        "surface": "#101418",
+                        "inverse-surface": "#e0e3e8",
+                        "background": "#101418",
+                        "on-surface": "#e0e3e8",
+                        "error-container": "#93000a",
+                        "surface-dim": "#101418",
+                        "on-background": "#e0e3e8",
+                        "tertiary-fixed": "#c3e8ff",
+                        "secondary": "#f0cd2d",
+                        "on-error": "#690005",
+                        "on-primary": "#0c305f",
+                        "surface-container-lowest": "#0b0f12",
+                        "on-secondary-fixed-variant": "#544600",
+                        "tertiary-container": "#79d0ff",
+                        "surface-variant": "#31353a",
+                        "tertiary": "#c2e7ff",
+                        "secondary-fixed-dim": "#e7c423",
+                        "secondary-container": "#d2b100",
+                        "inverse-primary": "#415f90",
+                        "on-tertiary-container": "#005979"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 px-6 flex justify-between items-center h-16 bg-[#181c20] border-none">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-[#aac7ff] tracking-tighter font-headline uppercase">PEACOCK ENGINE</span>
+<nav class="hidden md:flex h-16 items-center">
+<a class="text-[#aac7ff] border-b-2 border-[#aac7ff] h-full flex items-center px-4 font-headline font-medium tracking-tighter uppercase" href="#">DASHBOARD</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">ANALYTICS</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">LOGS</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">DEPLOYMENT</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="bg-[#0b0f12] px-3 py-1.5 flex items-center gap-2 kinetic-focus">
+<span class="material-symbols-outlined text-gray-500 text-sm">search</span>
+<input class="bg-transparent border-none text-[10px] font-label tracking-widest focus:ring-0 w-48 text-[#aac7ff] placeholder:text-gray-700" placeholder="SEARCH_SYSTEM_RESOURCES..." type="text"/>
+</div>
+<button class="p-2 hover:bg-[#363a3e] transition-all cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined text-[#aac7ff]">notifications_active</span>
+</button>
+<button class="p-2 hover:bg-[#363a3e] transition-all cursor-pointer active:opacity-80">
+<span class="material-symbols-outlined text-[#aac7ff]">settings</span>
+</button>
+<div class="w-8 h-8 bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Cyberpunk style minimalist avatar of a system operator with blue glowing highlights and sharp focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnl82covUKGNJQkPk7HguGjC4xSgpoXgfWU6aMChZHOKbgUWpzheHZ6HkqWKeKeaKLOL994PcVyyU5pHOa-M4m1GzjaDTcj1DBFT0FYgaMckSXcw-e-cI2BEqb3Yz54uzNZ_KWV4QDateUdR1dfiVw_f5n307Q3ZpK5RT7Oe2lSaOLXYrAWW_sHKT64KZs9T6m95HMmib5I7uebyUpLDN_43EnRYC9Vu8BUOiiDaV-qJFNKuIH4BFVm3d8Gw_IhoSzwxq7KJIQqFef"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="w-64 h-full fixed left-0 top-16 bg-[#181c20] border-none z-40 hidden md:flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-2 h-2 bg-[#ffdb3c] rounded-full animate-pulse shadow-[0_0_8px_rgba(255,219,60,0.6)]"></div>
+<span class="font-headline text-lg font-bold text-[#ffdb3c] uppercase">OPERATOR-01</span>
+</div>
+<span class="font-label text-[10px] text-gray-500 tracking-[0.2em] uppercase">PRECISION-LEVEL-4</span>
+</div>
+<nav class="flex-grow py-4 overflow-y-auto space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-xl">memory</span>
+<span class="font-label text-sm font-medium uppercase tracking-tight">Engine Status</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 bg-[#1c2024] text-[#aac7ff] border-l-4 border-[#aac7ff] font-label text-sm font-medium uppercase tracking-tight" href="#">
+<span class="material-symbols-outlined text-xl">extension</span>
+<span class="font-label text-sm font-medium uppercase tracking-tight">Core Modules</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-xl">hub</span>
+<span class="font-label text-sm font-medium uppercase tracking-tight">Network Mesh</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-xl">database</span>
+<span class="font-label text-sm font-medium uppercase tracking-tight">Storage Nodes</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-xl">shield</span>
+<span class="font-label text-sm font-medium uppercase tracking-tight">Security Protocol</span>
+</a>
+<a class="flex items-center gap-3 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all duration-150 group" href="#">
+<span class="material-symbols-outlined text-xl">admin_panel_settings</span>
+<span class="font-label text-sm font-medium uppercase tracking-tight">System Admin</span>
+</a>
+</nav>
+<div class="p-6 mt-auto space-y-4">
+<button class="w-full py-3 bg-gradient-to-br from-[#aac7ff] to-[#0066cc] text-[#0c305f] font-headline font-bold text-xs tracking-widest uppercase hover:opacity-90 transition-all">
+                INITIALIZE SEQUENCE
+            </button>
+<div class="flex flex-col gap-2 pt-4 border-t border-outline-variant/10">
+<a class="flex items-center gap-2 text-[10px] text-gray-600 hover:text-[#ffdb3c] font-label uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">help_outline</span> Support
+                </a>
+<a class="flex items-center gap-2 text-[10px] text-gray-600 hover:text-[#ffdb3c] font-label uppercase tracking-widest" href="#">
+<span class="material-symbols-outlined text-sm">menu_book</span> Documentation
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:pl-64 pt-16 pb-8 min-h-screen">
+<div class="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden">
+<!-- Tool Configuration Grid -->
+<section class="flex-grow overflow-y-auto p-8 space-y-8">
+<div class="flex justify-between items-end">
+<div>
+<h1 class="text-4xl font-headline font-medium tracking-tighter text-[#aac7ff] uppercase">Tool Configuration</h1>
+<p class="text-gray-500 font-label text-xs tracking-[0.2em] mt-2">ACTIVE MODULE: CORE_EXPANSION_V4</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2 px-4 py-2 bg-surface-container-low">
+<span class="w-1.5 h-1.5 bg-[#00C851] rounded-full"></span>
+<span class="text-[10px] font-label text-gray-400 tracking-widest uppercase">Nodes: 14/14</span>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-surface-container-low">
+<span class="w-1.5 h-1.5 bg-[#ffdb3c] rounded-full"></span>
+<span class="text-[10px] font-label text-gray-400 tracking-widest uppercase">Latency: 12ms</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid of Tools -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Tool Card 1: Google Search -->
+<div class="bg-[#181c20] p-6 group hover:bg-[#1c2024] transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-gray-700 group-hover:text-[#aac7ff] transition-colors">open_in_new</span>
+</div>
+<div class="flex items-start gap-4 mb-6">
+<div class="w-12 h-12 bg-[#0b0f12] flex items-center justify-center text-[#aac7ff]">
+<span class="material-symbols-outlined text-3xl">search</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold text-on-surface uppercase tracking-tight">Google Search</h3>
+<p class="text-[10px] font-label text-gray-500 tracking-widest">MODULE: WEB_INDEX_API</p>
+</div>
+</div>
+<p class="text-sm text-gray-400 mb-6 font-body leading-relaxed">Execute advanced search queries across global indexes with neural filtering.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Web</span>
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Index</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#00C851]"></div>
+</label>
+</div>
+</div>
+<!-- Tool Card 2: Maps Engine -->
+<div class="bg-[#181c20] p-6 group hover:bg-[#1c2024] transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-gray-700 group-hover:text-[#aac7ff] transition-colors">open_in_new</span>
+</div>
+<div class="flex items-start gap-4 mb-6">
+<div class="w-12 h-12 bg-[#0b0f12] flex items-center justify-center text-[#aac7ff]">
+<span class="material-symbols-outlined text-3xl">map</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold text-on-surface uppercase tracking-tight">Maps Engine</h3>
+<p class="text-[10px] font-label text-gray-500 tracking-widest">MODULE: GEOSPATIAL_V2</p>
+</div>
+</div>
+<p class="text-sm text-gray-400 mb-6 font-body leading-relaxed">High-precision vector mapping and routing optimization protocols.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Geo</span>
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Visual</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#00C851]"></div>
+</label>
+</div>
+</div>
+<!-- Tool Card 3: Calculator -->
+<div class="bg-[#181c20] p-6 group hover:bg-[#1c2024] transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-gray-700 group-hover:text-[#aac7ff] transition-colors">open_in_new</span>
+</div>
+<div class="flex items-start gap-4 mb-6">
+<div class="w-12 h-12 bg-[#0b0f12] flex items-center justify-center text-[#aac7ff]">
+<span class="material-symbols-outlined text-3xl">calculate</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold text-on-surface uppercase tracking-tight">Compute Core</h3>
+<p class="text-[10px] font-label text-gray-500 tracking-widest">MODULE: MATH_ACCEL_X</p>
+</div>
+</div>
+<p class="text-sm text-gray-400 mb-6 font-body leading-relaxed">Arithmetic and complex algebraic computations with 256-bit precision.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Logic</span>
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Fast</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#00C851]"></div>
+</label>
+</div>
+</div>
+<!-- Tool Card 4: Code Interpreter -->
+<div class="bg-[#181c20] p-6 group hover:bg-[#1c2024] transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-gray-700 group-hover:text-[#aac7ff] transition-colors">open_in_new</span>
+</div>
+<div class="flex items-start gap-4 mb-6">
+<div class="w-12 h-12 bg-[#0b0f12] flex items-center justify-center text-[#aac7ff]">
+<span class="material-symbols-outlined text-3xl">code_blocks</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold text-on-surface uppercase tracking-tight">Logic Script</h3>
+<p class="text-[10px] font-label text-gray-500 tracking-widest">MODULE: PYTHON_ENV_311</p>
+</div>
+</div>
+<p class="text-sm text-gray-400 mb-6 font-body leading-relaxed">Sandboxed execution environment for complex logic and data processing.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Python</span>
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Sandbox</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#00C851]"></div>
+</label>
+</div>
+</div>
+<!-- Tool Card 5: Knowledge Graph -->
+<div class="bg-[#181c20] p-6 group hover:bg-[#1c2024] transition-all cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 right-0 p-2">
+<span class="material-symbols-outlined text-gray-700 group-hover:text-[#aac7ff] transition-colors">open_in_new</span>
+</div>
+<div class="flex items-start gap-4 mb-6">
+<div class="w-12 h-12 bg-[#0b0f12] flex items-center justify-center text-[#aac7ff]">
+<span class="material-symbols-outlined text-3xl">schema</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold text-on-surface uppercase tracking-tight">Semantics</h3>
+<p class="text-[10px] font-label text-gray-500 tracking-widest">MODULE: RELATIONAL_GRAPH</p>
+</div>
+</div>
+<p class="text-sm text-gray-400 mb-6 font-body leading-relaxed">Map complex relationships between disparate data entities via knowledge node links.</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">RAG</span>
+<span class="px-2 py-0.5 bg-[#101418] text-[9px] font-label text-[#aac7ff] uppercase">Graph</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#00C851]"></div>
+</label>
+</div>
+</div>
+<!-- Add Tool -->
+<div class="border-2 border-dashed border-surface-container-high flex flex-col items-center justify-center p-6 hover:bg-surface-container-low/50 transition-all cursor-pointer group">
+<span class="material-symbols-outlined text-4xl text-gray-700 group-hover:text-[#aac7ff] mb-2">add_box</span>
+<span class="font-headline text-xs font-bold text-gray-600 group-hover:text-[#aac7ff] uppercase tracking-widest">Install New Tool</span>
+</div>
+</div>
+<!-- System Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="bg-surface-container p-4">
+<span class="font-label text-[10px] text-gray-500 uppercase tracking-widest">Active Toolsets</span>
+<div class="text-2xl font-headline text-on-surface mt-1">08</div>
+</div>
+<div class="bg-surface-container p-4">
+<span class="font-label text-[10px] text-gray-500 uppercase tracking-widest">API Call Vol</span>
+<div class="text-2xl font-headline text-on-surface mt-1">1.2M <span class="text-xs font-label text-gray-600">/hr</span></div>
+</div>
+<div class="bg-surface-container p-4">
+<span class="font-label text-[10px] text-gray-500 uppercase tracking-widest">Error Rate</span>
+<div class="text-2xl font-headline text-error mt-1">0.02%</div>
+</div>
+<div class="bg-surface-container p-4">
+<span class="font-label text-[10px] text-gray-500 uppercase tracking-widest">Uptime</span>
+<div class="text-2xl font-headline text-[#00C851] mt-1">99.99%</div>
+</div>
+</div>
+</section>
+<!-- Right Panel: Parameters & Logs -->
+<aside class="w-full lg:w-96 bg-[#181c20] flex flex-col h-full border-none">
+<!-- Header -->
+<div class="p-6 border-b border-outline-variant/10">
+<h2 class="font-headline text-lg font-bold text-on-surface uppercase tracking-tight">Tool Parameters</h2>
+<p class="text-[10px] font-label text-gray-500 tracking-widest mt-1">SELECTED: GOOGLE SEARCH V2</p>
+</div>
+<!-- Parameters Form -->
+<div class="p-6 space-y-8 overflow-y-auto">
+<!-- Slider 1 -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-headline text-xs font-bold text-gray-400 uppercase tracking-widest">Result Density</label>
+<span class="font-label text-xs text-[#aac7ff]">15 items</span>
+</div>
+<input class="w-full h-1 bg-[#0b0f12] appearance-none cursor-pointer accent-[#aac7ff]" max="50" min="1" type="range" value="15"/>
+</div>
+<!-- Slider 2 -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<label class="font-headline text-xs font-bold text-gray-400 uppercase tracking-widest">Neural Filter Temp</label>
+<span class="font-label text-xs text-[#aac7ff]">0.75</span>
+</div>
+<input class="w-full h-1 bg-[#0b0f12] appearance-none cursor-pointer accent-[#aac7ff]" max="1" min="0" step="0.01" type="range" value="0.75"/>
+</div>
+<!-- Inputs -->
+<div class="space-y-4">
+<label class="font-headline text-xs font-bold text-gray-400 uppercase tracking-widest">Default Search Operator</label>
+<div class="bg-[#0b0f12] p-3 kinetic-focus border-b border-primary/30">
+<input class="bg-transparent border-none w-full text-xs font-label text-[#aac7ff] focus:ring-0 uppercase" type="text" value="site:*.edu"/>
+</div>
+</div>
+<div class="space-y-4">
+<label class="font-headline text-xs font-bold text-gray-400 uppercase tracking-widest">Region Constraint</label>
+<div class="bg-[#0b0f12] p-3 kinetic-focus border-b border-primary/30">
+<select class="bg-transparent border-none w-full text-xs font-label text-[#aac7ff] focus:ring-0 uppercase">
+<option>Global Index</option>
+<option>EU West Cluster</option>
+<option>US East Cluster</option>
+<option>APAC Mainframe</option>
+</select>
+</div>
+</div>
+<button class="w-full py-4 bg-[#ffdb3c] text-on-secondary font-headline font-bold text-xs tracking-[0.2em] uppercase gold-glow hover:opacity-90 active:scale-[0.98] transition-all">
+                        Test tool sequence
+                    </button>
+</div>
+<!-- Technical Logs -->
+<div class="mt-auto bg-[#0b0f12] p-4 h-64 flex flex-col">
+<div class="flex items-center justify-between mb-3">
+<span class="font-headline text-[10px] font-bold text-gray-500 uppercase tracking-widest">Execution logs</span>
+<span class="material-symbols-outlined text-sm text-gray-700">terminal</span>
+</div>
+<div class="flex-grow overflow-y-auto font-label text-[10px] space-y-1.5 text-gray-500 selection:bg-surface-bright">
+<div class="flex gap-3">
+<span class="text-[#00C851] flex-shrink-0">[14:02:11]</span>
+<span class="font-['JetBrains_Mono']">SYS: INITIALIZING WEB_INDEX_API...</span>
+</div>
+<div class="flex gap-3">
+<span class="text-[#00C851] flex-shrink-0">[14:02:12]</span>
+<span class="font-['JetBrains_Mono']">SYS: HANDSHAKE COMPLETED AT NODE_42</span>
+</div>
+<div class="flex gap-3">
+<span class="text-[#aac7ff] flex-shrink-0">[14:02:14]</span>
+<span class="font-['JetBrains_Mono']">TASK: PARSING SYSTEM_QUERY "PEACOCK ENGINE"</span>
+</div>
+<div class="flex gap-3">
+<span class="text-[#ffdb3c] flex-shrink-0">[14:02:15]</span>
+<span class="font-['JetBrains_Mono']">WARN: LATENCY SPIKE DETECTED (124ms)</span>
+</div>
+<div class="flex gap-3">
+<span class="text-[#00C851] flex-shrink-0">[14:02:16]</span>
+<span class="font-['JetBrains_Mono']">RES: 142 ENTITIES RECOVERED FROM CACHE</span>
+</div>
+<div class="flex gap-3">
+<span class="text-[#00C851] flex-shrink-0">[14:02:18]</span>
+<span class="font-['JetBrains_Mono']">SYS: SEQUENCE TERMINATED_SUCCESSFULLY</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer / Status Bar -->
+<footer class="h-8 w-full fixed bottom-0 left-0 bg-[#0a0f13] z-50 flex items-center justify-between px-4 border-none">
+<div class="flex items-center gap-6">
+<span class="font-['JetBrains_Mono'] text-[10px] text-gray-600 uppercase tracking-widest">PEACOCK ENGINE v4.2.0-STABLE</span>
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-[#00C851] rounded-full"></span>
+<span class="font-['JetBrains_Mono'] text-[10px] text-[#00C851] uppercase tracking-widest">SYSTEM_OPTIMAL</span>
+</div>
+</div>
+<div class="flex gap-6">
+<a class="font-['JetBrains_Mono'] text-[10px] text-gray-600 hover:text-[#ffdb3c] uppercase tracking-widest transition-colors" href="#">SYS_LOG</a>
+<a class="font-['JetBrains_Mono'] text-[10px] text-gray-600 hover:text-[#ffdb3c] uppercase tracking-widest transition-colors" href="#">ERR_MONITOR</a>
+<a class="font-['JetBrains_Mono'] text-[10px] text-[#ffdb3c] font-bold uppercase tracking-widest" href="#">API_DOCS</a>
+</div>
+</footer>
+</body></html>

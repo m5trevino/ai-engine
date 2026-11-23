@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PEACOCK ENGINE | Model Registry</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        // Tool config color palette (cleaner)
+                        "background": "#101418",
+                        "surface": "#101418",
+                        "surface-dim": "#101418",
+                        "surface-bright": "#353a3e",
+                        "surface-container-lowest": "#0a0f13",
+                        "surface-container-low": "#181c20",
+                        "surface-container": "#1c2024",
+                        "surface-container-high": "#262a2f",
+                        "surface-container-highest": "#31353a",
+                        "surface-variant": "#31353a",
+                        "on-surface": "#e0e3e8",
+                        "on-surface-variant": "#c1c6d5",
+                        "outline": "#8b919e",
+                        "outline-variant": "#414753",
+                        "primary": "#aac7ff",
+                        "primary-container": "#0066cc",
+                        "on-primary": "#002f65",
+                        "on-primary-container": "#dfe8ff",
+                        "primary-fixed": "#d7e3ff",
+                        "primary-fixed-dim": "#aac7ff",
+                        "secondary": "#fff9ef",
+                        "secondary-container": "#ffdb3c",
+                        "on-secondary": "#3a3000",
+                        "on-secondary-container": "#725f00",
+                        "secondary-fixed": "#ffe16d",
+                        "tertiary": "#7ad0ff",
+                        "tertiary-container": "#007097",
+                        "on-tertiary": "#003549",
+                        "on-tertiary-container": "#d0ecff",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "on-error": "#690005",
+                        "status-active": "#00C851",
+                        "status-frozen": "#00BFFF",
+                        "status-warning": "#ffdb3c"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0px",
+                        lg: "0px",
+                        xl: "0px",
+                        full: "9999px"
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk"],
+                        body: ["Inter"],
+                        label: ["Space Grotesk"],
+                        mono: ["JetBrains Mono"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #101418;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #31353a;
+        }
+        .cyber-glow {
+            filter: drop-shadow(0 0 8px rgba(170, 199, 255, 0.2));
+        }
+        .gold-glow {
+            filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27));
+        }
+        /* Better font rendering */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary/30 h-screen overflow-hidden flex flex-col">
+    <!-- TopNavBar - Clean like tool config -->
+    <header class="bg-surface-container-low flex justify-between items-center w-full px-6 h-16 fixed top-0 z-50 border-b border-outline-variant/10">
+        <div class="flex items-center gap-8">
+            <span class="text-xl font-semibold text-primary tracking-tight font-headline">PEACOCK ENGINE</span>
+            <nav class="hidden md:flex items-center gap-6 font-label text-sm tracking-tight">
+                <a class="text-primary border-b-2 border-primary-container pb-1 font-medium" href="#">Models</a>
+                <a class="text-slate-400 hover:text-primary transition-colors" href="#">Analytics</a>
+                <a class="text-slate-400 hover:text-primary transition-colors" href="#">Keys</a>
+                <a class="text-slate-400 hover:text-primary transition-colors" href="#">Logs</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">notifications</span>
+            <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">settings</span>
+            <button class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-4 py-1.5 text-xs font-semibold uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all">
+                Deploy
+            </button>
+        </div>
+    </header>
+
+    <main class="flex flex-1 pt-16 overflow-hidden">
+        <!-- SideNavBar -->
+        <aside class="bg-surface-container-low flex flex-col h-full w-64 border-r border-outline-variant/10 shrink-0">
+            <div class="p-6 flex flex-col gap-1">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-surface-container-high flex items-center justify-center border border-primary/20">
+                        <span class="material-symbols-outlined text-primary">account_circle</span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-mono text-primary font-semibold tracking-wider">ADMIN_01</div>
+                        <div class="text-[10px] text-slate-500 font-mono">Full Access</div>
+                    </div>
+                </div>
+                <nav class="flex flex-col gap-1 font-body text-sm">
+                    <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-surface-container-high hover:text-slate-200 transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">chat</span> Chat
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 text-primary bg-surface-container-high border-l-2 border-primary transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">psychology</span> Models
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-surface-container-high hover:text-slate-200 transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">build</span> Tools
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-surface-container-high hover:text-slate-200 transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">key</span> Keys
+                    </a>
+                </nav>
+            </div>
+            <div class="mt-auto p-4 border-t border-outline-variant/10">
+                <button class="w-full py-2 bg-surface-container-highest text-primary text-xs font-semibold border border-primary/20 hover:bg-primary/10 transition-colors mb-4">
+                    New Conversation
+                </button>
+            </div>
+        </aside>
+
+        <!-- Model Registry Content -->
+        <section class="flex-1 overflow-y-auto bg-surface p-8 custom-scrollbar">
+            <!-- Header with metrics -->
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h1 class="font-headline text-3xl font-medium tracking-tight text-on-surface mb-2">Model Registry</h1>
+                    <p class="text-on-surface-variant text-sm">Manage and monitor AI model orchestration nodes</p>
+                </div>
+                <div class="flex gap-2">
+                    <div class="bg-surface-container-low px-4 py-2 border-l-2 border-primary">
+                        <span class="text-[10px] text-slate-500 block uppercase font-mono tracking-wider">Registry Latency</span>
+                        <span class="font-mono text-primary text-lg">12ms</span>
+                    </div>
+                    <div class="bg-surface-container-low px-4 py-2 border-l-2 border-secondary-container">
+                        <span class="text-[10px] text-slate-500 block uppercase font-mono tracking-wider">Active Nodes</span>
+                        <span class="font-mono text-secondary-container text-lg">14</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Table -->
+            <div class="bg-surface-container-low border border-outline-variant/10 mb-6">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left bg-surface-container">
+                            <th class="px-6 py-4 font-label text-xs uppercase tracking-wider text-slate-500 font-medium">Model Name</th>
+                            <th class="px-6 py-4 font-label text-xs uppercase tracking-wider text-slate-500 font-medium">Status</th>
+                            <th class="px-6 py-4 font-label text-xs uppercase tracking-wider text-slate-500 font-medium">Context</th>
+                            <th class="px-6 py-4 font-label text-xs uppercase tracking-wider text-slate-500 font-medium">RPM / TPM</th>
+                            <th class="px-6 py-4 font-label text-xs uppercase tracking-wider text-slate-500 font-medium">Gateway</th>
+                            <th class="px-6 py-4 font-label text-xs uppercase tracking-wider text-slate-500 font-medium">Pricing</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/10">
+                        <!-- Active Model -->
+                        <tr class="group hover:bg-surface-container-high transition-colors cursor-pointer">
+                            <td class="px-6 py-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-1 h-10 bg-primary"></div>
+                                    <div>
+                                        <div class="text-on-surface font-headline font-medium tracking-tight">Gemini-2.0-Flash</div>
+                                        <div class="text-[10px] font-mono text-slate-500">google • tier-1</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-semibold bg-status-active/10 text-status-active border border-status-active/20 uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 bg-status-active rounded-full"></span>
+                                    Active
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-300">128k</td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-300">5k / 1.5M</td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-300">Google</td>
+                            <td class="px-6 py-5">
+                                <div class="text-[10px] font-mono text-slate-400">IN: $0.002 / 1k</div>
+                                <div class="text-[10px] font-mono text-slate-400">OUT: $0.008 / 1k</div>
+                            </td>
+                        </tr>
+                        <!-- Frozen Model -->
+                        <tr class="group hover:bg-surface-container-high transition-colors cursor-pointer opacity-60">
+                            <td class="px-6 py-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-1 h-10 bg-status-frozen"></div>
+                                    <div>
+                                        <div class="text-on-surface font-headline font-medium tracking-tight">Llama-3.1-8B</div>
+                                        <div class="text-[10px] font-mono text-slate-500">groq • discontinued</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center px-2.5 py-1 text-[10px] font-mono font-semibold bg-status-frozen/10 text-status-frozen border border-status-frozen/20 uppercase tracking-wider">
+                                    Frozen
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-500">8k</td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-500">--</td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-500">Groq</td>
+                            <td class="px-6 py-5">
+                                <div class="text-[10px] font-mono text-slate-500">N/A</div>
+                            </td>
+                        </tr>
+                        <!-- Default Model -->
+                        <tr class="group bg-surface-container-high border-l-2 border-secondary-container transition-colors cursor-pointer">
+                            <td class="px-6 py-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-1 h-10 bg-secondary-container drop-shadow-[0_0_8px_#ffd70044]"></div>
+                                    <div>
+                                        <div class="text-on-surface font-headline font-medium tracking-tight flex items-center gap-2">
+                                            Gemini-2.0-Flash-Lite
+                                            <span class="text-[9px] bg-secondary-container text-on-secondary px-1.5 py-0.5 font-mono font-semibold">DEFAULT</span>
+                                        </div>
+                                        <div class="text-[10px] font-mono text-slate-500">google • tier-1</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-semibold bg-status-active/10 text-status-active border border-status-active/20 uppercase tracking-wider">
+                                    <span class="w-1.5 h-1.5 bg-status-active rounded-full"></span>
+                                    Active
+                                </span>
+                            </td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-300">1M</td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-300">10k / 5M</td>
+                            <td class="px-6 py-5 font-mono text-sm text-slate-300">Google</td>
+                            <td class="px-6 py-5">
+                                <div class="text-[10px] font-mono text-slate-400 font-semibold text-secondary-container">IN: $0.015 / 1k</div>
+                                <div class="text-[10px] font-mono text-slate-400 font-semibold text-secondary-container">OUT: $0.060 / 1k</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="flex gap-4">
+                <button class="bg-secondary-container text-on-secondary-container px-6 py-3 font-headline font-semibold text-xs tracking-wider flex items-center gap-2 hover:brightness-110 transition-all gold-glow">
+                    <span class="material-symbols-outlined text-sm">play_arrow</span>
+                    Test Model
+                </button>
+                <button class="bg-surface-container-highest text-on-surface px-6 py-3 border border-outline-variant font-headline font-medium text-xs tracking-wider hover:bg-primary hover:text-on-primary transition-all">
+                    Freeze Node
+                </button>
+                <button class="bg-surface-container-highest text-on-surface px-6 py-3 border border-outline-variant font-headline font-medium text-xs tracking-wider hover:bg-primary hover:text-on-primary transition-all">
+                    Set as Default
+                </button>
+            </div>
+        </section>
+
+        <!-- Details Panel -->
+        <aside class="w-96 bg-surface-container-low border-l border-outline-variant/10 flex flex-col shrink-0">
+            <div class="p-6 border-b border-outline-variant/10 bg-surface-container">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-headline text-lg font-medium tracking-tight flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-xl">tune</span> 
+                        Model Details
+                    </h2>
+                    <span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 font-mono font-semibold border border-primary/20">SELECTED</span>
+                </div>
+                <h3 class="text-2xl font-headline font-medium text-on-surface tracking-tight">Gemini-2.0-Flash-Lite</h3>
+                <p class="text-xs text-on-surface-variant mt-1">Google • Multimodal • 128k context</p>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+                <!-- Capabilities -->
+                <div>
+                    <label class="text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider block mb-3">Capabilities</label>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-surface-container-highest px-3 py-1.5 text-[10px] font-mono text-primary border border-primary/20">multimodal</span>
+                        <span class="bg-surface-container-highest px-3 py-1.5 text-[10px] font-mono text-primary border border-primary/20">streaming</span>
+                        <span class="bg-surface-container-highest px-3 py-1.5 text-[10px] font-mono text-primary border border-primary/20">json-mode</span>
+                        <span class="bg-surface-container-highest px-3 py-1.5 text-[10px] font-mono text-primary border border-primary/20">function-calling</span>
+                    </div>
+                </div>
+
+                <!-- Rate Limits -->
+                <div>
+                    <label class="text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider block mb-3">Rate Limits</label>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-on-surface-variant">Requests/min</span>
+                            <span class="font-mono text-sm text-on-surface">5,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-on-surface-variant">Tokens/min</span>
+                            <span class="font-mono text-sm text-on-surface">1,500,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-on-surface-variant">Requests/day</span>
+                            <span class="font-mono text-sm text-on-surface">1,000,000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Logs -->
+                <div class="flex flex-col h-full min-h-[200px]">
+                    <label class="text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider block mb-3">Live Traffic Logs</label>
+                    <div class="flex-1 bg-surface-container-lowest border border-outline-variant/10 p-4 font-mono text-[11px] leading-relaxed overflow-y-auto">
+                        <div class="text-primary mb-1">[14:22:01] REQ_RECEIVED</div>
+                        <div class="text-slate-400 mb-1">[14:22:04] TOKEN_GEN_INIT</div>
+                        <div class="text-secondary-container mb-1">[14:22:10] STREAM_COMPLETE</div>
+                        <div class="text-slate-500">[14:22:15] RESPONSE_SENT</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 bg-surface-container border-t border-outline-variant/10">
+                <button class="w-full py-3 bg-secondary-container hover:bg-secondary-fixed text-on-secondary-container font-headline font-semibold uppercase tracking-wider text-xs transition-all gold-glow">
+                    Test Model
+                </button>
+            </div>
+        </aside>
+    </main>
+
+    <!-- Footer Status Bar -->
+    <footer class="h-8 bg-surface-container-lowest flex items-center justify-between px-6 border-t border-outline-variant/5 shrink-0">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#aac7ff]"></div>
+                <span class="text-[10px] font-mono text-slate-400 tracking-wider">ENGINE: <span class="text-primary">ONLINE</span></span>
+            </div>
+            <div class="h-3 w-px bg-outline-variant/30"></div>
+            <span class="text-[10px] font-mono text-slate-500">v3.0.0-stable</span>
+        </div>
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono text-slate-500">TOKENS:</span>
+                <span class="text-[10px] font-mono text-on-surface">1.2M / 5.0M</span>
+                <div class="w-24 h-1.5 bg-surface-container-high overflow-hidden">
+                    <div class="h-full bg-primary" style="width: 24%"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono text-slate-500">COST:</span>
+                <span class="text-[10px] font-mono text-secondary-container">$0.42</span>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

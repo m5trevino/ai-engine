@@ -1,0 +1,68 @@
+# ==========================================
+# SYNDICATE ASSET: DATA_REFINERY (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 62
+# ==========================================
+# --- DATA CONTENT START ---
+Create app/utils/gemini_token_counter.py
+Implement Google GenAI SDK count_tokens() API method
+Implement offline regex-based estimation fallback
+Add multimodal token calculation (images, video, audio, PDF)
+Create token counting endpoint in API
+Add token pre-count before sending requests
+Integrate into striker.py for accurate usage tracking
+Create app/utils/groq_token_counter.py
+Implement tiktoken integration
+Create model-to-encoding mapping (MODEL_ENCODING_MAP)
+Implement message format overhead calculations
+Add tool definition token counting
+Add batch request token counting
+Create app/utils/token_counter.py (unified interface)
+Add provider detection (auto-select Gemini vs Groq counter)
+Add cost estimation using model pricing from registry
+Vertex AI exact tokenizer for 2MB payloads
+Harden database with batches and batch_items tables
+Implement mission resume logic
+Add Batch Operations class to database.py
+Create Batch Command Models for validation
+Deploy v1/payloads router for mission orchestration
+Implement Surgical ZIP Assembly using zipfile library
+SQLite database (peacock.db) for conversation and usage tracking
+Database Schema: conversations, messages, key_usage, batches, batch_items
+KeyUsageDB tracks usage per key
+ConversationDB stores chat history
+Obtain absolute file coordinates for prompts and payloads
+Construct FastAPI endpoints for directory traversal (/v1/lim/prompts, /v1/lim/payloads)
+Implement filesystem bridge for /root/herbert/liquid-semiotic
+Map LIM_PROMPTS_DIR to /root/herbert/liquid-semiotic/semiotic-mold
+GET /v1/fs/ammo for listing .md, .txt, and .json ammo files
+GET /v1/fs/ammo/{file_name} for reading specific ammo content
+GET /v1/fs/prompts/{phase} for listing phase-specific prompts
+POST /v1/fs/prompts/{phase} for securing new prompt assets to disk
+File injection context limited to first 100KB to prevent memory spikes
+Create symbolic link for semiotic-mold alignment
+GET /v1/costs/daily (daily cost breakdown)
+GET /v1/costs/models (cost by model)
+GET /v1/costs/gateways (cost by gateway)
+GET /v1/costs/budget (budget status & alerts)
+Pipe token costs to key_usage table
+Create Invariants Vault table for Mode B accounting
+Identify hetzner/ai-engine as the Master Rig
+Move MissionMiner.py to the master rig
+Vault Editor for hot-patching ammo and prompts
+Filesystem bridge (/v1/lim/*) for secure OS access
+Unified Token Counter Interface coordinator
+Repo-specific priming prompts for guided extraction
+Save extracted laws to /home/flintx/dendritic/invariant_vault/
+File System Integration: /root/herbert/liquid-semiotic/english (payloads)
+File System Integration: /root/herbert/liquid-semiotic/invariants (outputs)
+File System Integration: /root/ai-engine/peacock.db (SQLite)
+Syncthing Folders: liquid-semiotic/english, liquid-semiotic/invariants, liquid-semiotic/semiotic-mold
+Database Schema: conversations table (id, title, model_id, key_account, timestamps)
+Database Schema: messages table (id, conv_id, role, content, tokens, model, key, timestamp)
+Database Schema: key_usage table (id, gateway, key_account, model_id, tokens, cost, strike_tag, timestamp)
+Database Schema: batches table (id, name, app_identity, status, files, tokens, cost, timestamp)
+Database Schema: batch_items table (id, batch_id, file_path, status, result, tokens, cost, error, timestamp)
+File System Integration Flow: Local Machine (Syncthing) -> VPS (Peacock Engine) -> Local Machine (Results synced)
+Cache Management: Clear conversation/model cache, force reload
+Drag & drop zone for files (Backend logic)
+# --- DATA CONTENT END ---

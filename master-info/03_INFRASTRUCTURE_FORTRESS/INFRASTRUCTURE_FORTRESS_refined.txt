@@ -1,0 +1,74 @@
+# ==========================================
+# SYNDICATE ASSET: INFRASTRUCTURE_FORTRESS (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 68
+# ==========================================
+# --- DATA CONTENT START ---
+Rebuild environment natively on VPS
+Exclude .venv from Syncthing
+Pin dependencies: groq==1.1.2, pydantic-ai-slim==1.80.0
+Emergency VENV Stabilization (native rebuild)
+Use engine.save-aichats.com for API engine
+Use chat.save-aichats.com for WebUI/Striker
+Use claw.save-aichats.com for Open Claw
+Use herbert.save-aichats.com for persona
+Refactor server/UI for correct subdomains
+Create production Dockerfile (multi-stage, non-root)
+Create docker-compose.yml (persistent volumes)
+Add persistent volume for database
+Add environment variable configuration
+Add restart policies
+Create peacock-engine.service (systemd)
+Configure auto-restart on failure
+Set resource limits
+Configure logging to journald
+Create install, update, and backup scripts
+Create Caddyfile (HTTPS, reverse proxy)
+Configure HTTPS (auto TLS)
+Configure reverse proxy to engine (443 to 3099)
+Add security headers to Caddy
+Create .env.production template
+Document all required env vars
+Add secrets management guide
+Step-by-step VPS setup instructions
+Domain configuration guide
+SSL/TLS setup guide
+Troubleshooting guide (Infrastructure focus)
+Recalibrate remote URL to ai-engine.git
+Force-align local rig with production repo
+Set Ubuntu VPS as Syncthing introducer
+Engine Integrity Restoration (April 4th baseline)
+"Clean Slate" Protocol: fresh ai-engine repo
+Syncthing configuration for Hetzner VPS mirroring
+Fix Syncthing syntax error (missing tcp:// prefix)
+Backend: Python (FastAPI) on port 3099
+Frontend: React + Vite in ui/ directory
+Hybrid pattern: Static serving for production, Direct for development
+Setup frontend: cd ui/ && npm install
+Production build: npm run build into app/static/
+Vite outDir: ../app/static
+Vite server port: 3000
+Syncthing bidirectional file synchronization
+Syncthing VPS-as-Introducer topology
+Syncthing Folder Sync Mapping (english, invariants, legos, semiotic-mold)
+Root Directory: /root/hetzner/ai-engine
+Directory Structure: /app (Backend logic and API routers)
+Directory Structure: /ui (Masterpiece React/Vite interface)
+Directory Structure: .venv (Python 3.12 virtual environment)
+Audit Caddyfile for security leaks
+Identify hetzner/ai-engine as the Master Rig
+Production Lock: npm run build to unify static assets
+Fix VPS project root path in instructions
+Fix uvicorn path in systemd service
+Rebuild venv natively on VPS for binary precision
+Provision VPS (Ubuntu 22.04, 2GB RAM, 10GB disk, Static IP)
+System Updates and Timezone configuration
+Node.js 20+ installation
+Repository Setup (git clone, .env config)
+Secure .env file (chmod 600)
+Python Virtual Environment (Rebuilt natively)
+Systemd Service activation (daemon-reload, enable, start)
+Syncthing Installation and Folder Setup
+Cleanup redundant Syncthing instances
+Fix config.xml tcp:// prefix for shell device
+Surgical V4 Migration: 1-by-1 re-application of modernizations
+# --- DATA CONTENT END ---

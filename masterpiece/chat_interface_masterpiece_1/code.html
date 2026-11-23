@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PEACOCK ENGINE | CHAT_INTERFACE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .gold-glow {
+            filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.4));
+        }
+        .kinetic-focus:focus-within {
+            box-shadow: 0 0 0 1px #aac7ff, 0 0 20px rgba(170, 199, 255, 0.15);
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101418;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #363a3e;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed": "#ffe16b",
+                        "primary-fixed-dim": "#aac7ff",
+                        "error": "#ffb4ab",
+                        "outline": "#8e909a",
+                        "tertiary-fixed-dim": "#7ad0ff",
+                        "on-surface-variant": "#c4c6d0",
+                        "on-secondary-container": "#524400",
+                        "surface-tint": "#aac7ff",
+                        "surface-container-high": "#262a2f",
+                        "surface-bright": "#363a3e",
+                        "outline-variant": "#43474f",
+                        "on-tertiary-fixed": "#001e2c",
+                        "primary-container": "#aac7ff",
+                        "on-secondary-fixed": "#221b00",
+                        "surface-container": "#1c2024",
+                        "on-secondary": "#3a3000",
+                        "on-primary-fixed": "#001b3e",
+                        "on-tertiary": "#003549",
+                        "inverse-on-surface": "#2d3135",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "primary-fixed": "#d6e3ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#181c20",
+                        "primary": "#d6e2ff",
+                        "on-primary-container": "#355283",
+                        "surface-container-highest": "#31353a",
+                        "on-primary-fixed-variant": "#284777",
+                        "surface": "#101418",
+                        "background": "#101418",
+                        "on-surface": "#e0e3e8",
+                        "error-container": "#93000a",
+                        "surface-dim": "#101418",
+                        "on-background": "#e0e3e8",
+                        "tertiary-fixed": "#c3e8ff",
+                        "secondary": "#f0cd2d",
+                        "on-error": "#690005",
+                        "on-primary": "#0c305f",
+                        "surface-container-lowest": "#0b0f12",
+                        "on-secondary-fixed-variant": "#544600",
+                        "tertiary-container": "#79d0ff",
+                        "surface-variant": "#31353a",
+                        "tertiary": "#c2e7ff",
+                        "secondary-fixed-dim": "#e7c423",
+                        "secondary-container": "#d2b100",
+                        "inverse-primary": "#415f90",
+                        "on-tertiary-container": "#005979"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation Anchor -->
+<header class="bg-surface-container-low h-16 w-full flex items-center z-50 px-6 justify-between shrink-0">
+<div class="flex items-center gap-8">
+<span class="text-primary font-headline text-xl font-bold tracking-tighter">PEACOCK ENGINE</span>
+<nav class="hidden md:flex items-center h-full gap-2">
+<a class="text-primary border-b-2 border-primary h-16 flex items-center px-4 font-headline font-medium tracking-tighter uppercase transition-all">DASHBOARD</a>
+<a class="text-gray-400 hover:text-primary transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase">ANALYTICS</a>
+<a class="text-gray-400 hover:text-primary transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase">LOGS</a>
+<a class="text-gray-400 hover:text-primary transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase">DEPLOYMENT</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<!-- Model Selector Z-50 -->
+<div class="relative z-50">
+<button class="bg-surface-container flex items-center gap-3 px-4 py-2 hover:bg-surface-bright transition-all active:scale-95">
+<span class="material-symbols-outlined text-secondary text-sm">bolt</span>
+<span class="font-label text-xs tracking-widest uppercase">PEACOCK-V4-O-ULTRA</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 bg-surface-container-highest overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a tech operator in a dark environment with blue accent lighting on their face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXqk1oqFhLlkc4NBG6Zp3TSKMhbD6MVPU_cQPqMnfxkQ_rF5MvjntXgm1vQoURTxOplWXQPSrVsESHEE-p_a8Y4YznJ5pkkEXmYoByiBitn-PzJCf2uzrMm31Kh0sE2lrud2mvjZzVA1zUxaIwCzHruQVkaAN-xNr_xyLL4WMUa_3i7GFCBBnpaRRDikiKehsmLniNikpuuhb7k2iFpXM1npKuWC3XW8znwZTjmKgJz84emz8EmXpDbv_7dL-J5_mrPgl8QOGI8VYq"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- 1. Sidebar: History/Conversations -->
+<aside class="w-64 bg-surface-container-low shrink-0 flex flex-col">
+<div class="p-4">
+<button class="w-full bg-surface-container-highest hover:bg-surface-bright p-3 flex items-center justify-between transition-all active:scale-95">
+<span class="font-headline text-sm font-medium tracking-tight">NEW_THREAD</span>
+<span class="material-symbols-outlined text-sm">add_circle</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<div class="px-3 py-2 text-[10px] text-outline font-label uppercase tracking-[0.2em] mb-2">Recent Intervals</div>
+<button class="w-full bg-surface-container text-primary border-l-4 border-primary px-3 py-3 text-left transition-all">
+<div class="font-headline text-xs font-medium tracking-tight truncate">SYSTEM_OPTIMIZATION_V3</div>
+<div class="font-label text-[9px] text-outline-variant mt-1">2m ago • 4.2k tokens</div>
+</button>
+<button class="w-full hover:bg-surface-container-high px-3 py-3 text-left transition-all text-on-surface-variant">
+<div class="font-headline text-xs font-medium tracking-tight truncate">DATABASE_MESH_REPAIR</div>
+<div class="font-label text-[9px] text-outline-variant mt-1">1h ago • 12k tokens</div>
+</button>
+<button class="w-full hover:bg-surface-container-high px-3 py-3 text-left transition-all text-on-surface-variant">
+<div class="font-headline text-xs font-medium tracking-tight truncate">LATENCY_SPIKE_ANALYSIS</div>
+<div class="font-label text-[9px] text-outline-variant mt-1">4h ago • 856 tokens</div>
+</button>
+<button class="w-full hover:bg-surface-container-high px-3 py-3 text-left transition-all text-on-surface-variant">
+<div class="font-headline text-xs font-medium tracking-tight truncate">CORE_MODULE_UPGRADE</div>
+<div class="font-label text-[9px] text-outline-variant mt-1">Yesterday • 1.1M tokens</div>
+</button>
+</div>
+<div class="p-4 bg-surface-container-lowest mt-auto flex flex-col gap-2">
+<div class="flex items-center gap-2 px-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#00C851]"></span>
+<span class="font-label text-[10px] tracking-widest text-outline uppercase">OPERATOR-01 ONLINE</span>
+</div>
+<button class="w-full bg-secondary text-on-secondary font-headline text-xs font-bold py-2 tracking-widest active:scale-95 gold-glow">
+                    INITIALIZE SEQUENCE
+                </button>
+</div>
+</aside>
+<!-- 2. Center: Chat Thread -->
+<main class="flex-1 flex flex-col relative bg-background">
+<div class="flex-1 overflow-y-auto p-8 space-y-8 max-w-4xl mx-auto w-full">
+<!-- User Message -->
+<div class="flex flex-col items-end gap-3">
+<div class="bg-surface-container-high p-4 max-w-[85%] border-l border-primary/20">
+<p class="text-sm leading-relaxed text-on-surface">Optimize the current deployment strategy for the Peacock Engine Mesh nodes. Focus on reducing latency in the North Atlantic sector and provide a JSON configuration for the load balancer.</p>
+</div>
+<div class="flex items-center gap-2 font-label text-[9px] text-outline uppercase tracking-wider">
+<span>OPERATOR</span> <span class="text-primary-fixed-dim">14:22:01</span>
+</div>
+</div>
+<!-- AI Message -->
+<div class="flex flex-col items-start gap-3">
+<div class="flex items-center gap-3 mb-1">
+<div class="w-6 h-6 bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<span class="font-headline text-xs font-bold tracking-widest text-primary uppercase">PEACOCK_ENGINE</span>
+</div>
+<div class="bg-surface-container p-5 max-w-[90%] border-l border-secondary/20">
+<p class="text-sm leading-relaxed text-on-surface mb-4">Analysis of the North Atlantic sector (NA-MESH-01) indicates a 15% bottleneck in the TLS handshake layer. I have reconstructed the deployment manifest with prioritized edge routing.</p>
+<div class="bg-surface-container-lowest p-4 font-label text-[13px] text-primary-fixed-dim border-l-2 border-primary-fixed-dim/30 overflow-x-auto">
+<pre class="font-['JetBrains_Mono']"><code>{
+  "node_id": "NA-MESH-01",
+  "routing_policy": "latency_optimized",
+  "threshold": 0.045,
+  "failover": ["EU-MESH-02", "US-EAST-01"]
+}</code></pre>
+</div>
+</div>
+<div class="flex items-center gap-4 font-label text-[9px] text-outline uppercase tracking-wider">
+<span>STABLE_STATE</span> <span class="text-secondary">GEN_TIME: 1.2s</span>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-6 bg-surface-dim shrink-0">
+<div class="max-w-4xl mx-auto relative flex flex-col gap-3">
+<!-- Floating Attached Files -->
+<div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+<div class="bg-surface-container px-3 py-1.5 flex items-center gap-2 group cursor-pointer hover:bg-surface-bright transition-all">
+<span class="material-symbols-outlined text-sm text-primary">description</span>
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-tighter">config_main.yml</span>
+<span class="material-symbols-outlined text-xs text-outline group-hover:text-error transition-colors">close</span>
+</div>
+<div class="bg-surface-container px-3 py-1.5 flex items-center gap-2 group cursor-pointer hover:bg-surface-bright transition-all">
+<span class="material-symbols-outlined text-sm text-secondary">image</span>
+<span class="font-label text-[10px] text-on-surface-variant uppercase tracking-tighter">topology_v2.png</span>
+<span class="material-symbols-outlined text-xs text-outline group-hover:text-error transition-colors">close</span>
+</div>
+</div>
+<!-- Multi-line Input Kinetic Style -->
+<div class="relative bg-surface-container-low kinetic-focus transition-all group border-b border-outline-variant/30">
+<textarea class="w-full bg-transparent border-none focus:ring-0 p-4 font-body text-sm text-on-surface placeholder:text-outline-variant resize-none min-h-[100px]" placeholder="INPUT COMMANDS OR SYSTEM QUERIES..."></textarea>
+<div class="flex items-center justify-between p-3 bg-surface-container-lowest/50">
+<div class="flex items-center gap-1">
+<button class="p-2 text-outline hover:text-primary transition-all active:scale-95">
+<span class="material-symbols-outlined text-xl">attach_file</span>
+</button>
+<button class="p-2 text-outline hover:text-primary transition-all active:scale-95">
+<span class="material-symbols-outlined text-xl">add_photo_alternate</span>
+</button>
+<button class="p-2 text-outline hover:text-primary transition-all active:scale-95">
+<span class="material-symbols-outlined text-xl">mic</span>
+</button>
+</div>
+<button class="bg-gradient-to-br from-primary-fixed-dim to-[#0066cc] text-on-primary font-headline text-xs font-bold px-6 py-2 tracking-widest active:scale-95">
+                                EXECUTE_PROMPT
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- 3. Right: Context Panel -->
+<aside class="w-[384px] bg-surface-container-low shrink-0 flex flex-col border-l border-outline-variant/10">
+<div class="p-6 space-y-8 overflow-y-auto">
+<!-- Session Context -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline text-xs font-bold tracking-[0.2em] text-outline uppercase">Session Analysis</h3>
+<span class="material-symbols-outlined text-primary text-sm">analytics</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container p-4">
+<div class="text-[10px] text-outline-variant font-label uppercase mb-1">Current Tokens</div>
+<div class="font-['JetBrains_Mono'] text-xl text-primary font-medium tracking-tight">1,204,852</div>
+</div>
+<div class="bg-surface-container p-4">
+<div class="text-[10px] text-outline-variant font-label uppercase mb-1">Session Cost</div>
+<div class="font-['JetBrains_Mono'] text-xl text-secondary font-medium tracking-tight">$0.42</div>
+</div>
+</div>
+</section>
+<!-- Knowledge Objects -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline text-xs font-bold tracking-[0.2em] text-outline uppercase">Active Objects</h3>
+<span class="text-[10px] font-['JetBrains_Mono'] text-primary bg-primary/10 px-2 py-0.5">3 ITEMS</span>
+</div>
+<div class="space-y-2">
+<div class="bg-surface-container p-3 flex items-center justify-between group cursor-pointer hover:bg-surface-bright">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-lg">data_object</span>
+<span class="font-label text-xs uppercase tracking-tight text-on-surface">deployment_manifest.json</span>
+</div>
+<span class="material-symbols-outlined text-sm text-outline-variant group-hover:text-primary transition-colors">visibility</span>
+</div>
+<div class="bg-surface-container p-3 flex items-center justify-between group cursor-pointer hover:bg-surface-bright">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-lg">terminal</span>
+<span class="font-label text-xs uppercase tracking-tight text-on-surface">mesh_repair_script.sh</span>
+</div>
+<span class="material-symbols-outlined text-sm text-outline-variant group-hover:text-primary transition-colors">visibility</span>
+</div>
+</div>
+</section>
+<!-- System Logs -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline text-xs font-bold tracking-[0.2em] text-outline uppercase">Technical Logs</h3>
+<button class="text-outline-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">open_in_full</span>
+</button>
+</div>
+<div class="bg-surface-container-lowest p-3 font-['JetBrains_Mono'] text-[10px] leading-relaxed space-y-1 h-48 overflow-y-auto">
+<div class="flex gap-2">
+<span class="text-[#00C851]">14:22:04</span>
+<span class="text-outline">REQUEST_ACKNOWLEDGED</span>
+</div>
+<div class="flex gap-2">
+<span class="text-[#00C851]">14:22:05</span>
+<span class="text-on-surface">MAPPING_NEURAL_PATHWAY_902</span>
+</div>
+<div class="flex gap-2">
+<span class="text-[#00BFFF]">14:22:06</span>
+<span class="text-on-surface">FETCHING_REMOTE_CONFIG_REMOTE</span>
+</div>
+<div class="flex gap-2">
+<span class="text-error">14:22:07</span>
+<span class="text-error">RETRY_LOG_AUTH_FAILED</span>
+</div>
+<div class="flex gap-2">
+<span class="text-[#00C851]">14:22:08</span>
+<span class="text-primary">STREAM_INITIALIZED_V4_SECURE</span>
+</div>
+<div class="flex gap-2">
+<span class="text-outline">14:22:09</span>
+<span class="text-outline-variant">IDLE_STATE_RESUMED</span>
+</div>
+</div>
+</section>
+</div>
+</aside>
+</div>
+<!-- StatusBar -->
+<footer class="bg-surface-container-lowest h-8 w-full shrink-0 flex items-center justify-between px-4 z-50">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#00C851] gold-glow"></span>
+<span class="font-['JetBrains_Mono'] text-[10px] text-secondary uppercase tracking-[0.2em]">ENGINE_STABLE_v3.0.0</span>
+</div>
+<div class="h-3 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-2">
+<span class="font-['JetBrains_Mono'] text-[10px] text-outline uppercase tracking-widest">LATENCY:</span>
+<span class="font-['JetBrains_Mono'] text-[10px] text-on-surface font-bold">14ms</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="font-['JetBrains_Mono'] text-[10px] text-outline uppercase tracking-widest">SESSION_TOKENS:</span>
+<span class="font-['JetBrains_Mono'] text-[10px] text-primary font-bold">1.2M</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-['JetBrains_Mono'] text-[10px] text-outline uppercase tracking-widest">BILLING_TOTAL:</span>
+<span class="font-['JetBrains_Mono'] text-[10px] text-secondary font-bold">$0.42</span>
+</div>
+<div class="h-3 w-[1px] bg-outline-variant/30"></div>
+<span class="font-['JetBrains_Mono'] text-[10px] text-outline-variant uppercase tracking-widest">PEACOCK ENGINE v4.2.0-STABLE</span>
+</div>
+</footer>
+</body></html>

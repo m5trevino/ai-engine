@@ -1,0 +1,96 @@
+# ==========================================
+# SYNDICATE ASSET: TACTICAL_INTERFACE (REFINED)
+# TOTAL UNIQUE LINE ITEMS: 90
+# ==========================================
+# --- DATA CONTENT START ---
+Operationalize 4-pane strike architecture
+Manifest 3-panel dashboard
+Set Chat-first as landing page
+Map DASHBOARD to Chat Interface
+Map ANALYTICS to Model Registry
+Map DEPLOYMENT to API Key Management
+Map REFINERY to 10-Slot Payload Striker
+4-pane workspace: Director/Staging/Manifest/Forensics
+Patch App.tsx for explicit key prop typing in ApiKeyCard and ModelRow
+Inject explicit ApiKeyCardProps, ModelRowProps, and Message interfaces
+Explicitly type event handlers (Mouse, Keyboard, Change)
+Anchor static mount to ui/dist with legacy fallback in main.py
+Unify build paths (base: / and mount: app/static)
+Added SPA catch-all for root-level UI navigation
+Liquidate hardcoded localhost in api.ts
+Restore Neural Link via dynamic protocol resolution
+Implement right sidebar for Run Settings (Google AI Studio style)
+Implement modular Feature Objectives list (Goals tracker)
+Restructure Sandbox for lateral 3-column Campaign Mode
+Build LIM Security Protocol 4-Pane workspace
+Implement model selector in WebUI
+Provide browser access to VPS files
+Deploy Global Dashboard router (app/routes/dashboard.py)
+Create Mission Console for strike parameters
+Build Tactical Viewer for split-pane VPS file peeking
+Create Mission History sidebar for past batches
+Tear down Campaign layout and construct 4-Pane LIM Architecture
+Hook React components into new FastAPI endpoints
+Rip out stacked vertical layout for Campaign Mode
+Implement multi-column Sand Hill data architecture
+Dual System Toggling: Monolithic vs Campaign Mode
+Column 1: Define Prompts (mapping instruction groups)
+Column 2: The Vault (staging bay for unloaded ammo)
+Column 3: Active Loadout (cross-section of attached files)
+Execution Shift: Move Temp and Top-P to right-side wing
+Mission 1: Campaign Grid Lateral Redesign
+Root Promotion: Promote high-fidelity UI to index.html
+Transition from Legacy Alpine.js UI to Vite/React
+"Sand Hill" Dashboard Overhaul with Geist/Outfit fonts
+Dedicated Payload Striker screen isolation
+Concept "Campaign Grid" 3-column workstation
+"Pilot's Dashboard" with 10-slot sequence manifest
+4-Zone LIM Security Protocol UI with filesystem bridge
+Implement SPA Catch-All fallback for non-API routes
+Serve index.html for client-side routing support
+VPS File Integrated Viewer for raw payloads and outputs
+React UI (Vite) client layer implementation
+React SPA served at root domain
+Payload Striker UI Layout: Top Nav, Mode Toggle, Zone 1-4 (Prompts, Payloads, Command, Telemetry)
+Primary Chat View: Message input, send button, history, streaming, stop, new chat
+Model Selection: Dropdown, info cards, favorites, recently used, filter by gateway, warning indicators
+Message Features: Copy, delete, edit, regenerate, timestamps, token count, cost
+File Upload: Drag & drop, file picker, multiple files, type indicators, size warning, remove button
+Context Display: Attached files list, preview panel, syntax highlighting, search, file tokens
+Conversation History: Sidebar, search, delete/archive, rename, export, folders/tags
+Tool Configuration Panel: Enable/disable toggles, tool list with descriptions, parameters config
+Tool Execution Display: Notifications, result panel, expand/collapse, execution time, retry button
+Custom Tools: Add form, management list, test button
+Real-time Display: Conversation tokens, cost, model price info, token breakdown
+Cost Dashboard: Daily spend, weekly/monthly charts, breakdown by gateway/model, budget settings
+Token Counter Tool: Standalone page, paste text, upload file, select model, multimodal support
+Model Registry View: Grid/table, status indicators (Active, Frozen, Deprecated), details panel
+Model Actions: Freeze, unfreeze, test, set as default
+Model Performance: Success rate, average latency, error rate, usage charts
+Key Overview: List by gateway, health status (Healthy, Warning, Exhausted, Dead), masked display, editable labels
+Key Details: Usage stats, rate limit status, cooldown timer, last used timestamp
+Key Actions: Add new, delete, test, edit label, toggle enable/disable
+Quick Test Panel: Test all models/keys, test specific model/key
+Validation Results Display: Results table, auto-freeze toggle, export results
+System Health Dashboard: Gateway health indicators, overall status, recent errors log, active alerts
+General Settings: Default model, temperature slider, output format, theme, language
+Performance Settings: Mode selector (Stealth, Balanced, Apex), timeout, streaming toggle, auto-retry toggle
+Notification Settings: Enable toggle, alert thresholds, webhook URL
+Security Settings: WebUI API key, IP allowlist, session timeout, audit log viewer
+Structured Output: JSON mode toggle, schema editor, schema templates
+Batch Operations: Request interface, upload CSV/JSON, progress indicator
+Prompt Templates: Template library, variables syntax, categories/tags, share templates
+Mobile Navigation: Bottom tab bar, swipe gestures, pull to refresh
+Mobile Optimizations: Voice input, fullscreen chat, touch-friendly buttons, bottom sheet, floating action button
+User Onboarding: Welcome modal, API key setup wizard, model selection guide, quick tutorial
+Help & Documentation: In-app help panel, keyboard shortcuts, API docs link, video tutorials, FAQ
+Admin/Debug Panel: Request inspector, raw request/response, headers, timing, copy as cURL
+Logs Viewer: System logs, request logs, error logs, export logs
+Cache Management: Clear conversation/model cache, force reload
+Mission Command OS for bulk AI data processing (The Refinery)
+The Command Deck (WebUI): payloads.html for mission control
+6-Card Edge-to-Edge Grid layout eliminating global navigation sidebar
+Massive full-width bottom tray for Live System Terminal / CLI Output Stream
+Extract LIM workspace into LimWorkspace.tsx component
+Reconstruct TacticalStriker.tsx
+# --- DATA CONTENT END ---

@@ -1,0 +1,27 @@
+<!-- ============================================
+     PEACOCK ENGINE - Top Navigation Component
+     Standardized header for all screens
+     ============================================ -->
+<header class="bg-[#181c20] flex justify-between items-center w-full px-6 h-16 fixed top-0 z-50 border-b border-[#414753]/10">
+    <!-- Logo & Brand -->
+    <div class="flex items-center gap-8">
+        <span class="text-xl font-medium text-[#aac7ff] tracking-tight font-['Space_Grotesk']">PEACOCK ENGINE</span>
+        
+        <!-- Navigation Links -->
+        <nav class="hidden md:flex items-center gap-6 font-['Space_Grotesk'] text-sm tracking-tight">
+            <a class="text-primary border-b-2 border-[#0066cc] pb-1 font-medium" href="#models">Models</a>
+            <a class="text-slate-400 hover:text-primary transition-colors" href="#analytics">Analytics</a>
+            <a class="text-slate-400 hover:text-primary transition-colors" href="#keys">Keys</a>
+            <a class="text-slate-400 hover:text-primary transition-colors" href="#logs">Logs</a>
+        </nav>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex items-center gap-4">
+        <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">notifications</span>
+        <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">settings</span>
+        <button class="bg-gradient-to-br from-[#aac7ff] to-[#0066cc] text-[#002f65] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all">
+            Deploy
+        </button>
+    </div>
+</header>

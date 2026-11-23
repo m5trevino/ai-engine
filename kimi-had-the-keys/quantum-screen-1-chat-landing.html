@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>QUANTUM NEXUS | Neural Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "void": "#050508",
+                        "void-light": "#0a0a12",
+                        "void-panel": "#10101a",
+                        "neon-cyan": "#00f0ff",
+                        "neon-pink": "#ff00a0",
+                        "neon-purple": "#a855f7",
+                        "glass": "rgba(16, 16, 26, 0.8)",
+                    },
+                    fontFamily: {
+                        "display": ["Orbitron", "sans-serif"],
+                        "ui": ["Rajdhani", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.4);
+            --glow-pink: 0 0 20px rgba(255, 0, 160, 0.4);
+            --panel-glow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(0, 240, 255, 0.1);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #050508 0%, #0a0a15 50%, #050510 100%);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        /* Glassmorphism panels */
+        .qx-panel {
+            background: rgba(16, 16, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            box-shadow: var(--panel-glow), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        
+        .qx-panel:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: var(--panel-glow), 0 0 30px rgba(0, 240, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Neon buttons */
+        .qx-btn-neon {
+            background: transparent;
+            border: 1px solid rgba(0, 240, 255, 0.5);
+            color: #00f0ff;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .qx-btn-neon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .qx-btn-neon:hover::before {
+            left: 100%;
+        }
+        
+        .qx-btn-neon:hover {
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.1);
+            border-color: #00f0ff;
+        }
+        
+        /* Primary action button */
+        .qx-btn-primary {
+            background: linear-gradient(135deg, #00f0ff 0%, #0080ff 100%);
+            color: #000;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: none;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .qx-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.6), 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .qx-btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        /* Glowing text */
+        .qx-glow-cyan {
+            color: #00f0ff;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        
+        .qx-glow-pink {
+            color: #ff00a0;
+            text-shadow: 0 0 10px rgba(255, 0, 160, 0.5);
+        }
+        
+        /* Gradient text */
+        .qx-gradient-text {
+            background: linear-gradient(135deg, #00f0ff 0%, #ff00a0 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Sidebar items */
+        .qx-sidebar-item {
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .qx-sidebar-item:hover {
+            background: rgba(0, 240, 255, 0.05);
+            border-left-color: rgba(0, 240, 255, 0.5);
+        }
+        
+        .qx-sidebar-item.active {
+            background: rgba(0, 240, 255, 0.1);
+            border-left-color: #00f0ff;
+        }
+        
+        /* Input field */
+        .qx-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        
+        .qx-input:focus {
+            outline: none;
+            border-color: #00f0ff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+        
+        /* Card hover effects */
+        .qx-card {
+            background: rgba(16, 16, 26, 0.4);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .qx-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 240, 255, 0.1);
+        }
+        
+        /* Animated background grid */
+        .qx-grid-bg {
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+        
+        /* Floating particles */
+        .qx-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00f0ff;
+            border-radius: 50%;
+            animation: float 10s infinite ease-in-out;
+            opacity: 0.6;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            50% { transform: translateY(-100px) translateX(50px); }
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .sidebar-transition {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .collapsed-sidebar {
+            width: 70px !important;
+        }
+    </style>
+</head>
+<body class="text-gray-300 overflow-hidden h-screen">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 qx-grid-bg pointer-events-none"></div>
+    <div class="qx-particle" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+    <div class="qx-particle" style="top: 60%; left: 80%; animation-delay: 2s;"></div>
+    <div class="qx-particle" style="top: 40%; left: 60%; animation-delay: 4s;"></div>
+    
+    <div class="flex h-full relative z-10">
+        <!-- Sidebar -->
+        <aside class="hidden md:flex flex-col h-full w-[280px] sidebar-transition relative" id="sidebar">
+            <div class="qx-panel m-2 p-4 flex flex-col h-[calc(100%-16px)]">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 mb-8 px-2">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center">
+                        <span class="material-symbols-outlined text-black text-xl">hub</span>
+                    </div>
+                    <div>
+                        <h1 class="font-display text-lg font-bold qx-gradient-text tracking-wider">QUANTUM</h1>
+                        <p class="font-mono text-[10px] text-gray-500 uppercase tracking-[0.3em]">Nexus v2.0</p>
+                    </div>
+                </div>
+                
+                <!-- New Chat -->
+                <button class="qx-btn-primary py-3 px-4 rounded-lg mb-6 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">add</span>
+                    <span class="font-ui font-semibold tracking-wider">New Neural Link</span>
+                </button>
+                
+                <!-- Navigation -->
+                <nav class="flex-1 space-y-1 overflow-y-auto">
+                    <div class="px-2 mb-2">
+                        <span class="font-mono text-[10px] text-gray-500 uppercase tracking-widest">History</span>
+                    </div>
+                    
+                    <a href="#" class="qx-sidebar-item active flex items-center gap-3 px-4 py-3 rounded-r-lg">
+                        <span class="material-symbols-outlined text-neon-cyan">chat</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-ui font-medium text-sm truncate">System Diagnostics Analysis</p>
+                            <p class="font-mono text-[10px] text-gray-500">2m ago</p>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="qx-sidebar-item flex items-center gap-3 px-4 py-3 rounded-r-lg">
+                        <span class="material-symbols-outlined text-gray-500">chat</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-ui font-medium text-sm truncate">Neural Network Training</p>
+                            <p class="font-mono text-[10px] text-gray-500">1h ago</p>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="qx-sidebar-item flex items-center gap-3 px-4 py-3 rounded-r-lg">
+                        <span class="material-symbols-outlined text-gray-500">code</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-ui font-medium text-sm truncate">Quantum Algorithm Review</p>
+                            <p class="font-mono text-[10px] text-gray-500">3h ago</p>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="qx-sidebar-item flex items-center gap-3 px-4 py-3 rounded-r-lg">
+                        <span class="material-symbols-outlined text-gray-500">psychology</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-ui font-medium text-sm truncate">Consciousness Transfer</p>
+                            <p class="font-mono text-[10px] text-gray-500">Yesterday</p>
+                        </div>
+                    </a>
+                </nav>
+                
+                <!-- User -->
+                <div class="mt-auto pt-4 border-t border-white/5">
+                    <div class="flex items-center gap-3 px-2">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neon-pink to-purple-600 flex items-center justify-center text-white font-bold font-ui">
+                            F
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-ui font-semibold text-sm">flintx</p>
+                            <p class="font-mono text-[10px] text-neon-cyan">ONLINE</p>
+                        </div>
+                        <button class="text-gray-500 hover:text-neon-cyan transition-colors">
+                            <span class="material-symbols-outlined">settings</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-full relative">
+            <!-- Top Bar -->
+            <header class="flex items-center justify-between px-8 py-4">
+                <button class="md:hidden text-gray-400 hover:text-neon-cyan">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                
+                <nav class="hidden md:flex items-center gap-6">
+                    <a href="#" class="font-ui font-semibold text-sm text-neon-cyan border-b border-neon-cyan pb-1">Interface</a>
+                    <a href="#" class="font-ui font-semibold text-sm text-gray-500 hover:text-white transition-colors">Analytics</a>
+                    <a href="#" class="font-ui font-semibold text-sm text-gray-500 hover:text-white transition-colors">Neural Map</a>
+                </nav>
+                
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 px-3 py-1 qx-panel rounded-full">
+                        <div class="w-2 h-2 rounded-full bg-neon-cyan animate-pulse"></div>
+                        <span class="font-mono text-[10px] text-gray-400">SYSTEM OPTIMAL</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Hero Section -->
+            <div class="flex-1 flex flex-col items-center justify-center px-6 pb-20">
+                <!-- Logo Animation -->
+                <div class="text-center mb-12">
+                    <div class="inline-flex items-center justify-center w-24 h-24 mb-6 rounded-full bg-gradient-to-br from-neon-cyan/20 to-neon-pink/20 border border-neon-cyan/30 relative">
+                        <div class="absolute inset-0 rounded-full bg-neon-cyan/10 animate-ping"></div>
+                        <span class="material-symbols-outlined text-5xl qx-glow-cyan">neurology</span>
+                    </div>
+                    <h1 class="font-display text-6xl md:text-8xl font-black qx-gradient-text mb-4 tracking-tight">
+                        QUANTUM<br/>NEXUS
+                    </h1>
+                    <p class="font-mono text-gray-500 tracking-[0.5em] text-sm uppercase">Neural Interface Protocol</p>
+                </div>
+
+                <!-- Input Container -->
+                <div class="w-full max-w-2xl">
+                    <div class="qx-panel rounded-2xl p-2">
+                        <div class="flex items-center gap-3">
+                            <button class="p-3 text-gray-500 hover:text-neon-cyan transition-colors rounded-lg">
+                                <span class="material-symbols-outlined">attach_file</span>
+                            </button>
+                            <input 
+                                type="text" 
+                                placeholder="Initialize neural query sequence..." 
+                                class="flex-1 bg-transparent border-none outline-none font-ui text-lg placeholder-gray-600 text-white py-4"
+                            />
+                            <button class="qx-btn-primary p-4 rounded-xl">
+                                <span class="material-symbols-outlined">arrow_forward</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+                        <button class="qx-card p-4 rounded-xl text-left group">
+                            <span class="material-symbols-outlined text-2xl text-neon-cyan mb-2 block group-hover:scale-110 transition-transform">analytics</span>
+                            <span class="font-ui font-medium text-sm text-gray-400 group-hover:text-white transition-colors">System Analysis</span>
+                        </button>
+                        
+                        <button class="qx-card p-4 rounded-xl text-left group">
+                            <span class="material-symbols-outlined text-2xl text-neon-pink mb-2 block group-hover:scale-110 transition-transform">code_blocks</span>
+                            <span class="font-ui font-medium text-sm text-gray-400 group-hover:text-white transition-colors">Generate Code</span>
+                        </button>
+                        
+                        <button class="qx-card p-4 rounded-xl text-left group">
+                            <span class="material-symbols-outlined text-2xl text-purple-400 mb-2 block group-hover:scale-110 transition-transform">bubble_chart</span>
+                            <span class="font-ui font-medium text-sm text-gray-400 group-hover:text-white transition-colors">Visualize Data</span>
+                        </button>
+                        
+                        <button class="qx-card p-4 rounded-xl text-left group">
+                            <span class="material-symbols-outlined text-2xl text-blue-400 mb-2 block group-hover:scale-110 transition-transform">auto_fix_high</span>
+                            <span class="font-ui font-medium text-sm text-gray-400 group-hover:text-white transition-colors">Optimize Logic</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Status -->
+            <footer class="absolute bottom-0 left-0 right-0 p-4">
+                <div class="flex justify-center items-center gap-8 text-[11px] font-mono text-gray-600">
+                    <span class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse"></span>
+                        QUANTUM_LINK: STABLE
+                    </span>
+                    <span>LATENCY: 0.4ms</span>
+                    <span>ENTANGLEMENT: 99.9%</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowchart: API & Comms</title>
+    <style>
+        body { background-color: #111; color: #E0E0E0; font-family: 'Roboto Mono', monospace; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; max-width: 800px; }
+        h1 { color: #00AFFF; border-bottom: 2px solid #00AFFF; padding-bottom: 10px; text-align: center; }
+        .flowchart { display: flex; flex-direction: column; align-items: center; }
+        .step { background-color: #222; border: 1px solid #444; border-left: 5px solid #00AFFF; padding: 15px 20px; margin: 10px 0; width: 90%; box-shadow: 0 4px 8px rgba(0,0,0,0.5); text-align: left; }
+        .step.initial { border-left-color: #FFA500; }
+        .step.final { border-left-color: #00FF7F; }
+        .step strong { color: #00FF7F; }
+        .step code { color: #FFD700; background-color: #333; padding: 2px 5px; border-radius: 3px; }
+        .arrow { color: #555; font-size: 2rem; margin: 0; padding: 0; line-height: 1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Feature Evolution: API & Comms</h1>
+        <div class="flowchart">
+            <div class="step initial">
+                <strong>START: Legacy REST API</strong><br>
+                Standard request-response cycle. UI freezes while waiting for the full AI response.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>UPGRADE 1: SSE "Live Wire" Integration</strong><br>
+                Implemented a Server-Sent Events endpoint (<code>/v1/chat/stream</code>) for one-way real-time streaming. This allowed the UI to hydrate chat bubbles as tokens arrived.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step">
+                <strong>UPGRADE 2: Full WebSocket "Neural Link" Bridge</strong><br>
+                Pivoted to a more robust, bidirectional WebSocket protocol (<code>/ws/ws</code>). This fixed "Connection Lost" errors and enabled more complex real-time communication, like sending configuration updates from the client.
+            </div>
+            <div class="arrow">&darr;</div>
+            <div class="step final">
+                <strong>FINAL: Advanced Parameter & Filesystem Control</strong><br>
+                Expanded the API contract to include advanced generation controls (Temp, TopP, etc.). Added a filesystem bridge (<code>/v1/lim/*</code>) to give the UI secure, direct access to the local OS for the Payload Striker.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

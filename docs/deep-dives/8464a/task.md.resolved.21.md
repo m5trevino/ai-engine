@@ -1,0 +1,22 @@
+# Task: Pilot's Dashboard Expansion
+
+- [ ] **Phase 1: Sidebar Architecture**
+    - [ ] Add 10-slot Sequence state and UI module
+    - [ ] Create collapsible Context Vault (Ammo) module
+    - [ ] Add Master Arm / Fuse safety toggles
+- [ ] **Phase 2: Context Vault (Ammo Pile)**
+    - [ ] Implement Ammo Pile (VPS Storage) vs Loaded (Active) logic
+    - [ ] Build transfer mechanic (Move between Pile and Loaded)
+    - [ ] Build Slide-out Prompt Editor for asset grooming
+- [ ] **Phase 3: Sequence Striker & Orchestrator**
+    - [ ] Build `SequenceOrchestrator.ts` logic
+    - [ ] Implement Batch Mode (Wait for all)
+    - [ ] Implement Ultra Mode (Continuous Pool)
+    - [ ] Wire automated key rotation after 10 strikes
+- [ ] **Phase 4: Gauges & Telemetry**
+    - [ ] Implement real-time Token Burn (TPS) gauge
+    - [ ] Implement RPM Gauge (Hellcat Governor visualization)
+    - [ ] Dynamic progress bars for each manifest index
+- [ ] **Phase 5: Final Rig Sync**
+    - [ ] Push to `origin/main`
+    - [ ] Advise user to pull and run the Pilot's Build

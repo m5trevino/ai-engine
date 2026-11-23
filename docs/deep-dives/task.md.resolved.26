@@ -1,0 +1,5 @@
+- `[/]` Refactor `SequenceOrchestrator` payload generation strategy.
+- `[ ]` Expand `App.tsx` state with `globalPayloadPrompt` and `payloadOverrides`.
+- `[ ]` Redesign `PayloadStrikerScreen` Center Pane for dual-layer editing (Global vs Custom).
+- `[ ]` Wire payload execution logic to pipe overrides and global instructions to the Orchestrator.
+- `[ ]` Verify component stability and build pipeline.

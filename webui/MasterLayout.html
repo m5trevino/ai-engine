@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PEACOCK ENGINE | Master Layout Template</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="shared-styles.css"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        background: "#101418",
+                        surface: {
+                            DEFAULT: "#101418",
+                            dim: "#101418",
+                            bright: "#353a3e",
+                            container: {
+                                lowest: "#0a0f13",
+                                low: "#181c20",
+                                DEFAULT: "#1c2024",
+                                high: "#262a2f",
+                                highest: "#31353a",
+                            }
+                        },
+                        primary: {
+                            DEFAULT: "#aac7ff",
+                            container: "#0066cc",
+                            fixed: "#d7e3ff",
+                        },
+                        secondary: {
+                            container: "#ffdb3c",
+                            fixed: "#ffe16d",
+                        },
+                        status: {
+                            active: "#00C851",
+                            frozen: "#00BFFF",
+                            warning: "#ffdb3c",
+                        }
+                    },
+                    fontFamily: {
+                        headline: ["Space Grotesk"],
+                        body: ["Inter"],
+                        mono: ["JetBrains Mono"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0px",
+                        lg: "0px",
+                        xl: "0px",
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body h-screen overflow-hidden flex flex-col">
+    <!-- ============================================
+         TOP NAVIGATION (64px height, fixed)
+         ============================================ -->
+    <header class="bg-[#181c20] flex justify-between items-center w-full px-6 h-16 fixed top-0 z-50 border-b border-[#414753]/10">
+        <div class="flex items-center gap-8">
+            <span class="text-xl font-medium text-[#aac7ff] tracking-tight font-headline">PEACOCK ENGINE</span>
+            <nav class="hidden md:flex items-center gap-6 font-label text-sm tracking-tight">
+                <a class="text-primary border-b-2 border-[#0066cc] pb-1 font-medium" href="#">Models</a>
+                <a class="text-slate-400 hover:text-primary transition-colors" href="#">Analytics</a>
+                <a class="text-slate-400 hover:text-primary transition-colors" href="#">Keys</a>
+                <a class="text-slate-400 hover:text-primary transition-colors" href="#">Logs</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">notifications</span>
+            <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">settings</span>
+            <button class="btn-primary">Deploy</button>
+        </div>
+    </header>
+
+    <!-- ============================================
+         MAIN CONTENT AREA
+         ============================================ -->
+    <main class="flex flex-1 pt-16 overflow-hidden">
+        <!-- SIDE NAVIGATION (256px width) -->
+        <aside class="bg-[#181c20] flex flex-col h-full w-64 border-r border-[#414753]/10 shrink-0">
+            <div class="p-6 flex flex-col gap-1">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 bg-[#262a2f] flex items-center justify-center border border-[#aac7ff]/20">
+                        <span class="material-symbols-outlined text-[#aac7ff]">account_circle</span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-mono text-[#aac7ff] font-semibold tracking-wider">ADMIN_01</div>
+                        <div class="text-[10px] text-slate-500 font-mono">Full Access</div>
+                    </div>
+                </div>
+                <nav class="flex flex-col gap-1 font-body text-sm">
+                    <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-[#262a2f] hover:text-slate-200 transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">chat</span> Chat
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 text-primary bg-[#262a2f] border-l-2 border-primary transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">psychology</span> Models
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-[#262a2f] hover:text-slate-200 transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">build</span> Tools
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-[#262a2f] hover:text-slate-200 transition-all" href="#">
+                        <span class="material-symbols-outlined text-lg">key</span> Keys
+                    </a>
+                </nav>
+            </div>
+            <div class="mt-auto p-4 border-t border-[#414753]/10">
+                <button class="w-full py-2 bg-[#31353a] text-[#aac7ff] text-xs font-semibold border border-[#aac7ff]/20 hover:bg-[#aac7ff]/10 transition-colors mb-4">
+                    New Conversation
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT (flexible) -->
+        <section class="flex-1 overflow-y-auto bg-surface p-8">
+            <!-- Your screen-specific content goes here -->
+            <div class="max-w-6xl mx-auto">
+                <h1 class="text-headline text-3xl font-medium tracking-tight text-on-surface mb-2">Page Title</h1>
+                <p class="text-on-surface-variant text-sm mb-8">Page description goes here.</p>
+                
+                <!-- Example Card Grid -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="card active">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="status-dot active"></div>
+                            <h3 class="text-headline font-medium text-lg">Active Model</h3>
+                        </div>
+                        <p class="text-xs text-on-surface-variant mb-4">Description text goes here.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-mono text-xs text-slate-500">RPM: 5,000</span>
+                            <button class="btn-ghost">Configure</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="status-dot frozen"></div>
+                            <h3 class="text-headline font-medium text-lg">Frozen Model</h3>
+                        </div>
+                        <p class="text-xs text-on-surface-variant mb-4">Description text goes here.</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-mono text-xs text-slate-500">Status: Disabled</span>
+                            <button class="btn-ghost">Unfreeze</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Button Row -->
+                <div class="flex gap-4 mt-8">
+                    <button class="btn-gold gold-glow">
+                        <span class="material-symbols-outlined text-sm mr-2">play_arrow</span>
+                        Test Model
+                    </button>
+                    <button class="btn-secondary">Freeze Node</button>
+                    <button class="btn-secondary">Set Default</button>
+                </div>
+
+                <!-- Example Badges -->
+                <div class="flex flex-wrap gap-2 mt-8">
+                    <span class="badge active">Active</span>
+                    <span class="badge frozen">Frozen</span>
+                    <span class="badge warning">Warning</span>
+                    <span class="badge error">Error</span>
+                    <span class="badge default">Default</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- OPTIONAL: DETAILS PANEL (384px width) -->
+        <aside class="w-96 bg-[#181c20] border-l border-[#414753]/10 flex flex-col shrink-0">
+            <div class="p-6 border-b border-[#414753]/10 bg-[#1c2024]">
+                <h2 class="font-headline text-lg font-medium tracking-tight flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl">tune</span> 
+                    Details Panel
+                </h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6">
+                <p class="text-sm text-on-surface-variant">Contextual information and actions appear here.</p>
+            </div>
+            <div class="p-6 bg-[#1c2024] border-t border-[#414753]/10">
+                <button class="btn-gold w-full">Action Button</button>
+            </div>
+        </aside>
+    </main>
+
+    <!-- ============================================
+         STATUS BAR (32px height)
+         ============================================ -->
+    <footer class="h-8 bg-[#0a0f13] flex items-center justify-between px-6 border-t border-[#414753]/5 shrink-0">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-[#aac7ff] animate-pulse shadow-[0_0_8px_#aac7ff]"></div>
+                <span class="text-[10px] font-mono text-slate-400 tracking-wider">ENGINE: <span class="text-[#aac7ff]">ONLINE</span></span>
+            </div>
+            <div class="h-3 w-px bg-[#414753]/30"></div>
+            <span class="text-[10px] font-mono text-slate-500">v3.0.0-stable</span>
+        </div>
+        <div class="flex items-center gap-8">
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono text-slate-500">TOKENS:</span>
+                <span class="text-[10px] font-mono text-[#e0e3e8]">1.2M / 5.0M</span>
+                <div class="w-24 h-1.5 bg-[#262a2f] overflow-hidden">
+                    <div class="h-full bg-[#aac7ff]" style="width: 24%"></div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono text-slate-500">COST:</span>
+                <span class="text-[10px] font-mono text-[#ffdb3c]">$0.42</span>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

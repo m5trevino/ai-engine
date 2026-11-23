@@ -1,0 +1,434 @@
+/* ============================================
+   PEACOCK ENGINE - Masterpiece Design System
+   Shared Styles for All Screens
+   ============================================ */
+
+/* Font Rendering */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Scrollbar Standardization */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: #101418;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #31353a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4d94ff;
+}
+
+/* ============================================
+   GLOW EFFECTS
+   ============================================ */
+.cyber-glow {
+    filter: drop-shadow(0 0 8px rgba(170, 199, 255, 0.2));
+}
+
+.gold-glow {
+    filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27));
+}
+
+.gold-glow-hover:hover {
+    filter: drop-shadow(0 0 12px rgba(255, 219, 60, 0.4));
+}
+
+/* ============================================
+   GLASS PANEL
+   ============================================ */
+.glass-panel {
+    backdrop-filter: blur(12px);
+    background: rgba(38, 42, 47, 0.6);
+    border: 1px solid rgba(139, 145, 158, 0.15);
+}
+
+/* ============================================
+   GHOST BORDERS
+   ============================================ */
+.ghost-border {
+    border-color: rgba(65, 71, 83, 0.1);
+}
+
+.ghost-border-b {
+    border-bottom: 1px solid rgba(65, 71, 83, 0.1);
+}
+
+/* ============================================
+   KINETIC FOCUS (Input Focus States)
+   ============================================ */
+.kinetic-focus:focus-within {
+    border-left: 2px solid #aac7ff;
+    background-color: #181c20;
+}
+
+/* ============================================
+   STATUS INDICATORS
+   ============================================ */
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.status-dot.active {
+    background-color: #00C851;
+    box-shadow: 0 0 6px rgba(0, 200, 81, 0.6);
+}
+
+.status-dot.frozen {
+    background-color: #00BFFF;
+}
+
+.status-dot.warning {
+    background-color: #ffdb3c;
+    box-shadow: 0 0 6px rgba(255, 219, 60, 0.4);
+}
+
+.status-dot.error {
+    background-color: #ffb4ab;
+    box-shadow: 0 0 6px rgba(255, 180, 171, 0.4);
+}
+
+/* ============================================
+   BUTTON VARIANTS
+   ============================================ */
+
+/* Primary Button */
+.btn-primary {
+    background: linear-gradient(135deg, #aac7ff 0%, #0066cc 100%);
+    color: #002f65;
+    padding: 10px 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+}
+
+/* Secondary Button */
+.btn-secondary {
+    background: #31353a;
+    color: #e0e3e8;
+    padding: 10px 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(65, 71, 83, 0.5);
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+.btn-secondary:hover {
+    background: #aac7ff;
+    color: #002f65;
+    border-color: #aac7ff;
+}
+
+/* Gold/Action Button */
+.btn-gold {
+    background: #ffdb3c;
+    color: #3a3000;
+    padding: 12px 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27));
+    transition: all 0.15s ease-out;
+}
+
+.btn-gold:hover {
+    filter: drop-shadow(0 0 12px rgba(255, 219, 60, 0.4));
+}
+
+.btn-gold:active {
+    transform: scale(0.97);
+}
+
+/* Ghost Button */
+.btn-ghost {
+    background: transparent;
+    color: #8b919e;
+    padding: 8px 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 1px solid rgba(139, 145, 158, 0.3);
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+.btn-ghost:hover {
+    border-color: #aac7ff;
+    color: #aac7ff;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid;
+}
+
+.badge.active {
+    background: rgba(0, 200, 81, 0.1);
+    color: #00C851;
+    border-color: rgba(0, 200, 81, 0.2);
+}
+
+.badge.frozen {
+    background: rgba(0, 191, 255, 0.1);
+    color: #00BFFF;
+    border-color: rgba(0, 191, 255, 0.2);
+}
+
+.badge.warning {
+    background: rgba(255, 219, 60, 0.1);
+    color: #ffdb3c;
+    border-color: rgba(255, 219, 60, 0.2);
+}
+
+.badge.error {
+    background: rgba(255, 180, 171, 0.1);
+    color: #ffb4ab;
+    border-color: rgba(255, 180, 171, 0.2);
+}
+
+.badge.default {
+    background: #ffdb3c;
+    color: #3a3000;
+    border-color: #ffdb3c;
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+.card {
+    background: #181c20;
+    border: 1px solid rgba(65, 71, 83, 0.1);
+    padding: 20px;
+    transition: all 0.2s ease-out;
+}
+
+.card:hover {
+    background: #262a2f;
+}
+
+.card.active {
+    border-left: 2px solid #aac7ff;
+}
+
+.card-gold {
+    background: #181c20;
+    border-left: 2px solid #ffdb3c;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(255, 219, 60, 0.05);
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.input-field {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(65, 71, 83, 0.3);
+    padding: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #e0e3e8;
+    transition: border-color 0.15s ease-out;
+}
+
+.input-field:focus {
+    outline: none;
+    border-bottom-color: #aac7ff;
+}
+
+.input-field::placeholder {
+    color: rgba(139, 145, 158, 0.5);
+}
+
+/* Toggle Switch */
+.toggle {
+    position: relative;
+    width: 44px;
+    height: 22px;
+    background: #31353a;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle.active {
+    background: rgba(170, 199, 255, 0.2);
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: #8b919e;
+    transition: all 0.2s;
+}
+
+.toggle.active .toggle-thumb {
+    left: 24px;
+    background: #aac7ff;
+}
+
+/* ============================================
+   DATA TABLE
+   ============================================ */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #1c2024;
+    padding: 16px 24px;
+    text-align: left;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8b919e;
+}
+
+.data-table td {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(65, 71, 83, 0.1);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #e0e3e8;
+}
+
+.data-table tr:hover td {
+    background: #262a2f;
+}
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+.text-headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+}
+
+.text-body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+}
+
+.text-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+}
+
+.text-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ============================================
+   LAYOUT UTILITIES
+   ============================================ */
+.panel-grid {
+    display: grid;
+    grid-template-columns: 256px 1fr 384px;
+    height: calc(100vh - 64px - 32px);
+}
+
+.panel-main {
+    display: grid;
+    grid-template-columns: 256px 1fr;
+    height: calc(100vh - 64px - 32px);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+@media (max-width: 1280px) {
+    .panel-grid {
+        grid-template-columns: 256px 1fr;
+    }
+    
+    .details-panel {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .panel-grid,
+    .panel-main {
+        grid-template-columns: 1fr;
+    }
+    
+    .side-nav {
+        display: none;
+    }
+}

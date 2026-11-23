@@ -1,0 +1,1401 @@
+╭━─━─━─≪✠≫─━─━─━╮
+--- File: DESIGN.md ---
+╰━─━─━─≪✠≫─━─━─━╯
+
+# PEACOCK ENGINE WebUI - Design System
+> **Version**: 1.0.0 | **Date**: 2026-04-05 | **Status**: Production Ready
+
+---
+
+## 1. Design Philosophy
+
+**Creative North Star: "The Precision Engine"**
+
+PEACOCK ENGINE's WebUI is built for operators who demand clarity under pressure. This design system merges the **data density of financial terminals** with the **visual sophistication of modern cyberpunk interfaces**.
+
+Unlike generic SaaS dashboards, we embrace:
+- **Intentional density** - Information-rich layouts that reward attention
+- **Zero-radius geometry** - Sharp edges that feel machined, not molded
+- **Tonal hierarchy** - Depth through color shifts, not drop shadows
+- **Functional beauty** - Every pixel serves the operator's workflow
+
+The result is a **Digital Cockpit** - a command center for AI orchestration that feels both powerful and precise.
+
+---
+
+## 2. Color System
+
+### Core Palette
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `background` | `#101418` | Application canvas |
+| `surface` | `#101418` | Primary work areas |
+| `surface-container-low` | `#181c20` | Navigation, sidebars |
+| `surface-container` | `#1c2024` | Cards, panels |
+| `surface-container-high` | `#262a2f` | Active states, hover |
+| `surface-container-highest` | `#31353a` | Elevated elements |
+| `primary` | `#aac7ff` | Primary actions, links |
+| `primary-container` | `#0066cc` | Buttons, accents |
+| `secondary-container` | `#ffdb3c` | Gold highlights, CTAs |
+| `tertiary` | `#7ad0ff` | Ice blue for frozen states |
+| `error` | `#ffb4ab` | Errors, critical alerts |
+| `outline` | `#8b919e` | Subtle borders |
+| `outline-variant` | `#414753` | Ghost borders |
+
+### Status Colors
+
+| Status | Color | Usage |
+|--------|-------|-------|
+| Active | `#00C851` (Green) | Online models, healthy keys |
+| Frozen | `#00BFFF` (Ice Blue) | Disabled models, cooldown |
+| Warning | `#ffdb3c` (Gold) | Alerts, quotas |
+| Error | `#ffb4ab` (Red) | Failures, billing issues |
+
+### Surface Logic
+
+**The "No Border" Rule:** Separation is achieved through **chromatic shifts**, not 1px borders. Use surface container tiers to create depth:
+- Place `surface-container` on `surface` for subtle elevation
+- Place `surface-container-high` on `surface-container` for active focus
+- Use `outline-variant` at 10% opacity only when absolutely necessary
+
+---
+
+## 3. Typography
+
+### Font Stack
+
+| Role | Font | Weight Range |
+|------|------|--------------|
+| Headlines | Space Grotesk | 400-500 (light, elegant) |
+| Body | Inter | 400-500 (readable, neutral) |
+| Labels | Space Grotesk | 500 (medium weight) |
+| Mono | JetBrains Mono | 400-500 (data, logs) |
+
+### Type Scale
+
+| Element | Size | Weight | Tracking | Transform |
+|---------|------|--------|----------|-----------|
+| Page Title | 30px | 500 | -0.02em | none |
+| Section Header | 18px | 500 | -0.01em | none |
+| Card Title | 16px | 500 | 0 | none |
+| Body | 14px | 400 | 0 | none |
+| Label | 12px | 500 | 0.05em | UPPERCASE |
+| Mono Data | 14px | 400 | 0 | none |
+| Mono Small | 10-11px | 400 | 0.02em | UPPERCASE |
+| Caption | 10px | 400 | 0.02em | UPPERCASE |
+
+### Typography Principles
+
+1. **Headlines use medium weight** - Not bold. Lighter weights feel more refined.
+2. **Labels are always uppercase** - Creates clear hierarchy for metadata.
+3. **Monospace for all data** - RPM, TPM, pricing, timestamps, logs.
+4. **Tracking is tight** - -0.02em for headlines creates compact, intentional feel.
+
+---
+
+## 4. Layout Structure
+
+### Three-Panel Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TopNav (16px height)                                       │
+├──────────┬──────────────────────────────┬───────────────────┤
+│          │                              │                   │
+│ SideNav  │      Main Content            │  Details Panel    │
+│ (256px)  │      (flexible)              │  (384px)          │
+│          │                              │                   │
+├──────────┴──────────────────────────────┴───────────────────┤
+│  Status Bar (32px height)                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Panel Specifications
+
+| Panel | Width | Background | Purpose |
+|-------|-------|------------|---------|
+| TopNav | 100% | surface-container-low | Global nav, user actions |
+| SideNav | 256px | surface-container-low | Section navigation |
+| Main Content | flexible | surface | Primary data display |
+| Details Panel | 384px | surface-container-low | Contextual actions |
+| Status Bar | 100% | surface-container-lowest | System status |
+
+### Spacing System
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `space-1` | 4px | Tight gaps, icon padding |
+| `space-2` | 8px | Inline spacing |
+| `space-3` | 12px | Button padding |
+| `space-4` | 16px | Card padding, section gaps |
+| `space-6` | 24px | Major section separation |
+| `space-8` | 32px | Page-level padding |
+
+---
+
+## 5. Components
+
+### Buttons
+
+**Primary Button**
+- Background: Gradient from `primary` to `primary-container`
+- Text: `on-primary`
+- Padding: 12px 24px
+- Font: 12px, font-semibold, uppercase, tracking-wider
+- Border-radius: 0px
+- Hover: brightness(110%), active: scale(0.95)
+
+**Secondary Button**
+- Background: `surface-container-highest`
+- Border: 1px `outline-variant`
+- Text: `on-surface`
+- Hover: background shifts to `primary`, text to `on-primary`
+
+**Gold/Action Button**
+- Background: `secondary-container`
+- Text: `on-secondary-container`
+- Use for: Test, Deploy, Critical actions
+- Add `gold-glow` filter on hover
+
+### Cards
+
+**Model Card (Table Row)**
+- Background: transparent (inherits container)
+- Hover: `surface-container-high`
+- Left accent: 4px vertical bar in status color
+- Padding: 20px 24px
+- No border-bottom - use divide-y at 10% opacity
+
+**Key Card**
+- Background: `surface-container`
+- Border-left: 2px accent on hover
+- Padding: 20px
+- Status badge: pill shape with dot indicator
+
+### Status Badges
+
+**Active Badge**
+```
+BG: status-active/10
+Border: status-active/20
+Text: status-active
+Dot: status-active (no pulse)
+Font: 10px mono uppercase semibold
+```
+
+**Frozen Badge**
+```
+BG: status-frozen/10
+Border: status-frozen/20
+Text: status-frozen
+No dot
+Font: 10px mono uppercase semibold
+```
+
+### Data Table
+
+- Header: `surface-container` background
+- Header text: 12px uppercase, slate-500, medium weight
+- Row hover: `surface-container-high`
+- Cell padding: 20px 24px
+- No vertical borders
+- Horizontal dividers: `outline-variant/10`
+
+### Form Elements
+
+**Text Input**
+- Background: transparent
+- Border-bottom: 1px `outline-variant/30`
+- Focus: border shifts to `primary`
+- Font: Monospace for API keys, Inter for text
+
+**Toggle Switch**
+- Track: `surface-container-highest`
+- Thumb: status color
+- Active track: status color at 20% opacity
+
+---
+
+## 6. Screen-Specific Patterns
+
+### Model Registry Screen
+
+**Layout:**
+- Main: Data table with model rows
+- Right Panel: Selected model details + actions
+
+**Key Elements:**
+- Model name + provider badge
+- Status indicator (Active/Frozen/Deprecated)
+- Context window size (mono)
+- Rate limits RPM/TPM (mono)
+- Pricing in/out per 1k tokens (mono)
+- Actions: Test (gold), Freeze, Set Default
+
+**API Integration:**
+```
+GET /v1/webui/models/registry - List all models
+POST /v1/webui/models/{id}/test - Test model
+POST /v1/webui/models/{id}/freeze - Freeze model
+POST /v1/webui/models/{id}/unfreeze - Unfreeze model
+POST /v1/webui/models/{id}/default - Set default
+```
+
+### Key Management Screen
+
+**Layout:**
+- Main: Grid of key cards by gateway
+- Top metrics: Total keys, healthy count, cost estimate
+
+**Key Elements:**
+- Gateway icon + name
+- Masked key (first 8 + last 4)
+- Usage percentage bar
+- Status: Active/Standby/Error
+- Quick actions: Test, Toggle, Delete
+
+**API Integration:**
+```
+GET /v1/webui/keys/ - List all keys
+GET /v1/webui/keys/telemetry - Key metrics
+POST /v1/webui/keys/{gw}/{label}/test - Test key
+POST /v1/webui/keys/{gw}/{label}/toggle - Enable/disable
+DELETE /v1/webui/keys/{gw}/{label} - Remove key
+```
+
+### Chat Interface Screen
+
+**Layout:**
+- Main: Message thread with input
+- Left: Conversation list
+
+**Key Elements:**
+- Message bubbles with role indicators
+- File attachments with preview
+- Streaming indicator (pulsing dot)
+- Model selector dropdown
+- Token count + cost estimate
+
+**API Integration:**
+```
+GET /v1/webui/chat/conversations - List conversations
+POST /v1/webui/chat/conversations - Create conversation
+POST /v1/webui/chat/stream - Send message (SSE)
+POST /v1/webui/chat/upload - Upload file
+```
+
+---
+
+## 7. Animation & Micro-interactions
+
+### Hover States
+- Buttons: brightness(110%) + subtle scale
+- Cards: background shift + left border accent
+- Table rows: background to `surface-container-high`
+- Duration: 150ms ease-out
+
+### Loading States
+- Pulsing dot: `animate-pulse` on status indicators
+- Skeleton: Shimmer effect on `surface-container-high`
+- Streaming: Pulsing cursor in message input
+
+### Transitions
+- Panel slide: 200ms ease-in-out
+- Modal fade: backdrop blur + opacity
+- Toast slide: 300ms cubic-bezier
+
+---
+
+## 8. Responsive Behavior
+
+### Breakpoints
+
+| Breakpoint | Width | Behavior |
+|------------|-------|----------|
+| Desktop | 1440px+ | Full three-panel layout |
+| Laptop | 1024px | Collapsible details panel |
+| Tablet | 768px | Hide side nav, show hamburger |
+| Mobile | <768px | Single column, stacked panels |
+
+### Mobile Adaptations
+- SideNav becomes slide-out drawer
+- Details Panel becomes bottom sheet
+- Data table becomes card list
+- Status bar becomes collapsible
+
+---
+
+## 9. Do's and Don'ts
+
+### Do:
+- Use 0px border-radius consistently
+- Embrace data density - operators want information
+- Use monospace for all numerical data
+- Apply the gold color (`secondary-container`) sparingly for high-value actions
+- Use chromatic separation instead of borders
+- Keep headlines at font-weight 500 (medium), not bold
+
+### Don't:
+- Use rounded corners - it breaks the machined aesthetic
+- Use 100% opaque borders - they feel cluttered
+- Use generic "bootstrap blue" - stick to `primary` (#aac7ff)
+- Use dividers between list items - use spacing instead
+- Use font-weight 700+ for headlines - lighter is more refined
+- Forget the status bar - it's essential for operator awareness
+
+---
+
+## 10. Implementation Notes
+
+### Tailwind Configuration
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        background: '#101418',
+        surface: {
+          DEFAULT: '#101418',
+          dim: '#101418',
+          bright: '#353a3e',
+          container: {
+            lowest: '#0a0f13',
+            low: '#181c20',
+            DEFAULT: '#1c2024',
+            high: '#262a2f',
+            highest: '#31353a',
+          }
+        },
+        primary: {
+          DEFAULT: '#aac7ff',
+          container: '#0066cc',
+          fixed: '#d7e3ff',
+        },
+        secondary: {
+          container: '#ffdb3c',
+          fixed: '#ffe16d',
+        },
+        status: {
+          active: '#00C851',
+          frozen: '#00BFFF',
+          warning: '#ffdb3c',
+        }
+      },
+      fontFamily: {
+        headline: ['Space Grotesk', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
+      borderRadius: {
+        DEFAULT: '0px',
+        lg: '0px',
+        xl: '0px',
+      }
+    }
+  }
+}
+```
+
+### CSS Custom Properties
+
+```css
+:root {
+  --gold-glow: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27));
+  --cyber-glow: drop-shadow(0 0 8px rgba(170, 199, 255, 0.2));
+  --ghost-border: 1px solid rgba(65, 71, 83, 0.1);
+}
+```
+
+---
+
+## 11. Director's Final Note
+
+This design system serves a single purpose: **empower the operator**. Every decision - from the 0px corners to the monospace data fields - reinforces that PEACOCK ENGINE is a precision tool, not a casual app.
+
+When in doubt:
+1. Add more data, not less
+2. Use lighter font weights, not heavier
+3. Prefer color shifts over borders
+4. Default to sharp, not soft
+
+We are not building a website. We are building the cockpit for AI orchestration.
+
+---
+
+**END OF DESIGN SYSTEM**
+
+
+┎━─━─━─━─━─━─━─━─━┒
+--- File: DESIGN_CHANGES.md ---
+┖━─━─━─━─━─━─━─━─━┚
+
+# PEACOCK ENGINE - Design Changes Checklist
+> Apply these fixes to all 5 OG screens for consistent "Masterpiece" look
+
+---
+
+## 🔧 LAYOUT FIXES
+
+### TopNav Background
+```diff
+- bg-[#101418] OR bg-[#181c20] (mixed)
++ bg-[#181c20] (standardized)
++ border-b border-[#414753]/10
+```
+
+### SideNav Width
+```diff
+- w-[260px] OR w-64 (256px-280px mixed)
++ w-64 (exact 256px)
+```
+
+### Status Bar Height
+```diff
+- h-8 OR fixed bottom-0
++ h-8 (exact 32px)
++ bg-[#0a0f13] (surface-container-lowest)
+```
+
+---
+
+## ✏️ TYPOGRAPHY FIXES
+
+### Headline Font Weight
+```diff
+- font-bold (700)
+- font-extrabold (800) 
+- font-black (900)
++ font-medium (500) for ALL headlines
+```
+
+### Headline Tracking
+```diff
+- tracking-normal
+- tracking-wide
++ tracking-tight (-0.02em)
+```
+
+### Label Text
+```diff
+- font-bold uppercase
++ font-medium uppercase
++ tracking-wider (0.05em)
+```
+
+### Mono Data
+```diff
+- font-mono text-xs (10px)
++ font-mono text-xs (11px)
++ tracking-wide (0.02em)
+```
+
+---
+
+## 🎨 COLOR FIXES
+
+### Border Colors (ALL borders)
+```diff
+- border-white/5
+- border-white/10
+- border-gray-500
++ border-[#414753]/10 (outline-variant)
+```
+
+### Card Backgrounds
+```diff
+- bg-surface-container-low
++ bg-[#181c20] (surface-container-low)
++ hover:bg-[#262a2f] (surface-container-high)
+```
+
+### Primary Text
+```diff
+- text-blue-400
+- text-[#4d94ff]
++ text-[#aac7ff] (primary)
+```
+
+### Gold/Secondary
+```diff
+- text-yellow-400
+- bg-yellow-500
++ text-[#ffdb3c] (secondary-container)
++ bg-[#ffdb3c]
+```
+
+---
+
+## 📦 SPACING FIXES
+
+### Card Padding
+```diff
+- p-4 (16px)
+- p-6 (24px)
++ p-5 (20px) STANDARD
+```
+
+### Section Padding
+```diff
+- p-6
++ p-8 (32px)
+```
+
+### Grid Gaps
+```diff
+- gap-4 (16px)
++ gap-6 (24px)
+```
+
+---
+
+## 🎯 COMPONENT FIXES
+
+### Status Dots
+```diff
+- w-2 h-2 (8px)
++ w-1.5 h-1.5 (6px)
+
+- Rounded variations
++ rounded-full (consistent)
+```
+
+### Badges
+```diff
+- px-2 py-0.5
++ px-2.5 py-1
+
+- text-[10px]
++ text-[10px] font-semibold
+
++ Add gap-1.5 for dot spacing
+```
+
+### Buttons
+```diff
+# Primary Button
+- bg-primary
++ bg-gradient-to-br from-[#aac7ff] to-[#0066cc]
+
+# Gold Button
++ filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27))
++ hover: drop-shadow(0 0 12px rgba(255, 219, 60, 0.4))
+
+# All Buttons
++ active:scale-95
+```
+
+### Table Headers
+```diff
+- bg-surface-container-low
++ bg-[#1c2024] (surface-container)
+
+- font-bold
++ font-medium
+```
+
+---
+
+## 🧩 SCREEN-SPECIFIC FIXES
+
+### API Key Management
+- [ ] Status dots: 6px not 8px
+- [ ] "ADD NEW KEY" button → gold style
+- [ ] Telemetry panel → glass-panel class
+- [ ] Key cards: standard 20px padding
+
+### Chat Interface
+- [ ] Model dropdown: add z-50
+- [ ] Input area: kinetic-focus border
+- [ ] Message bubbles: consistent border-width
+- [ ] Right panel: sticky positioning
+
+### Custom Tool Creation
+- [ ] Modal: glass-panel backdrop blur
+- [ ] Form inputs: border-b only (no full border)
+- [ ] Deploy button: gold-glow effect
+- [ ] Card grid: gap-6 not gap-4
+
+### Model Registry
+- [ ] Table header: surface-container bg
+- [ ] Default badge: #ffdb3c (not wrong yellow)
+- [ ] Status badges: consistent px-2.5 py-1
+- [ ] Left accent bar: 2px width
+
+### Tool Configuration ✅
+- [ ] Already clean - use as reference
+- [ ] Just verify toggle switches match brand
+
+---
+
+## 📋 COPY-PASTE CSS UTILITIES
+
+Add to `<style>` in each file:
+
+```css
+/* Glow Effects */
+.gold-glow {
+    filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27));
+}
+.gold-glow-hover:hover {
+    filter: drop-shadow(0 0 12px rgba(255, 219, 60, 0.4));
+}
+
+/* Glass Panel */
+.glass-panel {
+    backdrop-filter: blur(12px);
+    background: rgba(38, 42, 47, 0.6);
+    border: 1px solid rgba(139, 145, 158, 0.15);
+}
+
+/* Kinetic Focus */
+.kinetic-focus:focus-within {
+    border-left: 2px solid #aac7ff;
+    background-color: #181c20;
+}
+
+/* Status Dots */
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+.status-dot.active {
+    background: #00C851;
+    box-shadow: 0 0 6px rgba(0, 200, 81, 0.6);
+}
+```
+
+---
+
+## ✅ FINAL CHECKLIST
+
+For each of the 5 screens, verify:
+
+- [ ] TopNav bg = #181c20
+- [ ] Headlines use font-medium (500)
+- [ ] SideNav width = 256px
+- [ ] Status bar height = 32px
+- [ ] Card padding = 20px
+- [ ] All borders = outline-variant/10
+- [ ] Buttons have active:scale-95
+- [ ] Status dots = 6px
+- [ ] Font tracking = tight for headlines
+- [ ] Gold elements have glow effect
+
+---
+
+**Tool Config screen is your reference** - copy its font weights, spacing, and color usage exactly.
+
+
+┍──━──━──┙◆┕──━──━──┑
+--- File: README.md ---
+┕──━──━──┑◆┍──━──━──┙
+
+# PEACOCK ENGINE - Component Library
+
+Standardized HTML components for all WebUI screens.
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `shared-styles.css` | Global CSS utilities, buttons, cards, form elements |
+| `TopNav.html` | Header navigation component |
+| `SideNav.html` | Sidebar navigation component |
+| `StatusBar.html` | Footer status bar component |
+| `MasterLayout.html` | Complete layout template showing all components together |
+
+## Usage
+
+Include the shared styles in your HTML head:
+
+```html
+<link rel="stylesheet" href="components/shared-styles.css">
+```
+
+Then copy/paste the component HTML into your page structure.
+
+## Standard Layout Structure
+
+```html
+<body class="bg-[#101418] text-[#e0e3e8] h-screen overflow-hidden flex flex-col">
+    <!-- TopNav (64px height) -->
+    <header>...</header>
+    
+    <!-- Main Content Area -->
+    <main class="flex flex-1 pt-16 overflow-hidden">
+        <!-- SideNav (256px width) -->
+        <aside>...</aside>
+        
+        <!-- Content (flexible) -->
+        <section class="flex-1 overflow-y-auto">
+            <!-- Your screen-specific content -->
+        </section>
+        
+        <!-- Optional: Details Panel (384px width) -->
+        <aside class="w-96">...</aside>
+    </main>
+    
+    <!-- StatusBar (32px height) -->
+    <footer>...</footer>
+</body>
+```
+
+## Design Tokens
+
+### Colors
+- Background: `#101418`
+- Surface: `#101418`
+- Surface Container Low: `#181c20`
+- Surface Container: `#1c2024`
+- Surface Container High: `#262a2f`
+- Primary: `#aac7ff`
+- Primary Container: `#0066cc`
+- Secondary/Gold: `#ffdb3c`
+
+### Typography
+- Headlines: Space Grotesk, weight 500, tracking -0.02em
+- Body: Inter, weight 400
+- Mono: JetBrains Mono, weight 400
+- Labels: Space Grotesk, uppercase, tracking 0.05em
+
+### Spacing
+- Section padding: 32px (p-8)
+- Card padding: 20px (p-5)
+- Component gaps: 16px (gap-4)
+- Small gaps: 8px (gap-2)
+
+### Border Radius
+- Default: 0px (sharp corners)
+- Full: 9999px (pills/dots only)
+
+## Button Classes
+
+```html
+<!-- Primary -->
+<button class="btn-primary">Deploy</button>
+
+<!-- Secondary -->
+<button class="btn-secondary">Cancel</button>
+
+<!-- Gold/Action -->
+<button class="btn-gold">Test Model</button>
+
+<!-- Ghost -->
+<button class="btn-ghost">Config</button>
+```
+
+## Badge Classes
+
+```html
+<span class="badge active">Active</span>
+<span class="badge frozen">Frozen</span>
+<span class="badge warning">Warning</span>
+<span class="badge error">Error</span>
+<span class="badge default">Default</span>
+```
+
+## Status Dots
+
+```html
+<div class="status-dot active"></div>
+<div class="status-dot frozen"></div>
+<div class="status-dot warning"></div>
+<div class="status-dot error"></div>
+```
+
+## Card Classes
+
+```html
+<!-- Standard Card -->
+<div class="card">...</div>
+
+<!-- Active Card (with left border) -->
+<div class="card active">...</div>
+
+<!-- Gold Accent Card -->
+<div class="card-gold">...</div>
+```
+
+
+╔═══━━━─── • ───━━━═══╗
+--- File: SideNav.html ---
+╚═══━━━─── • ───━━━═══╝
+
+<!-- ============================================
+     PEACOCK ENGINE - Side Navigation Component
+     Standardized sidebar for all screens
+     ============================================ -->
+<aside class="bg-[#181c20] flex flex-col h-full w-64 border-r border-[#414753]/10 shrink-0">
+    <!-- User Profile -->
+    <div class="p-6 flex flex-col gap-1">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-[#262a2f] flex items-center justify-center border border-[#aac7ff]/20">
+                <span class="material-symbols-outlined text-[#aac7ff]">account_circle</span>
+            </div>
+            <div>
+                <div class="text-xs font-mono text-[#aac7ff] font-semibold tracking-wider">ADMIN_01</div>
+                <div class="text-[10px] text-slate-500 font-mono">Full Access</div>
+            </div>
+        </div>
+        
+        <!-- Navigation Items -->
+        <nav class="flex flex-col gap-1 font-['Inter'] text-sm">
+            <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-[#262a2f] hover:text-slate-200 transition-all" href="#chat">
+                <span class="material-symbols-outlined text-lg">chat</span>
+                <span>Chat</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-[#aac7ff] bg-[#262a2f] border-l-2 border-[#aac7ff] transition-all" href="#models">
+                <span class="material-symbols-outlined text-lg">psychology</span>
+                <span>Models</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-[#262a2f] hover:text-slate-200 transition-all" href="#tools">
+                <span class="material-symbols-outlined text-lg">build</span>
+                <span>Tools</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-[#262a2f] hover:text-slate-200 transition-all" href="#keys">
+                <span class="material-symbols-outlined text-lg">key</span>
+                <span>Keys</span>
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Bottom Actions -->
+    <div class="mt-auto p-4 border-t border-[#414753]/10">
+        <button class="w-full py-2 bg-[#31353a] text-[#aac7ff] text-xs font-semibold border border-[#aac7ff]/20 hover:bg-[#aac7ff]/10 transition-colors mb-4">
+            New Conversation
+        </button>
+        <div class="flex flex-col gap-2">
+            <a class="flex items-center gap-2 text-[11px] text-slate-500 hover:text-slate-300" href="#docs">
+                <span class="material-symbols-outlined text-sm">help</span>
+                <span>Documentation</span>
+            </a>
+            <a class="flex items-center gap-2 text-[11px] text-slate-500 hover:text-slate-300" href="#support">
+                <span class="material-symbols-outlined text-sm">contact_support</span>
+                <span>Support</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+
+╔══════════•⊱✦⊰•══════════╗
+--- File: StatusBar.html ---
+╚══════════•⊱✦⊰•══════════╝
+
+<!-- ============================================
+     PEACOCK ENGINE - Status Bar Component
+     Standardized footer for all screens
+     ============================================ -->
+<footer class="h-8 bg-[#0a0f13] flex items-center justify-between px-6 border-t border-[#414753]/5 shrink-0">
+    <!-- Left: Version & Status -->
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-[#aac7ff] animate-pulse shadow-[0_0_8px_#aac7ff]"></div>
+            <span class="text-[10px] font-mono text-slate-400 tracking-wider">ENGINE: <span class="text-[#aac7ff]">ONLINE</span></span>
+        </div>
+        <div class="h-3 w-px bg-[#414753]/30"></div>
+        <span class="text-[10px] font-mono text-slate-500">v3.0.0-stable</span>
+    </div>
+    
+    <!-- Right: Metrics -->
+    <div class="flex items-center gap-8">
+        <!-- Token Usage -->
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-slate-500">TOKENS:</span>
+            <span class="text-[10px] font-mono text-[#e0e3e8]">1.2M / 5.0M</span>
+            <div class="w-24 h-1.5 bg-[#262a2f] overflow-hidden">
+                <div class="h-full bg-[#aac7ff]" style="width: 24%"></div>
+            </div>
+        </div>
+        
+        <!-- Cost -->
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-slate-500">COST:</span>
+            <span class="text-[10px] font-mono text-[#ffdb3c]">$0.42</span>
+        </div>
+        
+        <!-- Gateway Status -->
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-slate-500">GATEWAY:</span>
+            <span class="text-[10px] font-mono text-[#00C851]">ACTIVE</span>
+        </div>
+    </div>
+</footer>
+
+
+╭────────────────────────╮
+--- File: TopNav.html ---
+╰────────────────────────╯
+
+<!-- ============================================
+     PEACOCK ENGINE - Top Navigation Component
+     Standardized header for all screens
+     ============================================ -->
+<header class="bg-[#181c20] flex justify-between items-center w-full px-6 h-16 fixed top-0 z-50 border-b border-[#414753]/10">
+    <!-- Logo & Brand -->
+    <div class="flex items-center gap-8">
+        <span class="text-xl font-medium text-[#aac7ff] tracking-tight font-['Space_Grotesk']">PEACOCK ENGINE</span>
+        
+        <!-- Navigation Links -->
+        <nav class="hidden md:flex items-center gap-6 font-['Space_Grotesk'] text-sm tracking-tight">
+            <a class="text-primary border-b-2 border-[#0066cc] pb-1 font-medium" href="#models">Models</a>
+            <a class="text-slate-400 hover:text-primary transition-colors" href="#analytics">Analytics</a>
+            <a class="text-slate-400 hover:text-primary transition-colors" href="#keys">Keys</a>
+            <a class="text-slate-400 hover:text-primary transition-colors" href="#logs">Logs</a>
+        </nav>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex items-center gap-4">
+        <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">notifications</span>
+        <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">settings</span>
+        <button class="bg-gradient-to-br from-[#aac7ff] to-[#0066cc] text-[#002f65] px-4 py-1.5 text-xs font-semibold uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all">
+            Deploy
+        </button>
+    </div>
+</header>
+
+
+┏━━━━•❅•°•❈•°•❅•━━━━┓
+--- File: shared-styles.css ---
+┗━━━━•❅•°•❈•°•❅•━━━━┛
+
+/* ============================================
+   PEACOCK ENGINE - Masterpiece Design System
+   Shared Styles for All Screens
+   ============================================ */
+
+/* Font Rendering */
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Scrollbar Standardization */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+::-webkit-scrollbar-track {
+    background: #101418;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #31353a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4d94ff;
+}
+
+/* ============================================
+   GLOW EFFECTS
+   ============================================ */
+.cyber-glow {
+    filter: drop-shadow(0 0 8px rgba(170, 199, 255, 0.2));
+}
+
+.gold-glow {
+    filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27));
+}
+
+.gold-glow-hover:hover {
+    filter: drop-shadow(0 0 12px rgba(255, 219, 60, 0.4));
+}
+
+/* ============================================
+   GLASS PANEL
+   ============================================ */
+.glass-panel {
+    backdrop-filter: blur(12px);
+    background: rgba(38, 42, 47, 0.6);
+    border: 1px solid rgba(139, 145, 158, 0.15);
+}
+
+/* ============================================
+   GHOST BORDERS
+   ============================================ */
+.ghost-border {
+    border-color: rgba(65, 71, 83, 0.1);
+}
+
+.ghost-border-b {
+    border-bottom: 1px solid rgba(65, 71, 83, 0.1);
+}
+
+/* ============================================
+   KINETIC FOCUS (Input Focus States)
+   ============================================ */
+.kinetic-focus:focus-within {
+    border-left: 2px solid #aac7ff;
+    background-color: #181c20;
+}
+
+/* ============================================
+   STATUS INDICATORS
+   ============================================ */
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.status-dot.active {
+    background-color: #00C851;
+    box-shadow: 0 0 6px rgba(0, 200, 81, 0.6);
+}
+
+.status-dot.frozen {
+    background-color: #00BFFF;
+}
+
+.status-dot.warning {
+    background-color: #ffdb3c;
+    box-shadow: 0 0 6px rgba(255, 219, 60, 0.4);
+}
+
+.status-dot.error {
+    background-color: #ffb4ab;
+    box-shadow: 0 0 6px rgba(255, 180, 171, 0.4);
+}
+
+/* ============================================
+   BUTTON VARIANTS
+   ============================================ */
+
+/* Primary Button */
+.btn-primary {
+    background: linear-gradient(135deg, #aac7ff 0%, #0066cc 100%);
+    color: #002f65;
+    padding: 10px 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.1);
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+}
+
+/* Secondary Button */
+.btn-secondary {
+    background: #31353a;
+    color: #e0e3e8;
+    padding: 10px 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(65, 71, 83, 0.5);
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+.btn-secondary:hover {
+    background: #aac7ff;
+    color: #002f65;
+    border-color: #aac7ff;
+}
+
+/* Gold/Action Button */
+.btn-gold {
+    background: #ffdb3c;
+    color: #3a3000;
+    padding: 12px 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.27));
+    transition: all 0.15s ease-out;
+}
+
+.btn-gold:hover {
+    filter: drop-shadow(0 0 12px rgba(255, 219, 60, 0.4));
+}
+
+.btn-gold:active {
+    transform: scale(0.97);
+}
+
+/* Ghost Button */
+.btn-ghost {
+    background: transparent;
+    color: #8b919e;
+    padding: 8px 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border: 1px solid rgba(139, 145, 158, 0.3);
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+}
+
+.btn-ghost:hover {
+    border-color: #aac7ff;
+    color: #aac7ff;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid;
+}
+
+.badge.active {
+    background: rgba(0, 200, 81, 0.1);
+    color: #00C851;
+    border-color: rgba(0, 200, 81, 0.2);
+}
+
+.badge.frozen {
+    background: rgba(0, 191, 255, 0.1);
+    color: #00BFFF;
+    border-color: rgba(0, 191, 255, 0.2);
+}
+
+.badge.warning {
+    background: rgba(255, 219, 60, 0.1);
+    color: #ffdb3c;
+    border-color: rgba(255, 219, 60, 0.2);
+}
+
+.badge.error {
+    background: rgba(255, 180, 171, 0.1);
+    color: #ffb4ab;
+    border-color: rgba(255, 180, 171, 0.2);
+}
+
+.badge.default {
+    background: #ffdb3c;
+    color: #3a3000;
+    border-color: #ffdb3c;
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+.card {
+    background: #181c20;
+    border: 1px solid rgba(65, 71, 83, 0.1);
+    padding: 20px;
+    transition: all 0.2s ease-out;
+}
+
+.card:hover {
+    background: #262a2f;
+}
+
+.card.active {
+    border-left: 2px solid #aac7ff;
+}
+
+.card-gold {
+    background: #181c20;
+    border-left: 2px solid #ffdb3c;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(255, 219, 60, 0.05);
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.input-field {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(65, 71, 83, 0.3);
+    padding: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #e0e3e8;
+    transition: border-color 0.15s ease-out;
+}
+
+.input-field:focus {
+    outline: none;
+    border-bottom-color: #aac7ff;
+}
+
+.input-field::placeholder {
+    color: rgba(139, 145, 158, 0.5);
+}
+
+/* Toggle Switch */
+.toggle {
+    position: relative;
+    width: 44px;
+    height: 22px;
+    background: #31353a;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.toggle.active {
+    background: rgba(170, 199, 255, 0.2);
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: #8b919e;
+    transition: all 0.2s;
+}
+
+.toggle.active .toggle-thumb {
+    left: 24px;
+    background: #aac7ff;
+}
+
+/* ============================================
+   DATA TABLE
+   ============================================ */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #1c2024;
+    padding: 16px 24px;
+    text-align: left;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8b919e;
+}
+
+.data-table td {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(65, 71, 83, 0.1);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #e0e3e8;
+}
+
+.data-table tr:hover td {
+    background: #262a2f;
+}
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+.text-headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+}
+
+.text-body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+}
+
+.text-mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+}
+
+.text-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ============================================
+   LAYOUT UTILITIES
+   ============================================ */
+.panel-grid {
+    display: grid;
+    grid-template-columns: 256px 1fr 384px;
+    height: calc(100vh - 64px - 32px);
+}
+
+.panel-main {
+    display: grid;
+    grid-template-columns: 256px 1fr;
+    height: calc(100vh - 64px - 32px);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(-100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-in {
+    animation: slide-in 0.3s ease-out;
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+@media (max-width: 1280px) {
+    .panel-grid {
+        grid-template-columns: 256px 1fr;
+    }
+    
+    .details-panel {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .panel-grid,
+    .panel-main {
+        grid-template-columns: 1fr;
+    }
+    
+    .side-nav {
+        display: none;
+    }
+}

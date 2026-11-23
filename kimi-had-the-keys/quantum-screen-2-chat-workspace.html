@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>QUANTUM NEXUS | Active Session</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "void": "#050508",
+                        "void-light": "#0a0a12",
+                        "void-panel": "#10101a",
+                        "neon-cyan": "#00f0ff",
+                        "neon-pink": "#ff00a0",
+                        "neon-purple": "#a855f7",
+                        "glass": "rgba(16, 16, 26, 0.8)",
+                    },
+                    fontFamily: {
+                        "display": ["Orbitron", "sans-serif"],
+                        "ui": ["Rajdhani", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.4);
+            --glow-pink: 0 0 20px rgba(255, 0, 160, 0.4);
+            --panel-glow: inset 0 1px 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(0, 240, 255, 0.1);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #050508 0%, #0a0a15 50%, #050510 100%);
+            font-family: 'Rajdhani', sans-serif;
+        }
+        
+        /* Glassmorphism panels */
+        .qx-panel {
+            background: rgba(16, 16, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            box-shadow: var(--panel-glow), 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Neon buttons */
+        .qx-btn-neon {
+            background: transparent;
+            border: 1px solid rgba(0, 240, 255, 0.5);
+            color: #00f0ff;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .qx-btn-neon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .qx-btn-neon:hover::before {
+            left: 100%;
+        }
+        
+        .qx-btn-neon:hover {
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            border-color: #00f0ff;
+        }
+        
+        /* Primary action button */
+        .qx-btn-primary {
+            background: linear-gradient(135deg, #00f0ff 0%, #0080ff 100%);
+            color: #000;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: none;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .qx-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.6);
+        }
+        
+        /* Glowing text */
+        .qx-glow-cyan { color: #00f0ff; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+        .qx-glow-pink { color: #ff00a0; text-shadow: 0 0 10px rgba(255, 0, 160, 0.5); }
+        
+        /* Gradient text */
+        .qx-gradient-text {
+            background: linear-gradient(135deg, #00f0ff 0%, #ff00a0 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Sidebar items */
+        .qx-sidebar-item {
+            border-left: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .qx-sidebar-item:hover {
+            background: rgba(0, 240, 255, 0.05);
+            border-left-color: rgba(0, 240, 255, 0.5);
+        }
+        .qx-sidebar-item.active {
+            background: rgba(0, 240, 255, 0.1);
+            border-left-color: #00f0ff;
+        }
+        
+        /* Message bubbles */
+        .qx-message-bot {
+            background: rgba(16, 16, 26, 0.8);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-left: 3px solid #00f0ff;
+        }
+        
+        .qx-message-user {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+        
+        /* Toggle switches */
+        .qx-toggle {
+            appearance: none;
+            width: 48px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .qx-toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: #444;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+        .qx-toggle:checked {
+            background: rgba(0, 240, 255, 0.2);
+            border-color: #00f0ff;
+        }
+        .qx-toggle:checked::after {
+            left: 26px;
+            background: #00f0ff;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+        }
+        
+        /* Range slider */
+        .qx-range {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 2px;
+            outline: none;
+        }
+        .qx-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #00f0ff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.4); }
+        
+        .sidebar-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body class="text-gray-300 h-screen overflow-hidden">
+    <div class="flex h-full">
+        <!-- COLUMN 1: Left Sidebar - History -->
+        <aside class="hidden md:flex flex-col w-[280px] h-full sidebar-transition" id="left-sidebar">
+            <div class="qx-panel m-2 p-4 flex flex-col h-[calc(100%-16px)]">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 mb-6 px-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple flex items-center justify-center">
+                        <span class="material-symbols-outlined text-black text-lg">hub</span>
+                    </div>
+                    <span class="font-display text-sm font-bold qx-gradient-text">QUANTUM</span>
+                </div>
+                
+                <!-- New Chat -->
+                <button class="qx-btn-primary py-2 px-4 rounded-lg mb-4 flex items-center justify-center gap-2 text-sm">
+                    <span class="material-symbols-outlined text-lg">add</span>
+                    <span class="font-ui font-semibold">New Link</span>
+                </button>
+                
+                <!-- History -->
+                <div class="flex-1 overflow-y-auto space-y-1">
+                    <div class="px-2 mb-2">
+                        <span class="font-mono text-[10px] text-gray-500 uppercase tracking-widest">Active Session</span>
+                    </div>
+                    
+                    <a href="#" class="qx-sidebar-item active flex items-center gap-3 px-3 py-2 rounded-r-lg">
+                        <span class="material-symbols-outlined text-neon-cyan text-lg">chat</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-ui font-medium text-sm truncate">System Diagnostics</p>
+                            <p class="font-mono text-[10px] text-gray-500">Now</p>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="qx-sidebar-item flex items-center gap-3 px-3 py-2 rounded-r-lg">
+                        <span class="material-symbols-outlined text-gray-500 text-lg">chat</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-ui font-medium text-sm truncate">Neural Training</p>
+                            <p class="font-mono text-[10px] text-gray-500">1h ago</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <!-- User -->
+                <div class="mt-auto pt-4 border-t border-white/5">
+                    <div class="flex items-center gap-2 px-2">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-neon-pink to-purple-600 flex items-center justify-center text-white font-bold text-sm">F</div>
+                        <div class="flex-1">
+                            <p class="font-ui font-medium text-sm">flintx</p>
+                            <p class="font-mono text-[10px] text-neon-cyan">ONLINE</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- COLUMN 2: Main Chat -->
+        <main class="flex-1 flex flex-col h-full min-w-0">
+            <!-- Header -->
+            <header class="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                <div class="flex items-center gap-4">
+                    <button class="md:hidden text-gray-400 hover:text-neon-cyan" onclick="toggleSidebar('left-sidebar')">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <span class="font-display text-lg font-bold qx-gradient-text hidden sm:block">QUANTUM NEXUS</span>
+                    <nav class="hidden lg:flex items-center gap-4 ml-4">
+                        <a href="#" class="font-ui text-sm text-gray-500 hover:text-white">Interface</a>
+                        <a href="#" class="font-ui text-sm text-neon-cyan border-b border-neon-cyan">Telemetry</a>
+                        <a href="#" class="font-ui text-sm text-gray-500 hover:text-white">Neural Map</a>
+                    </nav>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1 qx-panel rounded-full">
+                        <div class="w-2 h-2 rounded-full bg-neon-cyan animate-pulse"></div>
+                        <span class="font-mono text-[10px]">NODE_ACTIVE</span>
+                    </div>
+                    <button class="qx-panel p-2 rounded-lg hover:border-neon-cyan/50 transition-colors" onclick="toggleSidebar('right-sidebar')">
+                        <span class="material-symbols-outlined text-gray-400">tune</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Canvas -->
+            <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                <!-- System Banner -->
+                <div class="flex justify-center">
+                    <div class="qx-panel px-4 py-2 rounded-full">
+                        <p class="font-mono text-[10px] text-gray-500 tracking-widest">SESSION_ID: QX-9928-ALPHA // ENCRYPTED</p>
+                    </div>
+                </div>
+
+                <!-- Bot Message -->
+                <div class="flex gap-4 max-w-3xl">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-neon-cyan to-blue-500 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-black">smart_toy</span>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-[10px] font-bold text-neon-cyan tracking-widest">QUANTUM_AI</span>
+                            <span class="font-mono text-[9px] text-gray-600">14:02:45</span>
+                        </div>
+                        <div class="qx-message-bot rounded-xl rounded-tl-none p-4">
+                            <p class="font-ui text-sm leading-relaxed">
+                                Neural network analysis complete. Detected <span class="text-neon-cyan">anomalous patterns</span> in sector 7G. 
+                                Recommend immediate quantum recalibration.
+                            </p>
+                            <div class="mt-3 p-3 bg-black/50 rounded-lg font-mono text-xs text-neon-cyan/70 border border-neon-cyan/20">
+                                <span class="text-gray-500">// DIAGNOSTIC_OUTPUT</span><br/>
+                                &gt; entropy_level: CRITICAL<br/>
+                                &gt; coherence: 87.3%<br/>
+                                &gt; action: RECALIBRATE_QUBITS
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Message -->
+                <div class="flex gap-4 max-w-3xl ml-auto flex-row-reverse">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-neon-pink to-purple-600 flex items-center justify-center text-white font-bold">F</div>
+                    <div class="flex-1 space-y-1 text-right">
+                        <div class="flex items-center gap-2 justify-end">
+                            <span class="font-mono text-[9px] text-gray-600">14:03:12</span>
+                            <span class="font-mono text-[10px] font-bold text-gray-400 tracking-widest">OPERATOR</span>
+                        </div>
+                        <div class="qx-message-user rounded-xl rounded-tr-none p-4 inline-block text-left max-w-lg">
+                            <p class="font-ui text-sm leading-relaxed">
+                                Initiate qubit recalibration sequence. Prioritize coherence stabilization.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bot Response -->
+                <div class="flex gap-4 max-w-3xl">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-neon-cyan to-blue-500 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-black">smart_toy</span>
+                    </div>
+                    <div class="flex-1 space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono text-[10px] font-bold text-neon-cyan tracking-widest">QUANTUM_AI</span>
+                            <span class="font-mono text-[9px] text-gray-600">14:03:15</span>
+                        </div>
+                        <div class="qx-message-bot rounded-xl rounded-tl-none p-4">
+                            <p class="font-ui text-sm leading-relaxed">
+                                Acknowledged. Executing recalibration protocol...
+                            </p>
+                            <div class="mt-3 p-3 bg-black/50 rounded-lg font-mono text-xs border border-neon-cyan/20 space-y-1">
+                                <p class="text-neon-cyan">&gt; Phase 1: Isolating decoherent qubits...</p>
+                                <p class="text-gray-400">&gt; Phase 2: Applying Hadamard corrections</p>
+                                <p class="text-neon-cyan">&gt; Phase 3: Re-entangling quantum states</p>
+                                <p class="text-gray-500">&gt; Progress: [██████░░░░] 60%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <footer class="p-4 border-t border-white/5">
+                <div class="max-w-3xl mx-auto">
+                    <div class="qx-panel rounded-xl p-2">
+                        <div class="flex items-end gap-2">
+                            <button class="p-2 text-gray-500 hover:text-neon-cyan transition-colors">
+                                <span class="material-symbols-outlined">attach_file</span>
+                            </button>
+                            <textarea class="flex-1 bg-transparent border-none outline-none font-ui text-sm text-white placeholder-gray-600 resize-none py-2 max-h-32" placeholder="Enter quantum query..." rows="1"></textarea>
+                            <button class="qx-btn-primary p-3 rounded-lg">
+                                <span class="material-symbols-outlined">send</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </main>
+
+        <!-- COLUMN 3: Right Configuration -->
+        <aside class="hidden xl:flex flex-col w-[300px] h-full sidebar-transition" id="right-sidebar">
+            <div class="qx-panel m-2 p-5 flex flex-col h-[calc(100%-16px)] overflow-y-auto">
+                <h3 class="font-display text-xs font-bold text-gray-400 tracking-widest mb-6">NEURAL CONFIG</h3>
+                
+                <!-- Model Selector -->
+                <div class="mb-6">
+                    <label class="font-mono text-[10px] text-gray-500 uppercase tracking-wider mb-2 block">Model</label>
+                    <select class="w-full qx-panel rounded-lg p-3 font-ui text-sm text-white bg-transparent border-none outline-none cursor-pointer">
+                        <option>Quantum-X1 Pro</option>
+                        <option>Neural-9 Ultra</option>
+                        <option>Synapse-7B</option>
+                    </select>
+                </div>
+
+                <!-- System Prompt -->
+                <div class="mb-6">
+                    <label class="font-mono text-[10px] text-gray-500 uppercase tracking-wider mb-2 block">System Directives</label>
+                    <textarea class="w-full qx-panel rounded-lg p-3 font-mono text-xs text-white bg-transparent border-none outline-none resize-none h-28" placeholder="Enter directives...">Maintain quantum coherence. Prioritize stability over speed.</textarea>
+                </div>
+
+                <!-- Temperature -->
+                <div class="mb-6">
+                    <div class="flex justify-between mb-2">
+                        <label class="font-mono text-[10px] text-gray-500 uppercase tracking-wider">Entropy</label>
+                        <span class="font-mono text-[10px] text-neon-cyan" id="temp-val">0.7</span>
+                    </div>
+                    <input type="range" class="qx-range" min="0" max="100" value="70" oninput="document.getElementById('temp-val').innerText = (this.value/100).toFixed(1)">
+                </div>
+
+                <!-- Toggles -->
+                <div class="space-y-4 mb-6">
+                    <div class="flex items-center justify-between">
+                        <span class="font-ui text-sm text-gray-400">Stream Output</span>
+                        <input type="checkbox" class="qx-toggle" checked>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-ui text-sm text-gray-400">Quantum Boost</span>
+                        <input type="checkbox" class="qx-toggle" checked>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-ui text-sm text-gray-400">Auto-Save</span>
+                        <input type="checkbox" class="qx-toggle">
+                    </div>
+                </div>
+
+                <!-- Persona -->
+                <div class="mb-6">
+                    <label class="font-mono text-[10px] text-gray-500 uppercase tracking-wider mb-2 block">Persona</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="qx-panel py-2 text-xs font-ui text-neon-cyan border-neon-cyan/30">Analytical</button>
+                        <button class="qx-panel py-2 text-xs font-ui text-gray-500 hover:text-white">Creative</button>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-4 border-t border-white/5 text-center">
+                    <span class="font-mono text-[10px] text-gray-600 tracking-widest">QUANTUM_SYSTEMS_v2.0</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        function toggleSidebar(id) {
+            const sidebar = document.getElementById(id);
+            sidebar.classList.toggle('hidden');
+        }
+        
+        // Auto-resize textarea
+        document.querySelectorAll('textarea').forEach(ta => {
+            ta.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+            });
+        });
+    </script>
+</body>
+</html>

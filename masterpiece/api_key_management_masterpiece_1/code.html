@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PEACOCK ENGINE | API KEY MANAGEMENT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .gold-glow {
+            filter: drop-shadow(0 0 8px rgba(255, 219, 60, 0.4));
+        }
+        .gold-glow:hover {
+            filter: drop-shadow(0 0 12px rgba(255, 219, 60, 0.6));
+        }
+        .glass-panel {
+            background: rgba(28, 32, 36, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101418;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #43474f;
+        }
+        .custom-dashed-border {
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' stroke='%2343474f' stroke-width='1' stroke-dasharray='4%2c 4' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffe16b",
+                        "primary-fixed-dim": "#aac7ff",
+                        "error": "#ffb4ab",
+                        "outline": "#8e909a",
+                        "tertiary-fixed-dim": "#7ad0ff",
+                        "on-surface-variant": "#c4c6d0",
+                        "on-secondary-container": "#524400",
+                        "surface-tint": "#aac7ff",
+                        "surface-container-high": "#262a2f",
+                        "surface-bright": "#363a3e",
+                        "outline-variant": "#43474f",
+                        "on-tertiary-fixed": "#001e2c",
+                        "primary-container": "#aac7ff",
+                        "on-secondary-fixed": "#221b00",
+                        "surface-container": "#1c2024",
+                        "on-secondary": "#3a3000",
+                        "on-primary-fixed": "#001b3e",
+                        "on-tertiary": "#003549",
+                        "inverse-on-surface": "#2d3135",
+                        "on-tertiary-fixed-variant": "#004c69",
+                        "primary-fixed": "#d6e3ff",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#181c20",
+                        "primary": "#d6e2ff",
+                        "on-primary-container": "#355283",
+                        "surface-container-highest": "#31353a",
+                        "on-primary-fixed-variant": "#284777",
+                        "surface": "#101418",
+                        "inverse-surface": "#e0e3e8",
+                        "background": "#101418",
+                        "on-surface": "#e0e3e8",
+                        "error-container": "#93000a",
+                        "surface-dim": "#101418",
+                        "on-background": "#e0e3e8",
+                        "tertiary-fixed": "#c3e8ff",
+                        "secondary": "#f0cd2d",
+                        "on-error": "#690005",
+                        "on-primary": "#0c305f",
+                        "surface-container-lowest": "#0b0f12",
+                        "on-secondary-fixed-variant": "#544600",
+                        "tertiary-container": "#79d0ff",
+                        "surface-variant": "#31353a",
+                        "tertiary": "#c2e7ff",
+                        "secondary-fixed-dim": "#e7c423",
+                        "secondary-container": "#d2b100",
+                        "inverse-primary": "#415f90",
+                        "on-tertiary-container": "#005979"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["JetBrains Mono"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 h-16 bg-[#181c20] flex items-center justify-between px-6 border-none">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold text-[#aac7ff] tracking-tighter font-headline">PEACOCK ENGINE</span>
+<nav class="hidden md:flex items-center h-16">
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">DASHBOARD</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">ANALYTICS</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase border-b-2 border-[#aac7ff] text-[#aac7ff]" href="#">LOGS</a>
+<a class="text-gray-400 hover:text-[#aac7ff] transition-colors duration-200 px-4 font-headline font-medium tracking-tighter uppercase" href="#">DEPLOYMENT</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="bg-surface-container-lowest border-none border-b border-primary/30 focus:border-primary focus:ring-0 text-xs font-label w-64 h-8 pl-10 uppercase tracking-widest" placeholder="SEARCH_SYSTEM_NODES..." type="text"/>
+</div>
+<button class="material-symbols-outlined p-2 text-outline hover:text-primary transition-all cursor-pointer">notifications_active</button>
+<button class="material-symbols-outlined p-2 text-outline hover:text-primary transition-all cursor-pointer">settings</button>
+<div class="w-8 h-8 bg-surface-bright flex items-center justify-center">
+<img alt="User System Operator" class="w-6 h-6" data-alt="geometric identicon representing a technical system operator in high contrast blue and dark grey" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtb0lYxEOAFYDiyUJKhHxFX5MsdTY0SNVtO5hW4FkGDIwEyYODLBn2YC1AETuz46DwNuo6tVStakdlXo5ovj96UMYaXGVHB3-YLTFRYD5zAqE3kNc1PzREqvHSFs0mi9M0UA5n4eWOyUIdu1hghLCW2JAkXfnXNNpYblNsXCqa5cNvsPIevFI9iuDxGZVQi49QERfFWN89ScP9DDV_o0JVphk6YS_IKRbijeOKybDZXDr7PYOfND1_akhOsmc5OmLCLUuyzNCQyjSf"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="w-64 h-full fixed left-0 top-16 bg-[#181c20] z-40 hidden md:flex flex-col border-none">
+<div class="p-6 border-b border-outline-variant/10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-surface-container flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-[#ffdb3c]">security</span>
+</div>
+<div>
+<div class="font-headline text-sm font-bold text-[#ffdb3c] tracking-tight">OPERATOR-01</div>
+<div class="font-label text-[10px] text-outline tracking-widest">PRECISION-LEVEL-4</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 py-4 overflow-y-auto">
+<a class="flex items-center gap-4 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-sm">memory</span>
+<span class="text-sm font-medium uppercase tracking-widest">Engine Status</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 bg-[#1c2024] text-[#aac7ff] border-l-4 border-[#aac7ff] transition-all" href="#">
+<span class="material-symbols-outlined text-sm">extension</span>
+<span class="text-sm font-medium uppercase tracking-widest">Core Modules</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-sm">hub</span>
+<span class="text-sm font-medium uppercase tracking-widest">Network Mesh</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-sm">database</span>
+<span class="text-sm font-medium uppercase tracking-widest">Storage Nodes</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-sm">shield</span>
+<span class="text-sm font-medium uppercase tracking-widest">Security Protocol</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-gray-500 hover:bg-[#363a3e] hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-sm">admin_panel_settings</span>
+<span class="text-sm font-medium uppercase tracking-widest">System Admin</span>
+</a>
+</nav>
+<div class="p-6 mt-auto border-t border-outline-variant/10">
+<button class="w-full bg-[#ffdb3c] text-on-secondary py-3 text-[10px] font-bold tracking-[0.2em] hover:opacity-90 active:scale-95 transition-all gold-glow uppercase">INITIALIZE SEQUENCE</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 mt-16 p-8 pb-16 min-h-screen bg-background">
+<!-- Header & Metrics -->
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 gap-6">
+<div class="space-y-1">
+<h1 class="text-3xl font-headline font-medium tracking-tighter uppercase text-on-surface">API Key Management</h1>
+<p class="text-outline font-label text-[10px] tracking-widest">SECURE_GATEWAY_AUTH_CONTROL_PANEL_v4.2.0</p>
+</div>
+<div class="flex flex-wrap gap-4">
+<!-- Metric Card 1 -->
+<div class="bg-surface-container p-4 min-w-[160px] border-b-2 border-primary/30">
+<div class="text-[10px] font-label text-outline uppercase tracking-widest mb-1">TOTAL_KEYS</div>
+<div class="text-2xl font-headline text-primary">24</div>
+</div>
+<!-- Metric Card 2 -->
+<div class="bg-surface-container p-4 min-w-[160px] border-b-2 border-[#00C851]/30">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-[6px] h-[6px] bg-[#00C851]"></div>
+<div class="text-[10px] font-label text-outline uppercase tracking-widest">HEALTHY_NODES</div>
+</div>
+<div class="text-2xl font-headline text-[#00C851]">21</div>
+</div>
+<!-- Metric Card 3 -->
+<div class="bg-surface-container p-4 min-w-[160px] border-b-2 border-[#ffdb3c]/30">
+<div class="text-[10px] font-label text-outline uppercase tracking-widest mb-1">EST_COST_MTD</div>
+<div class="text-2xl font-headline text-[#ffdb3c] tracking-tighter">$1,402.82</div>
+</div>
+<button class="bg-[#ffdb3c] text-on-secondary px-6 h-full flex items-center justify-center font-bold text-[10px] tracking-[0.15em] hover:opacity-90 active:scale-95 transition-all gold-glow uppercase py-4">
+<span class="material-symbols-outlined mr-2 text-sm">add</span> ADD NEW KEY
+                </button>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+<!-- Gateway Key Grid -->
+<div class="xl:col-span-2 space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Key Card: Google -->
+<div class="bg-[#1c2024] p-[20px] hover:border-l-4 hover:border-primary transition-all group cursor-pointer active:scale-[0.98]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">google</span>
+</div>
+<div>
+<h3 class="text-sm font-headline font-bold text-white tracking-tight uppercase">Google Vertex AI</h3>
+<p class="text-[10px] font-label text-outline tracking-wider">GATEWAY_ID: G-9021</p>
+</div>
+</div>
+<div class="w-[6px] h-[6px] bg-[#00C851]"></div>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-2 font-label text-xs text-primary/80 flex justify-between items-center">
+<span>sk-••••••••••••v9X0</span>
+<span class="material-symbols-outlined text-sm cursor-pointer hover:text-white">content_copy</span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">USAGE_PERCENT</div>
+<div class="w-32 h-1 bg-surface-container-high overflow-hidden">
+<div class="h-full bg-primary" style="width: 65%;"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">LATENCY</div>
+<div class="text-xs font-label text-[#00C851]">124ms</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Key Card: Groq -->
+<div class="bg-[#1c2024] p-[20px] hover:border-l-4 hover:border-[#ffdb3c] transition-all group cursor-pointer active:scale-[0.98]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-[#ffdb3c] text-xl">bolt</span>
+</div>
+<div>
+<h3 class="text-sm font-headline font-bold text-white tracking-tight uppercase">Groq Inference</h3>
+<p class="text-[10px] font-label text-outline tracking-wider">GATEWAY_ID: Q-4412</p>
+</div>
+</div>
+<div class="w-[6px] h-[6px] bg-[#00C851]"></div>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-2 font-label text-xs text-primary/80 flex justify-between items-center">
+<span>gsk-••••••••••••kM21</span>
+<span class="material-symbols-outlined text-sm cursor-pointer hover:text-white">content_copy</span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">USAGE_PERCENT</div>
+<div class="w-32 h-1 bg-surface-container-high overflow-hidden">
+<div class="h-full bg-[#ffdb3c]" style="width: 12%;"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">LATENCY</div>
+<div class="text-xs font-label text-[#00C851]">14ms</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Key Card: Anthropic -->
+<div class="bg-[#1c2024] p-[20px] hover:border-l-4 hover:border-primary transition-all group cursor-pointer active:scale-[0.98]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">psychology</span>
+</div>
+<div>
+<h3 class="text-sm font-headline font-bold text-white tracking-tight uppercase">Anthropic Claude</h3>
+<p class="text-[10px] font-label text-outline tracking-wider">GATEWAY_ID: A-0019</p>
+</div>
+</div>
+<div class="w-[6px] h-[6px] bg-[#ffb4ab]"></div>
+</div>
+<div class="space-y-4 opacity-60">
+<div class="bg-surface-container-lowest p-2 font-label text-xs text-primary/80 flex justify-between items-center">
+<span>ant-••••••••••••f8LL</span>
+<span class="material-symbols-outlined text-sm cursor-pointer hover:text-white">content_copy</span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">USAGE_PERCENT</div>
+<div class="w-32 h-1 bg-surface-container-high overflow-hidden">
+<div class="h-full bg-error" style="width: 100%;"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">COOLDOWN</div>
+<div class="text-xs font-label text-error">04:12:00</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Key Card: OpenAI -->
+<div class="bg-[#1c2024] p-[20px] hover:border-l-4 hover:border-primary transition-all group cursor-pointer active:scale-[0.98]">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 bg-surface-container-low flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">token</span>
+</div>
+<div>
+<h3 class="text-sm font-headline font-bold text-white tracking-tight uppercase">OpenAI GPT-4</h3>
+<p class="text-[10px] font-label text-outline tracking-wider">GATEWAY_ID: O-1150</p>
+</div>
+</div>
+<div class="w-[6px] h-[6px] bg-[#ffdb3c]"></div>
+</div>
+<div class="space-y-4">
+<div class="bg-surface-container-lowest p-2 font-label text-xs text-primary/80 flex justify-between items-center">
+<span>sk-••••••••••••pW2a</span>
+<span class="material-symbols-outlined text-sm cursor-pointer hover:text-white">content_copy</span>
+</div>
+<div class="flex justify-between items-end">
+<div>
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">USAGE_PERCENT</div>
+<div class="w-32 h-1 bg-surface-container-high overflow-hidden">
+<div class="h-full bg-[#ffdb3c]" style="width: 88%;"></div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">LATENCY</div>
+<div class="text-xs font-label text-[#ffdb3c]">452ms</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty Slot -->
+<div class="bg-surface-container/20 border border-dashed border-outline-variant/30 flex flex-col items-center justify-center min-h-[200px] gap-2 opacity-50 hover:opacity-100 transition-all group">
+<span class="material-symbols-outlined text-outline group-hover:text-primary">add_circle</span>
+<span class="text-[10px] font-label text-outline uppercase tracking-widest">Provision New Slot</span>
+</div>
+</div>
+</div>
+<!-- Right Telemetry Panel -->
+<div class="space-y-6">
+<div class="glass-panel p-6 border-l border-primary/20 flex flex-col gap-6">
+<div class="flex justify-between items-center border-b border-outline-variant/10 pb-4">
+<h2 class="text-sm font-headline font-bold uppercase tracking-widest text-[#ffdb3c]">Key Telemetry</h2>
+<span class="material-symbols-outlined text-outline text-sm">monetization_on</span>
+</div>
+<!-- Selected Key Details -->
+<div class="space-y-6">
+<div class="space-y-2">
+<label class="text-[10px] font-label text-outline uppercase tracking-[0.15em]">Active Transmission</label>
+<div class="bg-surface-container-lowest p-4 font-label text-[11px] leading-relaxed text-primary-fixed-dim/70">
+<div class="flex justify-between mb-1">
+<span class="text-primary-fixed-dim">TIMESTAMP</span>
+<span>2023-11-24T14:32:01.002Z</span>
+</div>
+<div class="flex justify-between mb-1">
+<span class="text-primary-fixed-dim">REQUEST_ID</span>
+<span>REQ-V9X0-8812</span>
+</div>
+<div class="flex justify-between">
+<span class="text-primary-fixed-dim">STATUS</span>
+<span class="text-[#00C851]">200_OK</span>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-[10px] font-label text-outline uppercase tracking-widest mb-2">
+<span>Throughput Capacity</span>
+<span class="text-primary">82%</span>
+</div>
+<div class="h-1.5 bg-surface-container-highest">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container" style="width: 82%;"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-label text-outline uppercase tracking-widest mb-2">
+<span>Error Frequency (24h)</span>
+<span class="text-error">1.2%</span>
+</div>
+<div class="h-1.5 bg-surface-container-highest">
+<div class="h-full bg-error" style="width: 12%;"></div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 pt-4 border-t border-outline-variant/10">
+<div>
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">COOLDOWN_TIMER</div>
+<div class="text-lg font-headline text-white">00:00:00</div>
+</div>
+<div>
+<div class="text-[9px] font-label text-outline uppercase tracking-widest mb-1">ROTATION_POLICY</div>
+<div class="text-lg font-headline text-[#ffdb3c]">BI-WEEKLY</div>
+</div>
+</div>
+<button class="w-full border border-outline-variant text-outline py-3 text-[10px] font-bold tracking-[0.2em] hover:bg-surface-bright hover:text-white transition-all active:scale-95 uppercase">
+                            Manual Key Rotation
+                        </button>
+</div>
+</div>
+<!-- System Logs Preview -->
+<div class="bg-surface-container p-6 space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-label text-outline uppercase tracking-widest">Global Status Feed</span>
+<div class="flex gap-1">
+<div class="w-1 h-1 bg-[#00C851]"></div>
+<div class="w-1 h-1 bg-[#00C851]"></div>
+<div class="w-1 h-1 bg-[#ffdb3c]"></div>
+</div>
+</div>
+<div class="font-label text-[9px] space-y-2 uppercase">
+<div class="flex gap-2">
+<span class="text-[#00C851]">[04:32:11]</span>
+<span class="text-outline">Node G-9021 authenticated successfully</span>
+</div>
+<div class="flex gap-2">
+<span class="text-error">[04:32:08]</span>
+<span class="text-outline">Gateway Q-4412 throttle warning triggered</span>
+</div>
+<div class="flex gap-2">
+<span class="text-primary">[04:31:55]</span>
+<span class="text-outline">Primary mesh reconfiguration completed</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="h-8 w-full fixed bottom-0 left-0 bg-[#0a0f13] z-50 flex items-center justify-between px-4 font-label text-[10px] uppercase tracking-widest border-none">
+<div class="text-gray-600 flex gap-4">
+<span class="text-[#ffdb3c] font-bold">PEACOCK ENGINE v4.2.0-STABLE</span>
+<span class="hidden md:inline">NODE_CLUSTER: PHX-04</span>
+<span class="hidden md:inline">UPTIME: 1,242h 12m</span>
+</div>
+<div class="flex gap-6 text-gray-600">
+<a class="hover:text-[#ffdb3c] transition-colors" href="#">SYS_LOG</a>
+<a class="hover:text-[#ffdb3c] transition-colors" href="#">ERR_MONITOR</a>
+<a class="hover:text-[#ffdb3c] transition-colors" href="#">API_DOCS</a>
+</div>
+</footer>
+<!-- Floating Action Visual Element -->
+<div class="fixed bottom-12 right-8 pointer-events-none opacity-20 hidden lg:block">
+<div class="text-[80px] font-headline font-bold text-primary select-none">PX_V4</div>
+</div>
+</body></html>
